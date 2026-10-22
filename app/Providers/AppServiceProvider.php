@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\MangaDex\RateLimit\LimitsTable;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +12,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LimitsTable::class, fn () => LimitsTable::fromConfig());
     }
 
     /**

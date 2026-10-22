@@ -4,7 +4,7 @@ use App\NativeComponents\Hello;
 use Native\Mobile\Testing\Native;
 
 it('renders the hello screen', function () {
-    Native::test(Hello::class)->assertSee('MangaDex Reader');
+    Native::test(Hello::class)->assertSee('ReaDex');
 });
 
 it('is the start route', function () {

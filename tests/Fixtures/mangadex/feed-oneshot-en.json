@@ -1,0 +1,66 @@
+{
+    "recorded_at": "2026-10-23T11:22:48+00:00",
+    "method": "GET",
+    "path": "/manga/69141247-f88f-4149-a994-31612cb3eb74/feed",
+    "query": {
+        "translatedLanguage": [
+            "en"
+        ],
+        "limit": 500,
+        "offset": 0,
+        "contentRating": [
+            "safe",
+            "suggestive",
+            "erotica",
+            "pornographic"
+        ],
+        "includes": [
+            "scanlation_group"
+        ],
+        "order": {
+            "volume": "asc",
+            "chapter": "asc"
+        }
+    },
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "collection",
+        "data": [
+            {
+                "id": "4e01bda4-0a04-4cdd-b3a9-edcafa7bbfd4",
+                "type": "chapter",
+                "attributes": {
+                    "volume": null,
+                    "chapter": null,
+                    "title": null,
+                    "translatedLanguage": "en",
+                    "externalUrl": null,
+                    "isUnavailable": false,
+                    "publishAt": "2026-10-22T20:47:16+00:00",
+                    "readableAt": "2026-10-22T20:47:16+00:00",
+                    "createdAt": "2026-10-22T20:47:16+00:00",
+                    "updatedAt": "2026-10-22T20:47:37+00:00",
+                    "version": 3,
+                    "pages": 20
+                },
+                "relationships": [
+                    {
+                        "id": "69141247-f88f-4149-a994-31612cb3eb74",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "8b59a0b9-b075-4859-854b-9274d371e0f0",
+                        "type": "user"
+                    }
+                ]
+            }
+        ],
+        "limit": 500,
+        "offset": 0,
+        "total": 1
+    }
+}

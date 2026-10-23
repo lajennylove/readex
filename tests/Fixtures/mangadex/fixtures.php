@@ -111,6 +111,24 @@ return [
         'order' => ['volume' => 'asc', 'chapter' => 'asc'],
     ]],
 
+    // Detail screen (Task 7): 700 es-la chapters, two pages of 500; long-list render check.
+    'feed-rtw-es-la-p1' => ["/manga/{$releaseThatWitch}/feed", [
+        'translatedLanguage' => ['es-la'],
+        'limit' => 500,
+        'offset' => 0,
+        'contentRating' => $allRatings,
+        'includes' => ['scanlation_group'],
+        'order' => ['volume' => 'asc', 'chapter' => 'asc'],
+    ]],
+    'feed-rtw-es-la-p2' => ["/manga/{$releaseThatWitch}/feed", [
+        'translatedLanguage' => ['es-la'],
+        'limit' => 500,
+        'offset' => 500,
+        'contentRating' => $allRatings,
+        'includes' => ['scanlation_group'],
+        'order' => ['volume' => 'asc', 'chapter' => 'asc'],
+    ]],
+
     // Oneshot: chapter number and volume are null.
     'feed-oneshot-en' => ['/manga/69141247-f88f-4149-a994-31612cb3eb74/feed', [
         'translatedLanguage' => ['en'],

@@ -3,26 +3,32 @@
 namespace App\NativeComponents;
 
 use App\Language\Languages;
+use App\Models\Chapter;
 use App\Models\Collection as LibraryEntry;
 use App\Models\Manga;
+use App\Models\ReadingProgress;
 use App\Models\Statistic;
 use App\NativeComponents\Concerns\RefreshesData;
 use App\NativeComponents\Concerns\ShowsTiles;
 use App\NativeLayouts\TabsLayout;
 use App\Refresh\Refresh;
 use App\Repositories\ChapterRepository;
+use App\Repositories\ContinueReading;
+use App\Repositories\LibraryChapter;
 use App\Repositories\LibraryRepository;
 use App\Repositories\MangaRepository;
 use App\Repositories\SettingsRepository;
 use App\Repositories\StatisticsRepository;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
+use Native\Mobile\Facades\Browser;
 use Native\Mobile\Facades\Dialog;
 
 /**
  * Spec §5.7 / §11.3, D30: the one series screen for Home, Search and Library (no separate
  * Collection screen). Header (cover, people, status, rating, languages), Continue where the
- * reader left off (`LibraryRepository::resume()`), Favorite, description.
+ * reader left off (`LibraryRepository::resume()`), Favorite, description, then the chapter
+ * list of one language in volume sections, the chapter Continue opens highlighted.
  */
 class MangaDetail extends NativeComponent
 {
@@ -35,6 +41,9 @@ class MangaDetail extends NativeComponent
     public string $mangaId = '';
 
     public string $tab = 'home';
+
+    /** Chapter-list language; '' until the series' languages are known. */
+    public string $language = '';
 
     public function mount(string $id): void
     {
@@ -65,6 +74,17 @@ class MangaDetail extends NativeComponent
         if ($detail->data !== null) {
             $this->queueCovers([$detail->data]);
         }
+
+        if ($this->language === '') {
+            $this->language = $this->openingLanguage();
+        }
+
+        if ($this->language !== '') {
+            $this->keepFresh(
+                app(ChapterRepository::class)->get($this->mangaId, $this->language),
+                Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language),
+            );
+        }
     }
 
     public function toggleFavorite(): void
@@ -77,6 +97,30 @@ class MangaDetail extends NativeComponent
         Dialog::toast(self::READER_LATER);
     }
 
+    public function pickLanguage(string $language): void
+    {
+        if ($language === $this->language || ! in_array($language, app(ChapterRepository::class)->languages($this->mangaId), true)) {
+            return;
+        }
+
+        $this->language = $language;
+        $this->load();
+    }
+
+    /** Licensed chapters (MangaPlus, VIZ…) only exist on the publisher's site: open it in the browser. */
+    public function openChapter(string $chapterId): void
+    {
+        $url = Chapter::query()->find($chapterId)?->external_url;
+
+        if ($url !== null) {
+            Browser::open($url);
+
+            return;
+        }
+
+        Dialog::toast(self::READER_LATER);
+    }
+
     public function render(): View
     {
         $manga = Manga::query()->find($this->mangaId);
@@ -86,6 +130,8 @@ class MangaDetail extends NativeComponent
         }
 
         $chain = app(SettingsRepository::class)->chain();
+        $chapters = app(ChapterRepository::class);
+        $current = app(LibraryRepository::class)->resume($this->mangaId);
 
         return view('native.manga-detail', [
             'manga' => $manga,
@@ -94,11 +140,85 @@ class MangaDetail extends NativeComponent
             'people' => self::people($manga->authors ?? [], $manga->artists ?? []),
             'facts' => implode(' · ', array_filter([$manga->status === null ? null : ucfirst($manga->status), $manga->year])),
             'stats' => self::stats(Statistic::query()->find($this->mangaId)),
-            'languages' => implode(' · ', array_map(Languages::name(...), app(ChapterRepository::class)->languages($this->mangaId))),
+            'languages' => implode(' · ', array_map(Languages::name(...), $chapters->languages($this->mangaId))),
             'description' => $chain->description($manga->description ?? []),
             'favorite' => $this->isFavorite(),
-            'continue' => $this->continueLabel(),
+            'continue' => $this->continueLabel($current),
+            'switch' => count($chapters->languages($this->mangaId)) > 1
+                ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $chapters->languages($this->mangaId))
+                : [],
+            'sections' => $this->language === '' ? [] : $this->chapterSections($current),
+            'loadingChapters' => $this->language !== '' && isset($this->refreshing[Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language)->key()]),
+            'languageName' => $this->language === '' ? null : Languages::name($this->language),
         ]);
+    }
+
+    /**
+     * Volume sections for the picked language. Once the Library knows the reader's group, one
+     * upload per number (theirs first, `LibraryRepository::sections()`); before that, every
+     * upload, so the reader can see which groups translate it.
+     *
+     * @return list<array{volume: string, chapters: list<array{id: string, label: string, caption: string, current: bool, read: bool}>}>
+     */
+    private function chapterSections(?ContinueReading $current): array
+    {
+        $library = app(LibraryRepository::class);
+
+        if ($library->preferredGroup($this->mangaId) !== null) {
+            $sections = array_map(fn (array $s) => [
+                'volume' => $s['volume'],
+                'chapters' => $s['chapters']->map(fn (LibraryChapter $c) => [$c->chapter, $c->progress]),
+            ], $library->sections($this->mangaId, $this->language));
+        } else {
+            $sections = app(ChapterRepository::class)->sections($this->mangaId, $this->language);
+            $ids = collect($sections)->flatMap(fn (array $s) => $s['chapters']->pluck('id'));
+            $progress = ReadingProgress::query()->whereIn('chapter_id', $ids)->get()->keyBy('chapter_id');
+            $sections = array_map(fn (array $s) => [
+                'volume' => $s['volume'],
+                'chapters' => $s['chapters']->map(fn (Chapter $c) => [$c, $progress->get($c->id)]),
+            ], $sections);
+        }
+
+        return array_map(fn (array $s) => [
+            'volume' => $s['volume'] === null ? 'No volume yet' : "Volume {$s['volume']}",
+            'chapters' => $s['chapters']->map(fn (array $pair) => self::chapterRow($pair[0], $pair[1], $current?->chapter->id === $pair[0]->id))->values()->all(),
+        ], $sections);
+    }
+
+    /**
+     * "Ch. 12 · Title" over "Group · Page 5 of 20" / "Group · Read" / "Group · Up next"; a
+     * licensed chapter says where it opens instead of its status.
+     *
+     * @return array{id: string, label: string, caption: string, current: bool, read: bool}
+     */
+    public static function chapterRow(Chapter $chapter, ?ReadingProgress $progress, bool $current): array
+    {
+        $status = match (true) {
+            $chapter->external_url !== null => 'Opens on '.(parse_url($chapter->external_url, PHP_URL_HOST) ?: 'the web'),
+            $progress?->finished_at !== null => 'Read',
+            $progress !== null => 'Page '.($progress->page + 1).' of '.$progress->page_count,
+            $current => 'Up next',
+            default => null,
+        };
+
+        return [
+            'id' => $chapter->id,
+            'label' => implode(' · ', array_filter([self::chapterLabel($chapter), $chapter->title])),
+            'caption' => implode(' · ', array_filter([$chapter->group_name ?? 'No group', $status])),
+            'current' => $current,
+            'read' => $progress?->finished_at !== null,
+        ];
+    }
+
+    /** The resumed chapter's language, else the first chain language the series has, else its first language. */
+    private function openingLanguage(): string
+    {
+        $chapters = app(ChapterRepository::class);
+
+        return app(LibraryRepository::class)->resume($this->mangaId)?->chapter->language
+            ?? $chapters->defaultLanguage($this->mangaId)
+            ?? $chapters->languages($this->mangaId)[0]
+            ?? '';
     }
 
     /**
@@ -139,10 +259,8 @@ class MangaDetail extends NativeComponent
     }
 
     /** "Continue · Ch. 12, page 5" on a started chapter, "Continue · Ch. 13" for the next one; null when never read or caught up. */
-    private function continueLabel(): ?string
+    private function continueLabel(?ContinueReading $next): ?string
     {
-        $next = app(LibraryRepository::class)->resume($this->mangaId);
-
         if ($next === null) {
             return null;
         }

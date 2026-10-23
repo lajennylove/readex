@@ -6,6 +6,8 @@ return [
 
     'report_url' => 'https://api.mangadex.network/report',
 
+    'covers_url' => 'https://uploads.mangadex.org/covers',
+
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 
     'contact' => env('MANGADEX_CONTACT'),

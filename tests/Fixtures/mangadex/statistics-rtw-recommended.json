@@ -1,0 +1,522 @@
+{
+    "recorded_at": "2026-10-23T12:10:24+00:00",
+    "method": "GET",
+    "path": "/statistics/manga",
+    "query": {
+        "manga": [
+            "0b0df25e-b41b-4e65-ae88-49cf99d1507e",
+            "0b25b09c-1ee8-49a4-b863-78beef1c98ea",
+            "0df76c70-df10-4d95-a101-0ada2bf991d4",
+            "0fea4e84-6cde-45f3-8924-2a09f6c4820f",
+            "11498636-7f98-48fd-9125-737dac65823a",
+            "14e99ffe-e9ce-43c0-aaa5-edfc5bacfb3a",
+            "16800ea3-d7cb-4a03-801e-bfbb4dc12bea",
+            "1e38f546-9007-4914-8131-17c707713b9e",
+            "1e940efb-640b-4f0a-805b-3dd1b61e0748",
+            "39960d43-b8dd-4fdc-b6b7-ab9ad82cce90",
+            "3bd65a09-dec5-4c0a-a34f-b07a9cc53aae",
+            "4026ddbd-73fd-40cc-b75c-d52ee1f65a0f",
+            "438b7cbc-09c3-4464-a491-daf0764c0eb1",
+            "44f84cc1-819c-47a6-a59f-43d016f72b43",
+            "4859a6f9-1ef7-42c3-bcb3-4f96c31bc8ad",
+            "500e6e54-b34d-45a2-9e70-d37e0fc15eed",
+            "52f67be2-e973-4dc7-9fe6-ae1def48222d",
+            "6567955a-a5b8-4ad9-ad54-c08ecd42f9c0",
+            "697b62e7-c8d1-4087-a914-bdb2f2b3bd6e",
+            "6cc330d6-5e3a-4028-bad7-ccf6ade568ee",
+            "6cd319d4-0f33-48a2-9a65-a68db9fea5ee",
+            "85f236f8-b335-4166-906f-ed1d8ea89c55",
+            "8e781047-93b5-45ee-89ff-c84ca401df4f",
+            "9e11f327-5b6a-4f33-8d51-6c2cc5fe0553",
+            "9e74f69c-e087-40a8-b066-f2f7eb05bd0e",
+            "a209cabb-8d0d-415b-b73e-c6ec32f060e2",
+            "adfe3bc0-4663-43c8-b1c4-f806ee969348",
+            "af9aad67-fe97-4174-91a4-263979d62b0b",
+            "c5cdf853-1b18-4d1a-8534-a7772841e424",
+            "d905d83a-b2a9-4219-9645-df64ff7c580a",
+            "d9e58461-50fd-4dfd-b22b-b73057431971",
+            "da45600e-ca6f-4a52-a7f0-019db47c1e3f",
+            "dd16dbbc-c317-4f62-8cf5-3525b4083aab",
+            "e900135b-8eba-4d29-85c9-db3d5ae885c7",
+            "e90e4250-24bf-4bb3-a27b-d703b7eb6551",
+            "ed25bd9e-367d-4323-b5ae-97d4d6bdb1f0",
+            "ee3e42ec-962e-4d91-b29a-e117dc7a2d7d",
+            "fe840243-5b68-447a-ab4b-c094eed7d6af",
+            "ff9791c2-aa9a-496f-9ecd-99b891f78800"
+        ]
+    },
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "statistics": {
+            "0b0df25e-b41b-4e65-ae88-49cf99d1507e": {
+                "comments": {
+                    "threadId": 1268875,
+                    "repliesCount": 0
+                },
+                "follows": 610,
+                "rating": {
+                    "average": 7.8286,
+                    "bayesian": 8.051517965432781
+                },
+                "unavailableChaptersCount": 0
+            },
+            "0b25b09c-1ee8-49a4-b863-78beef1c98ea": {
+                "comments": {
+                    "threadId": 706527,
+                    "repliesCount": 53
+                },
+                "follows": 5432,
+                "rating": {
+                    "average": 7.7132,
+                    "bayesian": 7.843228103579454
+                },
+                "unavailableChaptersCount": 0
+            },
+            "0df76c70-df10-4d95-a101-0ada2bf991d4": {
+                "comments": {
+                    "threadId": 67890,
+                    "repliesCount": 69
+                },
+                "follows": 10728,
+                "rating": {
+                    "average": 7.335,
+                    "bayesian": 7.470535324410646
+                },
+                "unavailableChaptersCount": 0
+            },
+            "0fea4e84-6cde-45f3-8924-2a09f6c4820f": {
+                "comments": {
+                    "threadId": 1877892,
+                    "repliesCount": 39
+                },
+                "follows": 28079,
+                "rating": {
+                    "average": 8.602,
+                    "bayesian": 8.56980959676996
+                },
+                "unavailableChaptersCount": 0
+            },
+            "11498636-7f98-48fd-9125-737dac65823a": {
+                "comments": {
+                    "threadId": 1318645,
+                    "repliesCount": 0
+                },
+                "follows": 479,
+                "rating": {
+                    "average": 8.1154,
+                    "bayesian": 8.112987146384022
+                },
+                "unavailableChaptersCount": 0
+            },
+            "14e99ffe-e9ce-43c0-aaa5-edfc5bacfb3a": {
+                "comments": {
+                    "threadId": 1946955,
+                    "repliesCount": 0
+                },
+                "follows": 348,
+                "rating": {
+                    "average": 7.1905,
+                    "bayesian": 7.9825135464713775
+                },
+                "unavailableChaptersCount": 0
+            },
+            "16800ea3-d7cb-4a03-801e-bfbb4dc12bea": {
+                "comments": {
+                    "threadId": 164070,
+                    "repliesCount": 319
+                },
+                "follows": 35593,
+                "rating": {
+                    "average": 7.5134,
+                    "bayesian": 7.540558823061589
+                },
+                "unavailableChaptersCount": 0
+            },
+            "1e38f546-9007-4914-8131-17c707713b9e": {
+                "comments": {
+                    "threadId": 1078596,
+                    "repliesCount": 3
+                },
+                "follows": 1995,
+                "rating": {
+                    "average": 7.8611,
+                    "bayesian": 7.997437066756287
+                },
+                "unavailableChaptersCount": 0
+            },
+            "1e940efb-640b-4f0a-805b-3dd1b61e0748": {
+                "comments": {
+                    "threadId": 609612,
+                    "repliesCount": 13
+                },
+                "follows": 822,
+                "rating": {
+                    "average": 6.2308,
+                    "bayesian": 7.833417481954593
+                },
+                "unavailableChaptersCount": 0
+            },
+            "39960d43-b8dd-4fdc-b6b7-ab9ad82cce90": {
+                "comments": {
+                    "threadId": 1299268,
+                    "repliesCount": 0
+                },
+                "follows": 2698,
+                "rating": {
+                    "average": 7.7377,
+                    "bayesian": 7.929569142958351
+                },
+                "unavailableChaptersCount": 0
+            },
+            "3bd65a09-dec5-4c0a-a34f-b07a9cc53aae": {
+                "comments": {
+                    "threadId": 1759601,
+                    "repliesCount": 15
+                },
+                "follows": 9684,
+                "rating": {
+                    "average": 8.0805,
+                    "bayesian": 8.086461283752428
+                },
+                "unavailableChaptersCount": 0
+            },
+            "4026ddbd-73fd-40cc-b75c-d52ee1f65a0f": {
+                "comments": {
+                    "threadId": 1819636,
+                    "repliesCount": 1
+                },
+                "follows": 783,
+                "rating": {
+                    "average": 6.7436,
+                    "bayesian": 7.839213896384363
+                },
+                "unavailableChaptersCount": 0
+            },
+            "438b7cbc-09c3-4464-a491-daf0764c0eb1": {
+                "comments": {
+                    "threadId": 429906,
+                    "repliesCount": 34
+                },
+                "follows": 8094,
+                "rating": {
+                    "average": 7.2191,
+                    "bayesian": 7.472064142894343
+                },
+                "unavailableChaptersCount": 0
+            },
+            "44f84cc1-819c-47a6-a59f-43d016f72b43": {
+                "comments": {
+                    "threadId": 58932,
+                    "repliesCount": 123
+                },
+                "follows": 17041,
+                "rating": {
+                    "average": 6.877,
+                    "bayesian": 7.028036549936992
+                },
+                "unavailableChaptersCount": 0
+            },
+            "4859a6f9-1ef7-42c3-bcb3-4f96c31bc8ad": {
+                "comments": {
+                    "threadId": 1787705,
+                    "repliesCount": 0
+                },
+                "follows": 159,
+                "rating": {
+                    "average": 6,
+                    "bayesian": 8.090667293375898
+                },
+                "unavailableChaptersCount": 0
+            },
+            "500e6e54-b34d-45a2-9e70-d37e0fc15eed": {
+                "comments": {
+                    "threadId": 2502017,
+                    "repliesCount": 0
+                },
+                "follows": 113,
+                "rating": {
+                    "average": 6.6,
+                    "bayesian": 8.106375408125313
+                },
+                "unavailableChaptersCount": 0
+            },
+            "52f67be2-e973-4dc7-9fe6-ae1def48222d": {
+                "comments": {
+                    "threadId": 2495336,
+                    "repliesCount": 2
+                },
+                "follows": 407,
+                "rating": {
+                    "average": 7.8333,
+                    "bayesian": 8.051203750701188
+                },
+                "unavailableChaptersCount": 0
+            },
+            "6567955a-a5b8-4ad9-ad54-c08ecd42f9c0": {
+                "comments": {
+                    "threadId": 1985100,
+                    "repliesCount": 5
+                },
+                "follows": 8077,
+                "rating": {
+                    "average": 8.6544,
+                    "bayesian": 8.547087193032713
+                },
+                "unavailableChaptersCount": 0
+            },
+            "697b62e7-c8d1-4087-a914-bdb2f2b3bd6e": {
+                "comments": {
+                    "threadId": 919485,
+                    "repliesCount": 5
+                },
+                "follows": 1076,
+                "rating": {
+                    "average": 5.9231,
+                    "bayesian": 7.7427558945280905
+                },
+                "unavailableChaptersCount": 0
+            },
+            "6cc330d6-5e3a-4028-bad7-ccf6ade568ee": {
+                "comments": {
+                    "threadId": 1972194,
+                    "repliesCount": 6
+                },
+                "follows": 3762,
+                "rating": {
+                    "average": 8.4651,
+                    "bayesian": 8.359931082187037
+                },
+                "unavailableChaptersCount": 0
+            },
+            "6cd319d4-0f33-48a2-9a65-a68db9fea5ee": {
+                "comments": {
+                    "threadId": 2336691,
+                    "repliesCount": 7
+                },
+                "follows": 5989,
+                "rating": {
+                    "average": 8.1036,
+                    "bayesian": 8.106371915628591
+                },
+                "unavailableChaptersCount": 0
+            },
+            "85f236f8-b335-4166-906f-ed1d8ea89c55": {
+                "comments": {
+                    "threadId": 1776593,
+                    "repliesCount": 1
+                },
+                "follows": 1803,
+                "rating": {
+                    "average": 7.7845,
+                    "bayesian": 7.956530420928001
+                },
+                "unavailableChaptersCount": 0
+            },
+            "8e781047-93b5-45ee-89ff-c84ca401df4f": {
+                "comments": null,
+                "follows": 239,
+                "rating": {
+                    "average": 5.6,
+                    "bayesian": 7.976570370158406
+                },
+                "unavailableChaptersCount": 0
+            },
+            "9e11f327-5b6a-4f33-8d51-6c2cc5fe0553": {
+                "comments": {
+                    "threadId": 1667731,
+                    "repliesCount": 9
+                },
+                "follows": 1923,
+                "rating": {
+                    "average": 6.5528,
+                    "bayesian": 7.243471808881764
+                },
+                "unavailableChaptersCount": 0
+            },
+            "9e74f69c-e087-40a8-b066-f2f7eb05bd0e": {
+                "comments": {
+                    "threadId": 1743968,
+                    "repliesCount": 4
+                },
+                "follows": 1353,
+                "rating": {
+                    "average": 7.675,
+                    "bayesian": 7.9441966470515695
+                },
+                "unavailableChaptersCount": 0
+            },
+            "a209cabb-8d0d-415b-b73e-c6ec32f060e2": {
+                "comments": {
+                    "threadId": 1978971,
+                    "repliesCount": 18
+                },
+                "follows": 9022,
+                "rating": {
+                    "average": 8.8255,
+                    "bayesian": 8.720991592566513
+                },
+                "unavailableChaptersCount": 0
+            },
+            "adfe3bc0-4663-43c8-b1c4-f806ee969348": {
+                "comments": {
+                    "threadId": 1377454,
+                    "repliesCount": 0
+                },
+                "follows": 924,
+                "rating": {
+                    "average": 6.9429,
+                    "bayesian": 7.86128470036775
+                },
+                "unavailableChaptersCount": 0
+            },
+            "af9aad67-fe97-4174-91a4-263979d62b0b": {
+                "comments": {
+                    "threadId": 2439652,
+                    "repliesCount": 45
+                },
+                "follows": 36334,
+                "rating": {
+                    "average": 9.1048,
+                    "bayesian": 9.063136512035951
+                },
+                "unavailableChaptersCount": 0
+            },
+            "c5cdf853-1b18-4d1a-8534-a7772841e424": {
+                "comments": {
+                    "threadId": 1768637,
+                    "repliesCount": 18
+                },
+                "follows": 11870,
+                "rating": {
+                    "average": 8.8329,
+                    "bayesian": 8.73690242841278
+                },
+                "unavailableChaptersCount": 0
+            },
+            "d905d83a-b2a9-4219-9645-df64ff7c580a": {
+                "comments": {
+                    "threadId": 496695,
+                    "repliesCount": 177
+                },
+                "follows": 13958,
+                "rating": {
+                    "average": 8.2172,
+                    "bayesian": 8.202233873032203
+                },
+                "unavailableChaptersCount": 0
+            },
+            "d9e58461-50fd-4dfd-b22b-b73057431971": {
+                "comments": {
+                    "threadId": 2361117,
+                    "repliesCount": 3
+                },
+                "follows": 1419,
+                "rating": {
+                    "average": 6.7468,
+                    "bayesian": 7.59119814740245
+                },
+                "unavailableChaptersCount": 0
+            },
+            "da45600e-ca6f-4a52-a7f0-019db47c1e3f": {
+                "comments": {
+                    "threadId": 2058375,
+                    "repliesCount": 6
+                },
+                "follows": 1647,
+                "rating": {
+                    "average": 7.7061,
+                    "bayesian": 7.852216358833427
+                },
+                "unavailableChaptersCount": 0
+            },
+            "dd16dbbc-c317-4f62-8cf5-3525b4083aab": {
+                "comments": {
+                    "threadId": 2722983,
+                    "repliesCount": 3
+                },
+                "follows": 1584,
+                "rating": {
+                    "average": 8.51,
+                    "bayesian": 8.28687435714788
+                },
+                "unavailableChaptersCount": 0
+            },
+            "e900135b-8eba-4d29-85c9-db3d5ae885c7": {
+                "comments": {
+                    "threadId": 34482,
+                    "repliesCount": 136
+                },
+                "follows": 18259,
+                "rating": {
+                    "average": 8.0746,
+                    "bayesian": 8.077740337605032
+                },
+                "unavailableChaptersCount": 0
+            },
+            "e90e4250-24bf-4bb3-a27b-d703b7eb6551": {
+                "comments": {
+                    "threadId": 1819714,
+                    "repliesCount": 9
+                },
+                "follows": 2743,
+                "rating": {
+                    "average": 6.604,
+                    "bayesian": 7.300959483909316
+                },
+                "unavailableChaptersCount": 0
+            },
+            "ed25bd9e-367d-4323-b5ae-97d4d6bdb1f0": {
+                "comments": {
+                    "threadId": 2443261,
+                    "repliesCount": 3
+                },
+                "follows": 642,
+                "rating": {
+                    "average": 7.7895,
+                    "bayesian": 8.038535427031345
+                },
+                "unavailableChaptersCount": 0
+            },
+            "ee3e42ec-962e-4d91-b29a-e117dc7a2d7d": {
+                "comments": {
+                    "threadId": 378318,
+                    "repliesCount": 9
+                },
+                "follows": 1306,
+                "rating": {
+                    "average": 6.2653,
+                    "bayesian": 7.631372405153613
+                },
+                "unavailableChaptersCount": 0
+            },
+            "fe840243-5b68-447a-ab4b-c094eed7d6af": {
+                "comments": {
+                    "threadId": 373662,
+                    "repliesCount": 586
+                },
+                "follows": 45263,
+                "rating": {
+                    "average": 8.6582,
+                    "bayesian": 8.640078343226952
+                },
+                "unavailableChaptersCount": 0
+            },
+            "ff9791c2-aa9a-496f-9ecd-99b891f78800": {
+                "comments": {
+                    "threadId": 564183,
+                    "repliesCount": 5
+                },
+                "follows": 784,
+                "rating": {
+                    "average": 5,
+                    "bayesian": 7.785917677659674
+                },
+                "unavailableChaptersCount": 0
+            }
+        }
+    }
+}

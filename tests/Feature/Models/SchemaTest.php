@@ -19,7 +19,7 @@ it('creates every spec §6 table plus chapter_feeds', function (string $table, a
         ->and(Schema::hasColumns($table, $columns))->toBeTrue();
 })->with([
     ['tags', ['id', 'group', 'name', 'fetched_at']],
-    ['manga', ['id', 'title', 'alt_titles', 'description', 'status', 'year', 'content_rating', 'available_languages', 'original_language', 'tag_ids', 'cover_file', 'fetched_at']],
+    ['manga', ['id', 'title', 'alt_titles', 'description', 'status', 'year', 'content_rating', 'available_languages', 'original_language', 'tag_ids', 'cover_file', 'fetched_at', 'recommendations_fetched_at']],
     ['manga_lists', ['list_key', 'batch', 'position', 'manga_id', 'chapter_id', 'fetched_at']],
     ['chapters', ['id', 'manga_id', 'volume', 'number', 'title', 'language', 'group_id', 'group_name', 'pages', 'external_url', 'readable_at', 'fetched_at']],
     ['chapter_feeds', ['manga_id', 'language', 'total', 'fetched_at']],

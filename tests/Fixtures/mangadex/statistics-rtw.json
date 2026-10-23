@@ -1,0 +1,39 @@
+{
+    "recorded_at": "2026-10-23T12:10:27+00:00",
+    "method": "GET",
+    "path": "/statistics/manga/aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+    "query": [],
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "statistics": {
+            "aafb046c-9de4-4c3d-990c-6d75b079c0b9": {
+                "comments": {
+                    "threadId": 210018,
+                    "repliesCount": 599
+                },
+                "follows": 40308,
+                "rating": {
+                    "average": 8.3233,
+                    "bayesian": 8.315916458740542,
+                    "distribution": {
+                        "1": 107,
+                        "2": 14,
+                        "3": 39,
+                        "4": 118,
+                        "5": 85,
+                        "6": 131,
+                        "7": 301,
+                        "8": 601,
+                        "9": 765,
+                        "10": 1343
+                    }
+                },
+                "unavailableChaptersCount": 0
+            }
+        }
+    }
+}

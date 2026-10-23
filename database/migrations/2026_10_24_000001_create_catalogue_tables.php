@@ -28,6 +28,8 @@ return new class extends Migration
             $table->json('tag_ids');
             $table->string('cover_file')->nullable();
             $table->timestamp('fetched_at')->nullable();
+            // Set even when MangaDex has no recommendations, so an empty row stays fresh.
+            $table->timestamp('recommendations_fetched_at')->nullable();
         });
 
         Schema::create('manga_lists', function (Blueprint $table) {
@@ -72,7 +74,8 @@ return new class extends Migration
             $table->float('rating_avg')->nullable();
             $table->float('rating_bayesian')->nullable();
             $table->unsignedInteger('follows')->default(0);
-            $table->json('distribution');
+            // Null until the one-manga call; the batched call has no distribution.
+            $table->json('distribution')->nullable();
             $table->timestamp('fetched_at')->nullable();
         });
 

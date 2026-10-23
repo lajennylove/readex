@@ -26,6 +26,11 @@ $mangaIdsOf = function (string $name, string $from): array {
     return array_values(array_unique($ids));
 };
 
+$releaseThatWitch = 'aafb046c-9de4-4c3d-990c-6d75b079c0b9';
+
+// Each recommendation links the source manga and the recommended one.
+$recommendedIds = array_values(array_diff($mangaIdsOf('recommendations-rtw', 'data'), [$releaseThatWitch]));
+
 $seasonIds = is_file(__DIR__.'/seasonal-json.json')
     ? json_decode(file_get_contents(__DIR__.'/seasonal-json.json'), true)['body']['manga_ids']
     : [];
@@ -156,5 +161,24 @@ return [
         'contentRating' => ['safe', 'suggestive'],
         'includes' => ['cover_art'],
     ]],
+
+    // Statistics + recommendations (Task 8). Record recommendations-rtw first, the next two read its ids.
+
+    // Release that Witch: 39 recommendations, one page (the endpoint takes no limit or offset), not sorted by score.
+    'recommendations-rtw' => ["/manga/{$releaseThatWitch}/recommendation", []],
+
+    // Their titles + covers, every rating (filtered at read time).
+    'recommendations-rtw-manga' => ['/manga', [
+        'ids' => $recommendedIds,
+        'limit' => 100,
+        'contentRating' => $allRatings,
+        'includes' => ['cover_art'],
+    ]],
+
+    // Batched: follows + average/bayesian rating, no distribution.
+    'statistics-rtw-recommended' => ['/statistics/manga', ['manga' => $recommendedIds]],
+
+    // One manga: adds the rating distribution.
+    'statistics-rtw' => ["/statistics/manga/{$releaseThatWitch}", []],
 
 ];

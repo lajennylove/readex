@@ -1,0 +1,682 @@
+{
+    "recorded_at": "2026-10-23T12:10:13+00:00",
+    "method": "GET",
+    "path": "/manga/aafb046c-9de4-4c3d-990c-6d75b079c0b9/recommendation",
+    "query": [],
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "collection",
+        "data": [
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_0b0df25e-b41b-4e65-ae88-49cf99d1507e",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8196015821989968
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "0b0df25e-b41b-4e65-ae88-49cf99d1507e",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_0b25b09c-1ee8-49a4-b863-78beef1c98ea",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8045223492661601
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "0b25b09c-1ee8-49a4-b863-78beef1c98ea",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_0df76c70-df10-4d95-a101-0ada2bf991d4",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8006548798587202
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "0df76c70-df10-4d95-a101-0ada2bf991d4",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_0fea4e84-6cde-45f3-8924-2a09f6c4820f",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8207038046291346
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "0fea4e84-6cde-45f3-8924-2a09f6c4820f",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_11498636-7f98-48fd-9125-737dac65823a",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8204694165252326
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "11498636-7f98-48fd-9125-737dac65823a",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_14e99ffe-e9ce-43c0-aaa5-edfc5bacfb3a",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7836888944564655
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "14e99ffe-e9ce-43c0-aaa5-edfc5bacfb3a",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_16800ea3-d7cb-4a03-801e-bfbb4dc12bea",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8133781270830429
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "16800ea3-d7cb-4a03-801e-bfbb4dc12bea",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_1e38f546-9007-4914-8131-17c707713b9e",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8637182894533864
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "1e38f546-9007-4914-8131-17c707713b9e",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_1e940efb-640b-4f0a-805b-3dd1b61e0748",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8022481805363
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "1e940efb-640b-4f0a-805b-3dd1b61e0748",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_39960d43-b8dd-4fdc-b6b7-ab9ad82cce90",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.797337850246518
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "39960d43-b8dd-4fdc-b6b7-ab9ad82cce90",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_3bd65a09-dec5-4c0a-a34f-b07a9cc53aae",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7880470019751101
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "3bd65a09-dec5-4c0a-a34f-b07a9cc53aae",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_4026ddbd-73fd-40cc-b75c-d52ee1f65a0f",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8871875159033437
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "4026ddbd-73fd-40cc-b75c-d52ee1f65a0f",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_438b7cbc-09c3-4464-a491-daf0764c0eb1",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8183144834154907
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "438b7cbc-09c3-4464-a491-daf0764c0eb1",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_44f84cc1-819c-47a6-a59f-43d016f72b43",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8136939721380009
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "44f84cc1-819c-47a6-a59f-43d016f72b43",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_4859a6f9-1ef7-42c3-bcb3-4f96c31bc8ad",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7941550021611479
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "4859a6f9-1ef7-42c3-bcb3-4f96c31bc8ad",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_500e6e54-b34d-45a2-9e70-d37e0fc15eed",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7776056605230581
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "500e6e54-b34d-45a2-9e70-d37e0fc15eed",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_52f67be2-e973-4dc7-9fe6-ae1def48222d",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8233432629962905
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "52f67be2-e973-4dc7-9fe6-ae1def48222d",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_6567955a-a5b8-4ad9-ad54-c08ecd42f9c0",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8311846596702588
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "6567955a-a5b8-4ad9-ad54-c08ecd42f9c0",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_697b62e7-c8d1-4087-a914-bdb2f2b3bd6e",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8149205520545881
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "697b62e7-c8d1-4087-a914-bdb2f2b3bd6e",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_6cc330d6-5e3a-4028-bad7-ccf6ade568ee",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8198986759954603
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "6cc330d6-5e3a-4028-bad7-ccf6ade568ee",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_6cd319d4-0f33-48a2-9a65-a68db9fea5ee",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8552256384583177
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "6cd319d4-0f33-48a2-9a65-a68db9fea5ee",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_85f236f8-b335-4166-906f-ed1d8ea89c55",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7786352179683251
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "85f236f8-b335-4166-906f-ed1d8ea89c55",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_8e781047-93b5-45ee-89ff-c84ca401df4f",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7841025933604056
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "8e781047-93b5-45ee-89ff-c84ca401df4f",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_9e11f327-5b6a-4f33-8d51-6c2cc5fe0553",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.790724002672273
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "9e11f327-5b6a-4f33-8d51-6c2cc5fe0553",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_9e74f69c-e087-40a8-b066-f2f7eb05bd0e",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8266988741161174
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "9e74f69c-e087-40a8-b066-f2f7eb05bd0e",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_a209cabb-8d0d-415b-b73e-c6ec32f060e2",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8292814302382554
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "a209cabb-8d0d-415b-b73e-c6ec32f060e2",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_adfe3bc0-4663-43c8-b1c4-f806ee969348",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.795099389107798
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "adfe3bc0-4663-43c8-b1c4-f806ee969348",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_af9aad67-fe97-4174-91a4-263979d62b0b",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8785934397731359
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "af9aad67-fe97-4174-91a4-263979d62b0b",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_c5cdf853-1b18-4d1a-8534-a7772841e424",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8312633433072771
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "c5cdf853-1b18-4d1a-8534-a7772841e424",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_d905d83a-b2a9-4219-9645-df64ff7c580a",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.810460540951345
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "d905d83a-b2a9-4219-9645-df64ff7c580a",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_d9e58461-50fd-4dfd-b22b-b73057431971",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.872708554191822
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "d9e58461-50fd-4dfd-b22b-b73057431971",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_da45600e-ca6f-4a52-a7f0-019db47c1e3f",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7794533714874052
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "da45600e-ca6f-4a52-a7f0-019db47c1e3f",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_dd16dbbc-c317-4f62-8cf5-3525b4083aab",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.833838284524741
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "dd16dbbc-c317-4f62-8cf5-3525b4083aab",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_e900135b-8eba-4d29-85c9-db3d5ae885c7",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.80148646934746
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "e900135b-8eba-4d29-85c9-db3d5ae885c7",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_e90e4250-24bf-4bb3-a27b-d703b7eb6551",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8390732653368771
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "e90e4250-24bf-4bb3-a27b-d703b7eb6551",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_ed25bd9e-367d-4323-b5ae-97d4d6bdb1f0",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.7779678542980115
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "ed25bd9e-367d-4323-b5ae-97d4d6bdb1f0",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_ee3e42ec-962e-4d91-b29a-e117dc7a2d7d",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8153568787610013
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "ee3e42ec-962e-4d91-b29a-e117dc7a2d7d",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_fe840243-5b68-447a-ab4b-c094eed7d6af",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8583843736568928
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "fe840243-5b68-447a-ab4b-c094eed7d6af",
+                        "type": "manga"
+                    }
+                ]
+            },
+            {
+                "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9_ff9791c2-aa9a-496f-9ecd-99b891f78800",
+                "type": "manga_recommendation",
+                "attributes": {
+                    "score": 0.8033169205869826
+                },
+                "relationships": [
+                    {
+                        "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+                        "type": "manga"
+                    },
+                    {
+                        "id": "ff9791c2-aa9a-496f-9ecd-99b891f78800",
+                        "type": "manga"
+                    }
+                ]
+            }
+        ],
+        "limit": 50,
+        "offset": 0,
+        "total": 39
+    }
+}

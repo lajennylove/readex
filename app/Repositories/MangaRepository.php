@@ -223,8 +223,8 @@ final class MangaRepository
         return $offset + count($response['data'] ?? []) < min($response['total'] ?? 0, self::MAX_RESULTS);
     }
 
-    /** 0 = picked language or its sibling ("ES" badge), 1 = another chain language (English), 2 = none. */
-    private function rank(LanguageChain $chain, Manga $manga): int
+    /** 0 = picked language or its sibling ("ES" badge), 1 = another chain language (English), 2 = none. Recommendations sort with it too. */
+    public function rank(LanguageChain $chain, Manga $manga): int
     {
         return match (true) {
             $chain->badge($manga->available_languages) !== null => 0,

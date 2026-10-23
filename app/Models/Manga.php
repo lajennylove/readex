@@ -28,6 +28,7 @@ class Manga extends Model
             'available_languages' => 'array',
             'tag_ids' => 'array',
             'fetched_at' => 'immutable_datetime',
+            'recommendations_fetched_at' => 'immutable_datetime',
         ];
     }
 }

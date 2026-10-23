@@ -60,8 +60,12 @@ class Search extends NativeComponent
         return NavBarOptions::make()->searchBar(placeholder: 'Titles', onQuery: 'searchFor', debounceMs: 400);
     }
 
-    public function mount(): void
+    /** Every tab tap makes a new Search screen, so the search lives in the settings, not on the screen. */
+    public function mount(SettingsRepository $settings): void
     {
+        ['query' => $this->query, 'tag_id' => $tagId] = $settings->lastSearch();
+        $this->tagId = $tagId !== null && Tag::query()->whereKey($tagId)->exists() ? $tagId : null;
+
         $this->setVirtualWindow(0, self::FIRST_WINDOW_ROWS - 1);
         $this->load();
     }
@@ -86,6 +90,13 @@ class Search extends NativeComponent
     public function clearTag(): void
     {
         $this->tagId = null;
+        $this->startOver();
+    }
+
+    /** The title chip: a kept title comes back with an empty iOS field, which can't be emptied. */
+    public function clearQuery(): void
+    {
+        $this->query = '';
         $this->startOver();
     }
 
@@ -162,6 +173,7 @@ class Search extends NativeComponent
             'line' => $line,
             'busy' => $busy,
             'tag' => $this->tagId === null ? null : (Tag::query()->find($this->tagId)?->name['en'] ?? null),
+            'query' => $this->query,
             'rowCount' => $this->rowCount($result),
             'from' => $this->virtualWindowFrom,
             'to' => $this->virtualWindowTo,
@@ -170,6 +182,7 @@ class Search extends NativeComponent
 
     private function startOver(): void
     {
+        app(SettingsRepository::class)->rememberSearch($this->query, $this->tagId);
         $this->more = null;
         $this->problems = [];
         $this->setVirtualWindow(0, self::FIRST_WINDOW_ROWS - 1);

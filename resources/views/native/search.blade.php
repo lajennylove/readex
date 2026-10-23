@@ -26,9 +26,14 @@
             </native:column>
         </native:refreshable>
     @else
-        @if ($tag !== null)
-            <native:row class="w-full px-4 py-2">
-                <native:chip label="{{ $tag }}" :selected="true" @change="clearTag" />
+        @if ($tag !== null || $query !== '')
+            <native:row class="w-full flex-wrap gap-2 px-4 py-2">
+                @if ($tag !== null)
+                    <native:chip label="{{ $tag }}" :selected="true" @change="clearTag" />
+                @endif
+                @if ($query !== '')
+                    <native:chip label="“{{ $query }}”" :selected="true" @change="clearQuery" />
+                @endif
             </native:row>
         @endif
 

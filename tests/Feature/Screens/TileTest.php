@@ -18,7 +18,10 @@ use Tests\Support\TileScreen;
 beforeEach(function () {
     $this->caches = Covers::useTempCaches();
     Queue::fake();
+    $this->async = AsyncTask::fake();
 });
+
+afterEach(fn () => AsyncTask::clearFake());
 
 function imageSrcIs(string $src): Closure
 {
@@ -108,7 +111,6 @@ it('opens the series inside the tab the screen belongs to', function () {
 
 it('downloads the first twelve covers right away and queues the rest in the background', function () {
     Http::fake(['uploads.mangadex.org/*' => Http::response(Covers::jpeg())]);
-    $async = AsyncTask::fake();
     $ids = array_map(fn (int $i) => sprintf('m%02d', $i), range(1, 14));
     foreach ($ids as $id) {
         Covers::manga($id);
@@ -117,13 +119,12 @@ it('downloads the first twelve covers right away and queues the rest in the back
 
     Native::test(TileScreen::class);
 
-    $async->assertDispatchedTimes(1);
+    $this->async->assertDispatchedTimes(1);
     expect(Http::recorded()->map(fn (array $pair) => explode('/', parse_url($pair[0]->url(), PHP_URL_PATH))[2])->all())
         ->toBe(array_slice($ids, 0, 12));
     Queue::assertPushed(DownloadCovers::class, 1);
     Queue::assertPushed(DownloadCovers::class, fn (DownloadCovers $job) => $job->priority === Priority::Prefetch
         && $job->mangaIds === ['m13', 'm14']);
-    AsyncTask::clearFake();
 });
 
 it('renders the tile without dropped Tailwind classes', function () {

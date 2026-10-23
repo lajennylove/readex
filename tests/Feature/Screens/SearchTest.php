@@ -308,6 +308,7 @@ it('waits for the window to get near the end before loading more', function () {
 });
 
 it('puts rated content (erotica, pornographic) at the bottom, under a divider and its own title', function () {
+    app(SettingsRepository::class)->setContentRatings(['safe', 'suggestive', 'erotica', 'pornographic']);
     $key = app(MangaRepository::class)->listKey('one punch');
     $saved = [
         1 => ['Safe 0' => 'safe', 'Porn 1' => 'pornographic', 'Suggestive 2' => 'suggestive', 'Erotica 3' => 'erotica'],
@@ -335,6 +336,23 @@ it('puts rated content (erotica, pornographic) at the bottom, under a divider an
             fn (int $i) => sprintf('00000000-0000-4000-8000-%012d', $i),
             [0, 2, 4, 1, 3, 5],
         ));
+});
+
+it('keeps one grid in list order when the settings leave rated content out', function () {
+    $key = app(MangaRepository::class)->listKey('one punch');
+    $position = 0;
+
+    foreach (['Safe 0' => 'safe', 'Erotica 1' => 'erotica', 'Safe 2' => 'safe'] as $title => $rating) {
+        $manga = Covers::manga(sprintf('00000000-0000-4000-8000-%012d', $position), title: $title, rating: $rating);
+        MangaListEntry::query()->insert(['list_key' => $key, 'batch' => 1, 'position' => $position++, 'manga_id' => $manga->id, 'fetched_at' => Carbon::now()]);
+    }
+
+    $screen = Native::test(Search::class)->call('searchFor', 'one punch');
+
+    expect(tileTitles($screen->tree()))->toBe(['Safe 0', 'Erotica 1', 'Safe 2'])
+        ->and(searchTexts($screen->tree()))->not->toContain('Rated content')
+        ->and(searchNodes($screen->tree(), 'divider'))->toBe([])
+        ->and(searchNodes($screen->tree(), 'virtual_list')[0]['props'])->toMatchArray(['count' => 1]);
 });
 
 it('shows no rated content title when the results have none', function () {

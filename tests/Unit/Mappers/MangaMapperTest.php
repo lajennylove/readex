@@ -73,6 +73,41 @@ it('drops blank texts, null languages and duplicates', function () {
         ->and($row['original_language'])->toBeNull();
 });
 
+it('maps author and artist names from a detail response', function () {
+    $rtw = MangaMapper::row(MangaDexFixtures::body('manga-rtw')['data']);
+    $nova = MangaMapper::row(MangaDexFixtures::body('manga-nova')['data']);
+
+    expect($rtw['authors'])->toBe(['Er Mu (二目)'])
+        ->and($rtw['artists'])->toBe(['Yuewen Manhua (阅文漫画)', 'Dr. Woodman'])
+        ->and($nova['authors'])->toBe(['Clevercool'])
+        ->and($nova['artists'])->toBe(['Clevercool']);
+});
+
+it('leaves authors and artists out when they were not included, so a list call keeps saved names', function () {
+    $manga = MangaDexFixtures::body('manga-rtw')['data'];
+    $manga['relationships'] = array_map(
+        fn (array $relation) => array_diff_key($relation, ['attributes' => true]),
+        $manga['relationships'],
+    );
+
+    expect(MangaMapper::row($manga))->not->toHaveKeys(['authors', 'artists']);
+});
+
+it('drops repeated and blank names', function () {
+    $manga = MangaDexFixtures::body('manga-nova')['data'];
+    $manga['relationships'] = [
+        ['id' => 'p1', 'type' => 'author', 'attributes' => ['name' => 'Ann']],
+        ['id' => 'p2', 'type' => 'author', 'attributes' => ['name' => ' ']],
+        ['id' => 'p1', 'type' => 'author', 'attributes' => ['name' => 'Ann']],
+        ['id' => 'p3', 'type' => 'artist', 'attributes' => ['name' => 'Bo']],
+    ];
+
+    $row = MangaMapper::row($manga);
+
+    expect($row['authors'])->toBe(['Ann'])
+        ->and($row['artists'])->toBe(['Bo']);
+});
+
 it('has no cover file when cover_art was not included', function () {
     $manga = MangaDexFixtures::body('manga-nova')['data'];
     $manga['relationships'] = [['id' => 'c1', 'type' => 'cover_art']];

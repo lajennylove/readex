@@ -148,7 +148,7 @@ final class MangaRepository
 
     public function refreshDetail(string $id, Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get("/manga/{$id}", ['includes' => ['cover_art']], $priority);
+        $response = $this->client->get("/manga/{$id}", ['includes' => ['cover_art', 'author', 'artist']], $priority);
 
         DB::transaction(fn () => $this->storeManga(['data' => [$response['data']]]));
     }

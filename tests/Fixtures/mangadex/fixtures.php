@@ -86,7 +86,10 @@ return [
     ]],
 
     // Romanized-Chinese title only, altTitles [], availableTranslatedLanguages [], es-la description only.
-    'manga-nova' => ['/manga/8a45c930-32d1-423e-bffd-9e8d71312134', ['includes' => ['cover_art']]],
+    'manga-nova' => ['/manga/8a45c930-32d1-423e-bffd-9e8d71312134', ['includes' => ['cover_art', 'author', 'artist']]],
+
+    // Detail with different author and artist (Task 7 header).
+    'manga-rtw' => ["/manga/{$releaseThatWitch}", ['includes' => ['cover_art', 'author', 'artist']]],
 
     // 182 chapters: decimal numbers (126.2), 132 without a volume, 3 without a group.
     'feed-one-punch-es-la' => ['/manga/d8a959f7-648e-4c8d-8f23-f1f3f8e129f3/feed', [

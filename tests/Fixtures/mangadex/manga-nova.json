@@ -1,10 +1,12 @@
 {
-    "recorded_at": "2026-10-23T11:22:46+00:00",
+    "recorded_at": "2026-10-23T16:57:47+00:00",
     "method": "GET",
     "path": "/manga/8a45c930-32d1-423e-bffd-9e8d71312134",
     "query": {
         "includes": [
-            "cover_art"
+            "cover_art",
+            "author",
+            "artist"
         ]
     },
     "status": 200,
@@ -115,11 +117,59 @@
             "relationships": [
                 {
                     "id": "8cdc04d1-bf8c-45e9-a1df-bce92fdf830d",
-                    "type": "author"
+                    "type": "author",
+                    "attributes": {
+                        "name": "Clevercool",
+                        "imageUrl": null,
+                        "biography": {
+                            "en": "Alternate names: 绘灵"
+                        },
+                        "twitter": null,
+                        "pixiv": null,
+                        "melonBook": null,
+                        "fanBox": null,
+                        "booth": null,
+                        "namicomi": null,
+                        "nicoVideo": null,
+                        "skeb": null,
+                        "fantia": null,
+                        "tumblr": null,
+                        "youtube": null,
+                        "weibo": "https://www.weibo.com/dsclevercool",
+                        "naver": null,
+                        "website": null,
+                        "createdAt": "2021-04-19T21:59:45+00:00",
+                        "updatedAt": "2023-10-29T09:26:55+00:00",
+                        "version": 3
+                    }
                 },
                 {
                     "id": "8cdc04d1-bf8c-45e9-a1df-bce92fdf830d",
-                    "type": "artist"
+                    "type": "artist",
+                    "attributes": {
+                        "name": "Clevercool",
+                        "imageUrl": null,
+                        "biography": {
+                            "en": "Alternate names: 绘灵"
+                        },
+                        "twitter": null,
+                        "pixiv": null,
+                        "melonBook": null,
+                        "fanBox": null,
+                        "booth": null,
+                        "namicomi": null,
+                        "nicoVideo": null,
+                        "skeb": null,
+                        "fantia": null,
+                        "tumblr": null,
+                        "youtube": null,
+                        "weibo": "https://www.weibo.com/dsclevercool",
+                        "naver": null,
+                        "website": null,
+                        "createdAt": "2021-04-19T21:59:45+00:00",
+                        "updatedAt": "2023-10-29T09:26:55+00:00",
+                        "version": 3
+                    }
                 },
                 {
                     "id": "9e68279b-86d2-49bf-a1f9-6c211ee42d23",

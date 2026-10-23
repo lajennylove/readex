@@ -202,6 +202,19 @@ it('saves a series detail and marks it stale after a day', function () {
     expect($this->manga->detail(NOVA)->isStale)->toBeTrue();
 });
 
+it('saves author and artist with the detail, and a later list call keeps them', function () {
+    MangaDexFixtures::fake('manga-nova', 'manga-ids');
+
+    $this->manga->refreshDetail(NOVA);
+    $this->manga->refreshByIds([OPM, NOVA]);
+
+    $nova = $this->manga->detail(NOVA)->data;
+
+    expect($nova->authors)->toBe(['Clevercool'])
+        ->and($nova->artists)->toBe(['Clevercool'])
+        ->and(Manga::find(OPM)->authors)->toBeNull();
+});
+
 it('prunes search lists nobody refreshed for a week, other lists stay', function () {
     $row = fn (string $key, string $at) => ['list_key' => $key, 'batch' => 1, 'position' => 0, 'manga_id' => OPM, 'fetched_at' => $at];
     MangaListEntry::insert([

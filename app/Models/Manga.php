@@ -27,6 +27,8 @@ class Manga extends Model
             'year' => 'integer',
             'available_languages' => 'array',
             'tag_ids' => 'array',
+            'authors' => 'array',
+            'artists' => 'array',
             'fetched_at' => 'immutable_datetime',
             'recommendations_fetched_at' => 'immutable_datetime',
         ];

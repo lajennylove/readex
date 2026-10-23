@@ -1,0 +1,492 @@
+{
+    "recorded_at": "2026-10-23T16:57:47+00:00",
+    "method": "GET",
+    "path": "/manga/aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+    "query": {
+        "includes": [
+            "cover_art",
+            "author",
+            "artist"
+        ]
+    },
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "entity",
+        "data": {
+            "id": "aafb046c-9de4-4c3d-990c-6d75b079c0b9",
+            "type": "manga",
+            "attributes": {
+                "title": {
+                    "zh-ro": "Fàngkāi Nàge Nǚwū"
+                },
+                "altTitles": [
+                    {
+                        "en": "Release That Witch"
+                    },
+                    {
+                        "fr": "Relâchez cette Sorcière"
+                    },
+                    {
+                        "ru": "Освободите эту Ведьму"
+                    },
+                    {
+                        "zh": "放开那个女巫"
+                    },
+                    {
+                        "uk": "Звільніть цю відьму"
+                    },
+                    {
+                        "tr": "Cadıyı Salın"
+                    },
+                    {
+                        "vi": "Thả Vu Nữ Đó Ra"
+                    },
+                    {
+                        "id": "Lepaskan Penyihir Itu"
+                    }
+                ],
+                "description": {
+                    "en": "A male engineer transmigrated into another world, and became a prince. This place strikingly resembles the Middle Ages of Europe, but at the same time, it seems kind of different? Witches truly exist, and they even possess magic powers! Magic powers are productive forces! Save the witches, liberate the productive forces! Open map, fight demons, break conspiracies, climb up the science and technology tree, and open the path of hardcore ‘farming’!",
+                    "ru": "Чэн Янь прошел сквозь время и попал в мир, подобный Средневековой Европе, став Роландом, 4-м принцем королевства. Но этот мир не такой, к какому он уже привык. Ведьмы и магия здесь — нормальное явление. Сможет ли Роланд заполучить трон короля и решить выпавшие на его долю проблемы? Только его опыт современных технологий и помощь ведьм, известных как «слуги Дьявола», позволят ему добиться успеха!"
+                },
+                "isLocked": false,
+                "links": {
+                    "al": "108152",
+                    "ap": "release-that-witch",
+                    "kt": "54522",
+                    "mu": "lw27gns",
+                    "mal": "136488",
+                    "engtl": "https://www.webnovel.com/comic/release-that-witch_13137713105817601"
+                },
+                "officialLinks": null,
+                "originalLanguage": "zh",
+                "lastVolume": "",
+                "lastChapter": "695",
+                "publicationDemographic": null,
+                "status": "completed",
+                "year": 2018,
+                "contentRating": "safe",
+                "tags": [
+                    {
+                        "id": "36fd93ea-e8b8-445e-b836-358f02b3d33d",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Monsters"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "391b0423-d847-456f-aff0-8b0cfc03066b",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Action"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "39730448-9a5f-48a2-85b0-a70db87b1233",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Demons"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "3b60b75c-a2d7-4860-ab56-05f391bb889c",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Psychological"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "3e2b8dae-350e-4ab8-a8ce-016e844b9f0d",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Long Strip"
+                            },
+                            "description": {},
+                            "group": "format",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Romance"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "4d32cc48-9f00-4cca-9b5a-a839f0764984",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Comedy"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "799c202e-7daa-44eb-9cf7-8a3c0441531e",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Martial Arts"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "87cc87cd-a395-47af-b27a-93258283bbc6",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Adventure"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "9ab53f92-3eed-4e9b-903a-917c86035ee3",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Crossdressing"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "a1f53773-c69a-4ce5-8cab-fffcd90b1565",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Magic"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "aafb99c1-7f60-43fa-b75f-fc9502ce29c7",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Harem"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "ac72833b-c4e9-4878-b9db-6c8a4a99444a",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Military"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "ace04997-f6bd-436e-b261-779182193d3d",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Isekai"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "b9af3a63-f058-46de-a9a0-e0c13906197a",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Drama"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "cdc58593-87dd-415e-bbc0-2ec27bf404cc",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Fantasy"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "e197df38-d0e7-43b5-9b09-2842d0c326dd",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Web Comic"
+                            },
+                            "description": {},
+                            "group": "format",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "e64f6742-c834-471d-8d72-dd51fc02b835",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Aliens"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "eabc5b4c-6aff-42f3-b657-3e90cbd00b75",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Supernatural"
+                            },
+                            "description": {},
+                            "group": "theme",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "ee968100-4191-4968-93d3-f82d72be7e46",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Mystery"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "f4122d1c-3b44-44d0-9936-ff7502c39ad3",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Adaptation"
+                            },
+                            "description": {},
+                            "group": "format",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "f5ba408b-0e7a-484d-8d49-4e9125ac96de",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Full Color"
+                            },
+                            "description": {},
+                            "group": "format",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "f8f62932-27da-4fe4-8ee1-6779a8c5edba",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Tragedy"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    }
+                ],
+                "state": "published",
+                "chapterNumbersResetOnNewVolume": false,
+                "createdAt": "2019-10-25T05:22:51+00:00",
+                "updatedAt": "2026-10-05T11:42:14+00:00",
+                "version": 27,
+                "availableTranslatedLanguages": [
+                    "en",
+                    "es-la",
+                    "ru",
+                    "tr",
+                    "id",
+                    "uk",
+                    "pt-br",
+                    "fr",
+                    "pl",
+                    "es"
+                ],
+                "latestUploadedChapter": "4900790f-cc81-4abd-9478-07c543ed33ee"
+            },
+            "relationships": [
+                {
+                    "id": "e8006ace-27ca-403c-ab84-085ee948fae2",
+                    "type": "author",
+                    "attributes": {
+                        "name": "Er Mu (二目)",
+                        "imageUrl": null,
+                        "biography": {
+                            "en": "A webnovelist."
+                        },
+                        "twitter": null,
+                        "pixiv": null,
+                        "melonBook": null,
+                        "fanBox": null,
+                        "booth": null,
+                        "namicomi": null,
+                        "nicoVideo": null,
+                        "skeb": null,
+                        "fantia": null,
+                        "tumblr": null,
+                        "youtube": null,
+                        "weibo": null,
+                        "naver": null,
+                        "website": null,
+                        "createdAt": "2021-04-19T21:59:45+00:00",
+                        "updatedAt": "2026-03-07T07:47:38+00:00",
+                        "version": 2
+                    }
+                },
+                {
+                    "id": "63200b97-bbf8-4dab-8522-a158fec3afad",
+                    "type": "artist",
+                    "attributes": {
+                        "name": "Yuewen Manhua (阅文漫画)",
+                        "imageUrl": null,
+                        "biography": {
+                            "en": "**Associated Names:**\n- China Literature\n- China Literature Limited\n- China Manhua\n- China Reading\n- Reading Comics\n- Reading Manga\n- Reading Manhua\n- Yuewen Comics\n- Yue Wen Man Hua\n- Yue Wen Manhua\n- Yuewen\n- Yuè Wén Mànhuà\n- Yuèwén Mànhuà"
+                        },
+                        "twitter": null,
+                        "pixiv": null,
+                        "melonBook": null,
+                        "fanBox": null,
+                        "booth": null,
+                        "namicomi": null,
+                        "nicoVideo": null,
+                        "skeb": null,
+                        "fantia": null,
+                        "tumblr": null,
+                        "youtube": null,
+                        "weibo": "https://weibo.com/u/6285190000",
+                        "naver": null,
+                        "website": null,
+                        "createdAt": "2021-04-19T21:59:45+00:00",
+                        "updatedAt": "2025-06-04T19:01:09+00:00",
+                        "version": 6
+                    }
+                },
+                {
+                    "id": "69e00a16-6b22-4c3e-9389-c0c25eb33151",
+                    "type": "artist",
+                    "attributes": {
+                        "name": "Dr. Woodman",
+                        "imageUrl": null,
+                        "biography": {},
+                        "twitter": null,
+                        "pixiv": null,
+                        "melonBook": null,
+                        "fanBox": null,
+                        "booth": null,
+                        "namicomi": null,
+                        "nicoVideo": null,
+                        "skeb": null,
+                        "fantia": null,
+                        "tumblr": null,
+                        "youtube": null,
+                        "weibo": null,
+                        "naver": null,
+                        "website": null,
+                        "createdAt": "2021-04-19T21:59:45+00:00",
+                        "updatedAt": "2021-04-19T21:59:45+00:00",
+                        "version": 1
+                    }
+                },
+                {
+                    "id": "1d94bf16-e338-4c57-8809-6797a9019088",
+                    "type": "cover_art",
+                    "attributes": {
+                        "description": "",
+                        "volume": "1",
+                        "fileName": "ee278e22-9bfb-4b1b-9681-f8782b93e57b.jpg",
+                        "locale": "zh",
+                        "createdAt": "2022-04-06T20:43:26+00:00",
+                        "updatedAt": "2022-04-06T20:43:26+00:00",
+                        "version": 1
+                    }
+                }
+            ]
+        }
+    }
+}

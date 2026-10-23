@@ -35,7 +35,7 @@ return new class extends Migration
             $table->unsignedInteger('batch');
             $table->unsignedInteger('position');
             $table->uuid('manga_id');
-            $table->timestamp('fetched_at');
+            $table->timestamp('fetched_at')->nullable();
             $table->primary(['list_key', 'position']);
             $table->unique(['list_key', 'manga_id']);
             $table->index('manga_id');

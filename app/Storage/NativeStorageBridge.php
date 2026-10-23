@@ -21,6 +21,15 @@ final class NativeStorageBridge implements StorageBridge
         return (bool) ($this->call('MdxStorage.ExcludeFromBackup', ['path' => $path])['excluded'] ?? false);
     }
 
+    public function timeZone(): string
+    {
+        $zone = $this->call('MdxStorage.TimeZone')['zone'] ?? null;
+
+        return is_string($zone) && in_array($zone, timezone_identifiers_list(\DateTimeZone::ALL_WITH_BC), true)
+            ? $zone
+            : $this->fallback->timeZone();
+    }
+
     /** @return array<string, mixed>|null */
     private function call(string $method, array $params = []): ?array
     {

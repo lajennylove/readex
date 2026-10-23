@@ -1,7 +1,7 @@
 {
     "name": "lajennylove/plugin-mdx-storage",
     "version": "1.0.0",
-    "description": "ReaDex storage helpers: preferred language, caches path, backup exclusion",
+    "description": "ReaDex storage helpers: preferred language, time zone, caches path, backup exclusion",
     "namespace": "MdxStorage",
     "keywords": [],
     "category": "utilities",
@@ -28,6 +28,11 @@
             "name": "MdxStorage.PreferredLanguage",
             "ios": "MdxStorageFunctions.PreferredLanguage",
             "description": "First entry of Locale.preferredLanguages"
+        },
+        {
+            "name": "MdxStorage.TimeZone",
+            "ios": "MdxStorageFunctions.CurrentTimeZone",
+            "description": "TimeZone.current identifier (IANA)"
         },
         {
             "name": "MdxStorage.CachesPath",

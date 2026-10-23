@@ -12,6 +12,14 @@ enum MdxStorageFunctions {
         }
     }
 
+    class CurrentTimeZone: BridgeFunction {
+        func execute(parameters: [String: Any]) throws -> [String: Any] {
+            return BridgeResponse.success(data: [
+                "zone": TimeZone.current.identifier
+            ])
+        }
+    }
+
     class CachesPath: BridgeFunction {
         func execute(parameters: [String: Any]) throws -> [String: Any] {
             let url = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]

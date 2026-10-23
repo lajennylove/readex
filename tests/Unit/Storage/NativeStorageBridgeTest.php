@@ -35,3 +35,22 @@ it('falls back when the plugin returns an error', function () {
 
     expect((new NativeStorageBridge($this->local))->excludeFromBackup(''))->toBeFalse();
 });
+
+it('reads the phone time zone from the plugin', function () {
+    Native::fakeBridge()->respondTo('MdxStorage.TimeZone', ['zone' => 'America/Toronto']);
+
+    expect((new NativeStorageBridge($this->local))->timeZone())->toBe('America/Toronto');
+});
+
+it('falls back to the local zone when the plugin has none or sends nonsense', function (?array $answer) {
+    $fake = Native::fakeBridge();
+    if ($answer !== null) {
+        $fake->respondTo('MdxStorage.TimeZone', $answer);
+    }
+
+    expect((new NativeStorageBridge($this->local))->timeZone())->toBe($this->local->timeZone());
+})->with([[null], [['zone' => 'Mars/Olympus']], [['zone' => 42]]]);
+
+it('gives a real zone on the Mac', function () {
+    expect(in_array($this->local->timeZone(), timezone_identifiers_list(DateTimeZone::ALL_WITH_BC), true))->toBeTrue();
+});

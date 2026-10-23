@@ -1,0 +1,144 @@
+{
+    "recorded_at": "2026-10-23T11:22:46+00:00",
+    "method": "GET",
+    "path": "/manga/8a45c930-32d1-423e-bffd-9e8d71312134",
+    "query": {
+        "includes": [
+            "cover_art"
+        ]
+    },
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "entity",
+        "data": {
+            "id": "8a45c930-32d1-423e-bffd-9e8d71312134",
+            "type": "manga",
+            "attributes": {
+                "title": {
+                    "zh-ro": "Nova"
+                },
+                "altTitles": [],
+                "description": {
+                    "es-la": "La diseñadora de moda Lan Tianhua ha visto cómo su talento era descaradamente robado, pero aun así está decidida a hacer brillar su propia marca independiente.\nEntonces, Nova, una influencer brillante y extremadamente popular, irrumpe de repente en su vida y la ayuda, de forma decidida, a recuperar el mérito por los diseños que le fueron arrebatados.\nA medida que ambas se vuelven más cercanas en privado, una atracción ambigua comienza a florecer silenciosamente. Sin embargo, Lan Tianhua no puede dejar de sentir que hay algo extrañamente familiar en Nova..."
+                },
+                "isLocked": false,
+                "links": {
+                    "raw": "https://m.kuaikanmanhua.com/"
+                },
+                "officialLinks": null,
+                "originalLanguage": "zh",
+                "lastVolume": "",
+                "lastChapter": "",
+                "publicationDemographic": null,
+                "status": "ongoing",
+                "year": 2026,
+                "contentRating": "safe",
+                "tags": [
+                    {
+                        "id": "3e2b8dae-350e-4ab8-a8ce-016e844b9f0d",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Long Strip"
+                            },
+                            "description": {},
+                            "group": "format",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Romance"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "891cf039-b895-47f0-9229-bef4c96eccd4",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Self-Published"
+                            },
+                            "description": {},
+                            "group": "format",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "a3c67850-4684-404e-9b7f-c69850ee5da6",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Girls' Love"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    },
+                    {
+                        "id": "b9af3a63-f058-46de-a9a0-e0c13906197a",
+                        "type": "tag",
+                        "attributes": {
+                            "name": {
+                                "en": "Drama"
+                            },
+                            "description": {},
+                            "group": "genre",
+                            "version": 1
+                        },
+                        "relationships": []
+                    }
+                ],
+                "state": "published",
+                "chapterNumbersResetOnNewVolume": false,
+                "createdAt": "2026-10-23T07:57:43+00:00",
+                "updatedAt": "2026-10-23T10:44:51+00:00",
+                "version": 5,
+                "availableTranslatedLanguages": [],
+                "latestUploadedChapter": null
+            },
+            "relationships": [
+                {
+                    "id": "8cdc04d1-bf8c-45e9-a1df-bce92fdf830d",
+                    "type": "author"
+                },
+                {
+                    "id": "8cdc04d1-bf8c-45e9-a1df-bce92fdf830d",
+                    "type": "artist"
+                },
+                {
+                    "id": "9e68279b-86d2-49bf-a1f9-6c211ee42d23",
+                    "type": "cover_art",
+                    "attributes": {
+                        "description": "",
+                        "volume": null,
+                        "fileName": "e0c01cf2-e693-4133-a86c-f76cab24be9c.jpg",
+                        "locale": "zh",
+                        "createdAt": "2026-10-23T07:57:46+00:00",
+                        "updatedAt": "2026-10-23T10:47:02+00:00",
+                        "version": 3
+                    }
+                },
+                {
+                    "id": "aa89fcfa-cc56-4d71-a9b8-6410a92900c3",
+                    "type": "creator"
+                }
+            ]
+        }
+    }
+}

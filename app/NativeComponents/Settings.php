@@ -2,18 +2,216 @@
 
 namespace App\NativeComponents;
 
+use App\Jobs\RefreshAllData;
+use App\Language\Languages;
+use App\Loading\DataLoader;
+use App\Loading\LoadProgress;
+use App\MangaDex\RateLimit\ConnectionState;
+use App\MangaDex\RateLimit\ConnectionStatus;
+use App\MangaDex\RateLimit\RequestController;
+use App\NativeComponents\Concerns\ChoosesContentRatings;
+use App\Repositories\DataReset;
+use App\Repositories\SettingsRepository;
+use App\Storage\StorageBridge;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Edge\NativeComponent;
+use Native\Mobile\Events\Alert\ButtonPressed;
+use Native\Mobile\Facades\Browser;
+use Native\Mobile\Facades\Dialog;
+use Native\Mobile\Facades\Network;
 
+/**
+ * Settings tab (spec §5.7): reading language, content rating, image quality (§12.1),
+ * "Refresh MangaDex data" (§7.1), the MangaDex connection row (§5.1a) and credits.
+ * Storage, iCloud and "Clear image cache" come with downloads (Phase 5).
+ */
 class Settings extends NativeComponent
 {
+    use ChoosesContentRatings;
+
+    public const QUALITIES = [
+        'data-saver' => 'Data saver (SD)',
+        'original' => 'Original (HD)',
+    ];
+
+    public const REFRESH = 'Refresh';
+
+    public const NEEDS_INTERNET = 'Needs internet';
+
+    public const MANGADEX_URL = 'https://mangadex.org';
+
+    public string $language = 'en';
+
+    public string $quality = 'data-saver';
+
+    /** The refill whose steps are shown (the running one, or the last one this visit). */
+    public ?string $run = null;
+
+    /** @var array<string, string> step => LoadProgress state */
+    public array $steps = [];
+
+    /** Why the last tap on Refresh didn't run. */
+    public ?string $refreshNote = null;
+
+    public function mount(SettingsRepository $settings): void
+    {
+        $this->language = $settings->language();
+        $this->ratings = $settings->contentRatings();
+        $this->quality = $settings->imageQuality();
+        $this->run = RefreshAllData::running();
+        $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
+    }
+
     public function navTitle(): string
     {
         return 'Settings';
     }
 
+    public function chooseLanguage(string $name): void
+    {
+        $code = Languages::codeFor($name);
+
+        if ($code !== null) {
+            app(SettingsRepository::class)->setLanguage($code);
+            $this->language = $code;
+        }
+    }
+
+    protected function ratingsChanged(): void
+    {
+        app(SettingsRepository::class)->setContentRatings($this->ratings);
+    }
+
+    public function chooseQuality(string $label): void
+    {
+        $quality = array_search($label, self::QUALITIES, true);
+
+        if ($quality !== false) {
+            app(SettingsRepository::class)->setImageQuality($quality);
+            $this->quality = $quality;
+        }
+    }
+
+    public function askRefresh(): void
+    {
+        if (! $this->canRefresh()) {
+            return;
+        }
+
+        Dialog::alert(
+            'Refresh MangaDex data',
+            'Saved MangaDex data is cleared and loaded again. Your Library, reading progress and downloads stay.',
+            [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::REFRESH, 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::REFRESH ? $this->refreshAllData() : null);
+    }
+
+    /** Checked again after the dialog: nothing is cleared unless the refill can start (§7.1). */
+    private function refreshAllData(): void
+    {
+        if (! $this->canRefresh()) {
+            return;
+        }
+
+        app(DataReset::class)->clearRemoteData();
+
+        $this->run = (string) Str::uuid();
+        $this->steps = [];
+        RefreshAllData::start($this->run);
+    }
+
+    private function canRefresh(): bool
+    {
+        $this->refreshNote = null;
+
+        if ($this->refilling() || $this->paused() !== null) {
+            return false;
+        }
+
+        if (Network::status()?->connected === false) {
+            $this->refreshNote = self::NEEDS_INTERNET;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    #[Poll(2000)]
+    public function checkRefill(): void
+    {
+        if ($this->run !== null) {
+            $this->steps = LoadProgress::read($this->run);
+        }
+    }
+
+    public function refilling(): bool
+    {
+        return $this->run !== null && RefreshAllData::running() === $this->run;
+    }
+
+    public function openMangaDex(): void
+    {
+        Browser::inApp(self::MANGADEX_URL);
+    }
+
+    /** "18:52" when MangaDex has paused this phone, else null. */
+    private function paused(?ConnectionStatus $status = null): ?string
+    {
+        $status ??= app(RequestController::class)->status();
+
+        return $status->state === ConnectionState::Paused && $status->pausedUntil !== null
+            ? $this->localTime($status->pausedUntil, 'H:i')
+            : null;
+    }
+
+    /** @return array{state: string, usage: string} */
+    public static function connectionLine(ConnectionStatus $status, ?string $pausedUntil): array
+    {
+        $state = match ($status->state) {
+            ConnectionState::Ok => 'OK',
+            ConnectionState::Slowed => 'Slowed down',
+            ConnectionState::Paused => "Paused until {$pausedUntil}",
+        };
+
+        $minute = $status->requestsLastMinute === 1 ? '1 request' : number_format($status->requestsLastMinute).' requests';
+
+        return [
+            'state' => $state,
+            'usage' => "{$minute} in the last minute · ".number_format($status->requestsLastHour).' in the last hour',
+        ];
+    }
+
+    /** The app runs in UTC; times on screen follow the phone's clock. */
+    private function localTime(CarbonInterface $time, string $format): string
+    {
+        return $time->toImmutable()->setTimezone(app(StorageBridge::class)->timeZone())->format($format);
+    }
+
     public function render(): View
     {
-        return view('native.partials.empty-state', ['title' => 'Settings']);
+        $status = app(RequestController::class)->status();
+        $paused = $this->paused($status);
+        $refreshedAt = app(SettingsRepository::class)->lastDataRefreshAt();
+
+        return view('native.settings', [
+            'languageName' => Languages::name($this->language),
+            'languageNames' => array_values(Languages::NAMES),
+            'qualityName' => self::QUALITIES[$this->quality] ?? self::QUALITIES['data-saver'],
+            'qualityNames' => array_values(self::QUALITIES),
+            'connection' => self::connectionLine($status, $paused),
+            'refilling' => $this->refilling(),
+            'refreshLabel' => match (true) {
+                $this->refilling() => 'Refreshing…',
+                $paused !== null => "Paused until {$paused}",
+                default => 'Refresh MangaDex data',
+            },
+            'refreshBlocked' => $this->refilling() || $paused !== null,
+            'lastRefreshed' => $refreshedAt === null ? 'Never refreshed' : 'Last refreshed '.$this->localTime($refreshedAt, 'M j, H:i'),
+            'stepLabels' => DataLoader::STEPS,
+            'version' => config('mangadex.app_version'),
+        ]);
     }
 }

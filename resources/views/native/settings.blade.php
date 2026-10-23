@@ -1,0 +1,58 @@
+<native:scroll-view class="w-full h-full bg-theme-background">
+    <native:column class="w-full gap-6 p-4 pb-8">
+        <native:column class="w-full gap-2">
+            <native:select label="Reading language" value="{{ $languageName }}" :options="$languageNames" @change="chooseLanguage" />
+            <native:text class="text-xs text-theme-on-surface-variant">Titles and chapters in this language come first, then English.</native:text>
+        </native:column>
+
+        @include('native.partials.rating-toggles')
+
+        <native:column class="w-full gap-2">
+            <native:select label="Image quality" value="{{ $qualityName }}" :options="$qualityNames" @change="chooseQuality" />
+            <native:text class="text-xs text-theme-on-surface-variant">HD uses about 8× more space and data. A chapter keeps the quality it was saved in.</native:text>
+        </native:column>
+
+        <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">MangaDex data</native:text>
+            <native:row class="w-full items-center justify-between">
+                <native:text class="text-base text-theme-on-background">MangaDex connection</native:text>
+                <native:text class="text-base text-theme-on-surface-variant">{{ $connection['state'] }}</native:text>
+            </native:row>
+            <native:text class="text-xs text-theme-on-surface-variant">{{ $connection['usage'] }}</native:text>
+
+            <native:button
+                label="{{ $refreshLabel }}"
+                variant="secondary"
+                :disabled="$refreshBlocked"
+                :loading="$refilling"
+                @press="askRefresh" />
+            @if ($refreshNote)
+                <native:text class="text-sm text-theme-on-background">{{ $refreshNote }}</native:text>
+            @endif
+            <native:text class="text-xs text-theme-on-surface-variant">Clears saved MangaDex data and loads it again. Your Library, reading progress and downloads stay. {{ $lastRefreshed }}.</native:text>
+
+            @if ($run !== null)
+                <native:column class="w-full gap-2">
+                    @foreach ($stepLabels as $step => $label)
+                        <native:row class="w-full justify-between">
+                            <native:text class="text-base text-theme-on-background">{{ $label }}</native:text>
+                            <native:text class="text-sm text-theme-on-surface-variant">{{ \App\NativeComponents\Setup::stepLine($steps[$step] ?? null) }}</native:text>
+                        </native:row>
+                    @endforeach
+                </native:column>
+            @endif
+        </native:column>
+
+        <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">About</native:text>
+            <native:pressable class="w-full" @press="openMangaDex" a11y-label="Data from MangaDex">
+                <native:row class="w-full items-center justify-between">
+                    <native:text class="text-base text-theme-on-background">Data from MangaDex</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">mangadex.org</native:text>
+                </native:row>
+            </native:pressable>
+            <native:text class="text-xs text-theme-on-surface-variant">Chapters are translated by the scanlation groups named on each chapter. ReaDex is not affiliated with MangaDex.</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">ReaDex {{ $version }}</native:text>
+        </native:column>
+    </native:column>
+</native:scroll-view>

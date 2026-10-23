@@ -21,6 +21,7 @@ final class CacheLink
             File::deleteDirectory($link);
         }
 
+        File::ensureDirectoryExists(dirname($link));
         symlink($target, $link);
 
         return $target;

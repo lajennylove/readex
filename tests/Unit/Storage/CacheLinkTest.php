@@ -38,3 +38,12 @@ it('replaces a real folder left at the link path (build copy follows symlinks)',
     expect(is_link($this->root.'/public/cache'))->toBeTrue()
         ->and(readlink($this->root.'/public/cache'))->toBe($bridge->cachesPath());
 });
+
+it('creates the public disk folder when the device has no storage/app yet', function () {
+    config(['filesystems.disks.public.root' => $this->root.'/fresh/app/public']);
+    $bridge = new LocalStorageBridge($this->root.'/a');
+
+    CacheLink::ensure($bridge);
+
+    expect(readlink($this->root.'/fresh/app/public/cache'))->toBe($bridge->cachesPath());
+});

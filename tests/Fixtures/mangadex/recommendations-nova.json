@@ -1,0 +1,18 @@
+{
+    "recorded_at": "2026-10-23T17:47:02+00:00",
+    "method": "GET",
+    "path": "/manga/8a45c930-32d1-423e-bffd-9e8d71312134/recommendation",
+    "query": [],
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "collection",
+        "data": [],
+        "limit": 50,
+        "offset": 0,
+        "total": 0
+    }
+}

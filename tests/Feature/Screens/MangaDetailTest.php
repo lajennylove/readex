@@ -1,6 +1,11 @@
 <?php
 
+use App\Jobs\DownloadCovers;
 use App\Language\Languages;
+use App\MangaDex\Exceptions\RequestDeferred;
+use App\MangaDex\RateLimit\Busy;
+use App\MangaDex\RateLimit\BusyReason;
+use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\ChapterFeed;
 use App\Models\Collection as LibraryEntry;
@@ -8,6 +13,7 @@ use App\Models\Manga;
 use App\Models\Statistic;
 use App\NativeComponents\MangaDetail;
 use App\Repositories\LibraryRepository;
+use App\Repositories\RecommendationRepository;
 use App\Repositories\SettingsRepository;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
@@ -32,7 +38,7 @@ beforeEach(function () {
     $this->async = AsyncTask::fake();
     Queue::fake();
     $this->asked = [];
-    $fixtures = MangaDexFixtures::stub('manga-rtw', 'manga-nova', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2');
+    $fixtures = MangaDexFixtures::stub('manga-rtw', 'manga-nova', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2', 'recommendations-rtw', 'recommendations-rtw-manga', 'recommendations-nova');
     Http::fake(function (Request $request) use ($fixtures) {
         $this->asked[] = rawurldecode($request->url());
 
@@ -221,6 +227,7 @@ function detailSeries(string $id, array $languages, array $titles = ['en' => 'Se
         'id' => $id, 'title' => $titles, 'alt_titles' => [], 'description' => [], 'status' => 'ongoing', 'year' => 2020,
         'content_rating' => 'safe', 'available_languages' => $languages, 'original_language' => 'ja', 'tag_ids' => [],
         'cover_file' => null, 'authors' => ['A'], 'artists' => ['A'], 'fetched_at' => Carbon::now(),
+        'recommendations_fetched_at' => Carbon::now(),
     ]);
     Statistic::query()->create(['manga_id' => $id, 'rating_avg' => null, 'rating_bayesian' => null, 'follows' => 0, 'distribution' => [], 'fetched_at' => Carbon::now()]);
 
@@ -392,4 +399,93 @@ it('opens a licensed chapter in the in-app browser and a readable one with the r
     $screen->tap('Ch. 2')
         ->assertNativeCalled('Dialog.Toast', fn (array $p) => $p['message'] === 'Reader comes in the next phase')
         ->assertNativeCalledTimes('Browser.OpenInApp', 1);
+});
+
+/** Titles of the cover tiles (w-28 pressables) in screen order. */
+function detailTileTitles(array $node): array
+{
+    if (($node['type'] ?? null) === 'pressable' && ($node['layout']['width'] ?? null) == 112) {
+        return [$node['children'][0]['children'][1]['props']['text']];
+    }
+
+    $titles = [];
+
+    foreach ($node['children'] ?? [] as $child) {
+        $titles = [...$titles, ...detailTileTitles($child)];
+    }
+
+    return $titles;
+}
+
+/** Grey 2:3 placeholders of an empty tile row (w-28, nothing inside). */
+function detailPlaceholders(array $node): int
+{
+    $count = ($node['type'] ?? null) === 'stack' && ($node['layout']['width'] ?? null) == 112 && ($node['children'] ?? []) === [] ? 1 : 0;
+
+    foreach ($node['children'] ?? [] as $child) {
+        $count += detailPlaceholders($child);
+    }
+
+    return $count;
+}
+
+it('shows More like this between the description and the chapters, in reading order, and opens a tile in the same tab', function () {
+    $screen = Native::visit('/search/manga/'.DETAIL_RTW);
+    $texts = detailTexts($screen->tree());
+    $chain = app(SettingsRepository::class)->chain();
+    $expected = app(RecommendationRepository::class)->get(DETAIL_RTW)->data;
+    $description = collect($texts)->search(fn (string $t) => str_starts_with($t, 'A male engineer transmigrated'));
+
+    expect(collect($this->asked)->filter(fn (string $url) => str_contains($url, '/manga/'.DETAIL_RTW.'/recommendation'))->all())->toHaveCount(1)
+        ->and($expected)->toHaveCount(39)
+        ->and(detailTileTitles($screen->tree()))->toBe($expected->map(fn (Manga $m) => $chain->title($m->title ?? [], $m->alt_titles ?? []))->all())
+        ->and(array_search('More like this', $texts, true))->toBeGreaterThan($description)
+        ->and(array_search('More like this', $texts, true))->toBeLessThan(array_search('Chapters', $texts, true));
+
+    $first = $expected->first();
+    $screen->tap($chain->title($first->title ?? [], $first->alt_titles ?? []))
+        ->assertNavigatedTo("/search/manga/{$first->id}");
+});
+
+it('queues the recommended covers after the series cover, the first ones interactive', function () {
+    Native::visit('/search/manga/'.DETAIL_RTW);
+    $jobs = Queue::pushed(DownloadCovers::class)->values();
+    $queued = $jobs->flatMap(fn (DownloadCovers $job) => $job->mangaIds)->all();
+    $expected = app(RecommendationRepository::class)->get(DETAIL_RTW)->data->pluck('id')->all();
+
+    expect($queued[0])->toBe(DETAIL_RTW)
+        ->and(array_values(array_intersect($queued, $expected)))->toBe($expected)
+        ->and($jobs->first(fn (DownloadCovers $job) => in_array($expected[0], $job->mangaIds, true))->priority)->toBe(Priority::Interactive);
+});
+
+it('leaves the row out for a series nobody recommended anything for, and asks again only after 7 days', function () {
+    $asked = fn () => collect($this->asked)->filter(fn (string $url) => str_contains($url, '/manga/'.DETAIL_NOVA.'/recommendation'))->count();
+
+    expect(detailTexts(Native::visit('/home/manga/'.DETAIL_NOVA)->tree()))->not->toContain('More like this');
+    Carbon::setTestNow(Carbon::now()->addDay());
+    Native::visit('/home/manga/'.DETAIL_NOVA);
+    expect($asked())->toBe(1);
+
+    Carbon::setTestNow(Carbon::now()->addDays(6));
+    Native::visit('/home/manga/'.DETAIL_NOVA);
+    expect($asked())->toBe(2);
+});
+
+it('keeps the row in place with placeholders while MangaDex is busy, and leaves it out when the call failed', function () {
+    $fixtures = MangaDexFixtures::stub('manga-rtw', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2');
+    $fail = new RequestDeferred(new Busy(Carbon::now()->addMinute()->getTimestampMs() / 1000, BusyReason::Saturated));
+    Http::swap(new Factory(app('events')));
+    Http::fake(function (Request $request) use ($fixtures, &$fail) {
+        return str_contains($request->url(), '/recommendation') ? throw $fail : $fixtures($request);
+    });
+
+    $busy = Native::visit('/search/manga/'.DETAIL_RTW);
+    expect(detailTexts($busy->tree()))->toContain('More like this')
+        ->and(detailTileTitles($busy->tree()))->toBe([])
+        ->and(detailPlaceholders($busy->tree()))->toBe(4);
+
+    $fail = new ConnectionException('offline');
+    $offline = Native::visit('/search/manga/'.DETAIL_RTW);
+    expect(detailTexts($offline->tree()))->not->toContain('More like this')
+        ->and(detailPlaceholders($offline->tree()))->toBe(0);
 });

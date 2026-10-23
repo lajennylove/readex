@@ -17,6 +17,7 @@ use App\Repositories\ContinueReading;
 use App\Repositories\LibraryChapter;
 use App\Repositories\LibraryRepository;
 use App\Repositories\MangaRepository;
+use App\Repositories\RecommendationRepository;
 use App\Repositories\SettingsRepository;
 use App\Repositories\StatisticsRepository;
 use Illuminate\View\View;
@@ -27,8 +28,9 @@ use Native\Mobile\Facades\Dialog;
 /**
  * Spec §5.7 / §11.3, D30: the one series screen for Home, Search and Library (no separate
  * Collection screen). Header (cover, people, status, rating, languages), Continue where the
- * reader left off (`LibraryRepository::resume()`), Favorite, description, then the chapter
- * list of one language in volume sections, the chapter Continue opens highlighted.
+ * reader left off (`LibraryRepository::resume()`), Favorite, description, More like this, then
+ * the chapter list of one language in volume sections, the chapter Continue opens highlighted.
+ * More like this sits above the chapters: under a 700-chapter list nobody would reach it.
  */
 class MangaDetail extends NativeComponent
 {
@@ -71,9 +73,10 @@ class MangaDetail extends NativeComponent
         $this->keepFresh($detail, Refresh::of([MangaRepository::class, 'refreshDetail'], $this->mangaId));
         $this->keepFresh(app(StatisticsRepository::class)->detail($this->mangaId), Refresh::of([StatisticsRepository::class, 'refreshDetail'], $this->mangaId));
 
-        if ($detail->data !== null) {
-            $this->queueCovers([$detail->data]);
-        }
+        $similar = app(RecommendationRepository::class)->get($this->mangaId);
+        $this->keepFresh($similar, $this->similarRefresh(), emptyIsAnswer: true);
+
+        $this->queueCovers(array_values(array_filter([$detail->data, ...$similar->data->all()])));
 
         if ($this->language === '' || ! in_array($this->language, app(ChapterRepository::class)->languages($this->mangaId), true)) {
             $this->language = $this->openingLanguage();
@@ -133,6 +136,7 @@ class MangaDetail extends NativeComponent
         $chapters = app(ChapterRepository::class);
         $current = app(LibraryRepository::class)->resume($this->mangaId);
         $languages = $chapters->languages($this->mangaId);
+        $similarKey = $this->similarRefresh()->key();
 
         return view('native.manga-detail', [
             'manga' => $manga,
@@ -143,6 +147,8 @@ class MangaDetail extends NativeComponent
             'stats' => self::stats(Statistic::query()->find($this->mangaId)),
             'languages' => implode(' · ', array_map(Languages::name(...), $languages)),
             'description' => $chain->description($manga->description ?? []),
+            'similar' => app(RecommendationRepository::class)->get($this->mangaId)->data->map(fn (Manga $m) => $this->tile($m, $chain))->all(),
+            'loadingSimilar' => isset($this->refreshing[$similarKey]) || isset($this->waiting[$similarKey]),
             'favorite' => $this->isFavorite(),
             'continue' => $this->continueLabel($current),
             'switch' => count($languages) > 1
@@ -252,6 +258,11 @@ class MangaDetail extends NativeComponent
         $follows = number_format($statistic->follows).($statistic->follows === 1 ? ' follow' : ' follows');
 
         return ($rating === null ? 'No ratings yet' : '★ '.number_format($rating, 2)).' · '.$follows;
+    }
+
+    private function similarRefresh(): Refresh
+    {
+        return Refresh::of([RecommendationRepository::class, 'refresh'], $this->mangaId);
     }
 
     private function isFavorite(): bool

@@ -105,10 +105,11 @@ it('keeps a preferred group the user changed, and favorites add the series', fun
 });
 
 it('lists the Library last read first, then by date added, with filter chips', function () {
-    foreach ([1, 2, 3, 4] as $n) {
+    foreach ([1, 2, 3, 4, 5, 6] as $n) {
         libManga($n);
         libChapter($n, $n, '1');
     }
+    libChapter(62, 6, '2');
 
     $this->library->add(libId('m', 1));                     // 12:00, never read
     Carbon::setTestNow('2026-10-24 13:00:00');
@@ -118,7 +119,11 @@ it('lists the Library last read first, then by date added, with filter chips', f
     Carbon::setTestNow('2026-10-24 15:00:00');
     $this->library->saveProgress(libId('c', 4), 0, 20);     // read 15:00
     Carbon::setTestNow('2026-10-24 16:00:00');
-    $this->library->saveProgress(libId('c', 1), 0, 20);     // added first, read last
+    $this->library->saveProgress(libId('c', 1), 0, 20);     // added first, read 16:00
+    Carbon::setTestNow('2026-10-24 16:30:00');
+    $this->library->saveProgress(libId('c', 5), 19, 20);    // finished, nothing after: caught up
+    Carbon::setTestNow('2026-10-24 17:00:00');
+    $this->library->saveProgress(libId('c', 6), 19, 20);    // finished, chapter 2 still to read
     StoredChapter::query()->insert([
         ['chapter_id' => libId('c', 1), 'tier' => 'icloud', 'quality' => 'data-saver', 'status' => 'done'],
         ['chapter_id' => libId('c', 2), 'tier' => 'cache', 'quality' => 'data-saver', 'status' => 'done'],
@@ -127,8 +132,9 @@ it('lists the Library last read first, then by date added, with filter chips', f
 
     $titles = fn (string $filter) => $this->library->collections($filter)->map(fn (Manga $m) => $m->title['en'])->all();
 
-    expect($titles('all'))->toBe(['Series 1', 'Series 4', 'Series 3', 'Series 2'])
-        ->and($titles('reading'))->toBe(['Series 1', 'Series 4', 'Series 2'])
+    expect($titles('all'))->toBe(['Series 6', 'Series 5', 'Series 1', 'Series 4', 'Series 3', 'Series 2'])
+        // Reading = started and not caught up (same series as Continue reading).
+        ->and($titles('reading'))->toBe(['Series 6', 'Series 1', 'Series 4', 'Series 2'])
         // Cache tier and unfinished downloads don't count as downloaded.
         ->and($titles('downloaded'))->toBe(['Series 1'])
         ->and($titles('favorites'))->toBe(['Series 3'])
@@ -197,6 +203,35 @@ it('continues reading last read first, one tile per series, finished chapters mo
     expect(libTiles($tiles))->toBe(['Series 4: 7', 'Series 2: 2', 'Series 1: 2 (next)'])
         ->and($tiles[2]->chapter->id)->toBe(libId('c', 12))
         ->and(libTiles($this->library->continueReading(2)))->toBe(['Series 4: 7', 'Series 2: 2']);
+});
+
+it('resumes a series on the last chapter read, at its saved page, or on the next chapter once finished', function () {
+    libManga(1);
+    libChapter(1, 1, '1');
+    libChapter(2, 1, '2');
+
+    expect($this->library->resume(libId('m', 1)))->toBeNull();
+
+    $this->library->saveProgress(libId('c', 2), 6, 20);
+    Carbon::setTestNow('2026-10-24 13:00:00');
+    $this->library->saveProgress(libId('c', 1), 3, 20);    // went back to chapter 1 last
+
+    $resume = $this->library->resume(libId('m', 1));
+    expect($resume->chapter->id)->toBe(libId('c', 1))->and($resume->progress->page)->toBe(3);
+
+    Carbon::setTestNow('2026-10-24 14:00:00');
+    $this->library->saveProgress(libId('c', 1), 19, 20);   // finished → chapter 2, where it was left
+
+    $resume = $this->library->resume(libId('m', 1));
+    expect($resume->chapter->id)->toBe(libId('c', 2))->and($resume->progress->page)->toBe(6);
+
+    Carbon::setTestNow('2026-10-24 15:00:00');
+    $this->library->saveProgress(libId('c', 2), 19, 20);   // caught up
+    expect($this->library->resume(libId('m', 1)))->toBeNull();
+
+    libChapter(3, 1, '3');                                 // a new chapter in the feed
+    $resume = $this->library->resume(libId('m', 1));
+    expect($resume->chapter->id)->toBe(libId('c', 3))->and($resume->progress)->toBeNull();
 });
 
 it('leaves a tile out when its chapter or manga row is missing', function () {

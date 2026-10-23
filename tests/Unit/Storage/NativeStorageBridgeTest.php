@@ -20,6 +20,27 @@ it('accepts a response wrapped in data', function () {
     expect((new NativeStorageBridge($this->local))->cachesPath())->toBe('/var/caches/readex');
 });
 
+it('asks the plugin for the caches path once per process', function () {
+    $fake = Native::fakeBridge()->respondTo('MdxStorage.CachesPath', ['path' => '/var/caches/readex']);
+    $bridge = new NativeStorageBridge($this->local);
+
+    foreach (range(1, 5) as $_) {
+        expect($bridge->cachesPath())->toBe('/var/caches/readex');
+    }
+
+    $fake->assertCalledTimes('MdxStorage.CachesPath', 1);
+});
+
+it('asks once for the caches path under Jump too, where the plugin has no answer', function () {
+    $fake = Native::fakeBridge();
+    $bridge = new NativeStorageBridge($this->local);
+
+    $bridge->cachesPath();
+    $bridge->cachesPath();
+
+    $fake->assertCalledTimes('MdxStorage.CachesPath', 1);
+});
+
 it('falls back to the local bridge when the plugin has no answer (Jump)', function () {
     Native::fakeBridge();
 

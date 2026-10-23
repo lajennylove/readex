@@ -4,6 +4,9 @@ namespace App\Storage;
 
 final class NativeStorageBridge implements StorageBridge
 {
+    /** Every cover tile needs it; under Jump each bridge call is a Wi-Fi round trip to the phone. */
+    private ?string $cachesPath = null;
+
     public function __construct(private readonly LocalStorageBridge $fallback) {}
 
     public function preferredLanguage(): ?string
@@ -13,7 +16,7 @@ final class NativeStorageBridge implements StorageBridge
 
     public function cachesPath(): string
     {
-        return $this->call('MdxStorage.CachesPath')['path'] ?? $this->fallback->cachesPath();
+        return $this->cachesPath ??= $this->call('MdxStorage.CachesPath')['path'] ?? $this->fallback->cachesPath();
     }
 
     public function excludeFromBackup(string $path): bool

@@ -88,6 +88,12 @@ trait RefreshesData
         return null;
     }
 
+    /**
+     * A refresh succeeded, on the async lane or through the RefreshRepository job; `$result` is
+     * what the repository method returned (e.g. loadMore's "more available"). Runs before load().
+     */
+    protected function refreshLanded(string $key, mixed $result): void {}
+
     protected function keepFresh(Result $result, Refresh $refresh): void
     {
         $key = $refresh->key();
@@ -145,6 +151,7 @@ trait RefreshesData
 
         unset($this->problems[$key]);
         $this->refreshedAt[$key] = Carbon::now()->getTimestampMs();
+        $this->refreshLanded($key, $outcome->result);
 
         $forced = $this->forceRefresh;
         $this->forceRefresh = false;

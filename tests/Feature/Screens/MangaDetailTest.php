@@ -95,6 +95,28 @@ it('loads a never-opened series and shows its header, stats, languages and descr
     $screen->assertNavTitle($chain->title($manga->title, $manga->alt_titles));
 });
 
+it('gives the header cover a fixed height so the row is as tall as the cover', function () {
+    $find = function (array $node) use (&$find): ?array {
+        if (($node['type'] ?? null) === 'row') {
+            return $node;
+        }
+
+        foreach ($node['children'] ?? [] as $child) {
+            if ($found = $find($child)) {
+                return $found;
+            }
+        }
+
+        return null;
+    };
+
+    $cover = $find(Native::visit('/search/manga/'.DETAIL_RTW)->tree())['children'][0];
+
+    expect($cover['type'])->toBe('stack')
+        ->and($cover['layout']['width'])->toEqual(128)
+        ->and($cover['layout']['height'])->toEqual(192);
+});
+
 it('says "Story & art" when the author also drew it', function () {
     $texts = detailTexts(Native::visit('/home/manga/'.DETAIL_NOVA)->tree());
 
@@ -260,7 +282,25 @@ it('opens a Spanish reader on English when the series has no Spanish chapters (R
     expect($screen->get('language'))->toBe('en')
         ->and(detailRows($screen->tree()))->toHaveCount(1)
         ->and(detailRows($screen->tree())[0]['label'])->toBe('Ch. 1')
-        ->and(detailTexts($screen->tree()))->toContain('Romaji Title', 'English · Français · 日本語');
+        ->and(detailTexts($screen->tree()))->toContain('Romaji Title', 'English');
+});
+
+it('moves to the next language when the opening language turns out to have no readable chapters', function () {
+    detailSeries(DETAIL_SEEDED, ['es-la', 'en']);
+    ChapterFeed::query()->where('manga_id', DETAIL_SEEDED)->where('language', 'es-la')->delete();
+    seededChapter('en-1', DETAIL_SEEDED, '1', ['language' => 'en']);
+    Http::swap(new Factory(app('events')));
+    Http::fake(['*' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0])]);
+
+    $screen = Native::visit('/home/manga/'.DETAIL_SEEDED);
+    $texts = detailTexts($screen->tree());
+
+    expect(Http::recorded(fn (Request $r) => str_contains(rawurldecode($r->url()), 'translatedLanguage[]=es-la'))->count())->toBe(1)
+        ->and($screen->get('language'))->toBe('en')
+        ->and(detailRows($screen->tree()))->toHaveCount(1)
+        ->and($texts)->toContain('English')
+        ->and(collect($texts)->contains(fn (string $t) => str_contains($t, 'Español')))->toBeFalse()
+        ->and(json_encode($screen->tree()))->not->toContain('pickLanguage');
 });
 
 it('switches the chapter list language and ignores a language the series lacks', function () {
@@ -280,7 +320,7 @@ it('switches the chapter list language and ignores a language the series lacks',
     expect($screen->get('language'))->toBe('en');
 });
 
-it('has no language switch for a series in one language, and says when a language has no chapters', function () {
+it('has no language switch for a series in one language, and says when it has no chapters', function () {
     detailSeries(DETAIL_SEEDED, ['en']);
     Http::swap(new Factory(app('events')));
     Http::fake(['*' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0])]);
@@ -288,7 +328,7 @@ it('has no language switch for a series in one language, and says when a languag
     $screen = Native::visit('/home/manga/'.DETAIL_SEEDED);
 
     expect(json_encode($screen->tree()))->not->toContain('pickLanguage')
-        ->and(detailTexts($screen->tree()))->toContain('No chapters in English yet');
+        ->and(detailTexts($screen->tree()))->toContain('No chapters yet');
 });
 
 it('marks read, started and up-next chapters and highlights the one Continue opens', function () {

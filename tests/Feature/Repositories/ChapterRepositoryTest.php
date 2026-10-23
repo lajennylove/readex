@@ -3,6 +3,7 @@
 use App\Models\Chapter;
 use App\Models\ChapterFeed;
 use App\Models\Collection as LibraryEntry;
+use App\Models\Manga;
 use App\Models\StoredChapter;
 use App\Repositories\ChapterRepository;
 use App\Repositories\MangaRepository;
@@ -232,6 +233,31 @@ it('opens the chapter list in the first chain language and lists the chain first
 
     $this->settings->setLanguage('ja');
     expect($this->chapters->defaultLanguage(FEED_OPM))->toBe('en');
+});
+
+it('leaves out a language whose feed came back empty until that answer goes stale', function () {
+    $this->settings->setLanguage('es-la');
+    Manga::query()->create([
+        'id' => FEED_OPM, 'title' => ['en' => 'Seeded'], 'alt_titles' => [], 'description' => [], 'status' => 'ongoing', 'year' => 2020,
+        'content_rating' => 'safe', 'available_languages' => ['es-la', 'en', 'fr'], 'original_language' => 'ja', 'tag_ids' => [],
+        'cover_file' => null, 'authors' => [], 'artists' => [], 'fetched_at' => Carbon::now(),
+    ]);
+    ChapterFeed::query()->insert([
+        ['manga_id' => FEED_OPM, 'language' => 'es-la', 'total' => 0, 'fetched_at' => Carbon::now()],
+        ['manga_id' => FEED_OPM, 'language' => 'en', 'total' => 1, 'fetched_at' => Carbon::now()],
+    ]);
+    Chapter::query()->create([
+        'id' => 'en-1', 'manga_id' => FEED_OPM, 'volume' => null, 'number' => '1', 'title' => null, 'language' => 'en',
+        'group_id' => null, 'group_name' => null, 'pages' => 20, 'external_url' => null, 'readable_at' => Carbon::now(), 'fetched_at' => Carbon::now(),
+    ]);
+
+    expect($this->chapters->languages(FEED_OPM))->toBe(['en', 'fr'])
+        ->and($this->chapters->defaultLanguage(FEED_OPM))->toBe('en');
+
+    Carbon::setTestNow(Carbon::now()->addSeconds(config('readex.refresh_ages')['feed']));
+
+    expect($this->chapters->languages(FEED_OPM))->toBe(['es-la', 'en', 'fr'])
+        ->and($this->chapters->defaultLanguage(FEED_OPM))->toBe('es-la');
 });
 
 it('answers from SQLite only', function () {

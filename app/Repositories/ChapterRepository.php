@@ -145,7 +145,7 @@ final class ChapterRepository
      */
     public function languages(string $mangaId): array
     {
-        $available = Manga::query()->find($mangaId)?->available_languages ?? [];
+        $available = $this->readableLanguages($mangaId);
         $chain = array_values(array_intersect($this->settings->chain()->languages, $available));
         $rest = array_values(array_diff($available, $chain));
         sort($rest);
@@ -156,9 +156,27 @@ final class ChapterRepository
     /** The language the chapter list opens in: first chain language the series has. */
     public function defaultLanguage(string $mangaId): ?string
     {
-        $available = Manga::query()->find($mangaId)?->available_languages ?? [];
+        return $this->settings->chain()->firstAvailable($this->readableLanguages($mangaId));
+    }
 
-        return $this->settings->chain()->firstAvailable($available);
+    /**
+     * The series' languages minus those whose fresh feed has no readable chapter: MangaDex keeps
+     * a language in `availableTranslatedLanguages` after all its uploads become unavailable. Once
+     * that feed goes stale the language is offered again, so new uploads still show up.
+     *
+     * @return list<string>
+     */
+    private function readableLanguages(string $mangaId): array
+    {
+        $available = Manga::query()->find($mangaId)?->available_languages ?? [];
+        $kind = $this->kind($mangaId);
+        $withChapters = Chapter::query()->where('manga_id', $mangaId)->whereNotNull('fetched_at')->distinct()->pluck('language');
+        $empty = ChapterFeed::query()->where('manga_id', $mangaId)->get()
+            ->reject(fn (ChapterFeed $feed) => Freshness::isStale($feed->fetched_at, $kind) || $withChapters->contains($feed->language))
+            ->pluck('language')
+            ->all();
+
+        return array_values(array_diff($available, $empty));
     }
 
     /**

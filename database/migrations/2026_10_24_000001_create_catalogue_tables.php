@@ -35,6 +35,8 @@ return new class extends Migration
             $table->unsignedInteger('batch');
             $table->unsignedInteger('position');
             $table->uuid('manga_id');
+            // Latest updates only: the chapter the tile opens.
+            $table->uuid('chapter_id')->nullable();
             $table->timestamp('fetched_at')->nullable();
             $table->primary(['list_key', 'position']);
             $table->unique(['list_key', 'manga_id']);

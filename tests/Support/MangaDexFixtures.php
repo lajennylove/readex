@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use App\MangaDex\Query;
+use Closure;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -27,18 +28,25 @@ final class MangaDexFixtures
      */
     public static function fake(string ...$names): void
     {
+        Http::fake(self::stub(...$names));
+    }
+
+    /** The fake's handler, for tests that answer some URLs themselves and pass the rest on. */
+    public static function stub(string ...$names): Closure
+    {
         $responses = [];
 
         foreach ($names as $name) {
             $raw = file_get_contents(self::path($name));
             $meta = json_decode($raw, true, flags: JSON_THROW_ON_ERROR);
             $body = json_decode($raw, false, flags: JSON_THROW_ON_ERROR)->body;
-            $url = rtrim(config('mangadex.api_url'), '/').$meta['path'].($meta['query'] ? '?'.Query::build($meta['query']) : '');
+            $base = str_starts_with($meta['path'], 'https://') ? $meta['path'] : rtrim(config('mangadex.api_url'), '/').$meta['path'];
+            $url = $base.($meta['query'] ? '?'.Query::build($meta['query']) : '');
 
             $responses[self::key($url)] = [json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), $meta['status'], $meta['headers']];
         }
 
-        Http::fake(function (Request $request) use ($responses) {
+        return function (Request $request) use ($responses) {
             $found = $responses[self::key($request->url())] ?? null;
 
             if ($found === null || $request->method() !== 'GET') {
@@ -46,7 +54,7 @@ final class MangaDexFixtures
             }
 
             return Http::response(...$found);
-        });
+        };
     }
 
     /** Query pairs sorted, except `order[...]`: its sequence is the sort priority. */

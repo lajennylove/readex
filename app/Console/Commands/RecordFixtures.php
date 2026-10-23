@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\MangaDex\Client;
 use App\MangaDex\Exceptions\ApiError;
 use App\MangaDex\Exceptions\RequestDeferred;
+use App\MangaDex\Query;
 use App\MangaDex\RateLimit\Priority;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
@@ -51,7 +52,9 @@ final class RecordFixtures extends Command
             $captured = null;
 
             try {
-                $client->get($path, $query, Priority::Bulk, 30.0);
+                str_starts_with($path, 'https://')
+                    ? $client->getJson($query ? $path.'?'.Query::build($query) : $path, Priority::Bulk, 30.0)
+                    : $client->get($path, $query, Priority::Bulk, 30.0);
             } catch (ApiError|RequestDeferred|ConnectionException $e) {
                 $this->error("{$name}: {$e->getMessage()}");
                 $failed++;

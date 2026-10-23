@@ -1,9 +1,34 @@
 <?php
 
 // Recorded by `php artisan mangadex:record-fixtures` (real API, through the RequestController).
-// name => [api.mangadex.org path, query]. Later tasks add their entries here and record them with --only.
+// name => [api.mangadex.org path or full https:// URL, query]. Later tasks add their entries here and record them with --only.
 
 $allRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
+
+/** Manga ids of a recorded response, in order, no repeats (for fixtures that follow another one). */
+$mangaIdsOf = function (string $name, string $from): array {
+    $file = __DIR__."/{$name}.json";
+
+    if (! is_file($file)) {
+        return [];
+    }
+
+    $ids = [];
+
+    foreach (json_decode(file_get_contents($file), true)['body'][$from] ?? [] as $item) {
+        foreach ($item['relationships'] ?? [] as $relation) {
+            if ($relation['type'] === 'manga') {
+                $ids[] = $relation['id'];
+            }
+        }
+    }
+
+    return array_values(array_unique($ids));
+};
+
+$seasonIds = is_file(__DIR__.'/seasonal-json.json')
+    ? json_decode(file_get_contents(__DIR__.'/seasonal-json.json'), true)['body']['manga_ids']
+    : [];
 
 return [
 
@@ -86,6 +111,50 @@ return [
         'contentRating' => $allRatings,
         'includes' => ['scanlation_group'],
         'order' => ['volume' => 'asc', 'chapter' => 'asc'],
+    ]],
+
+    // Home (Task 7). Record in this order: the later entries read the ids out of the earlier files.
+
+    // Community JSON on GitHub Pages: {id, name, manga_ids} (70 ids, sorted by id, no ranking).
+    'seasonal-json' => ['https://antsylich.github.io/mangadex-seasonal/seasonal-list.json', []],
+
+    // Fallback: the MangaDex custom list behind the JSON, its manga are `relationships`.
+    'seasonal-list' => ['/list/68ab4f4e-6f01-4898-9038-c5eee066be27', []],
+
+    'season-manga' => ['/manga', [
+        'ids' => $seasonIds,
+        'limit' => 100,
+        'contentRating' => ['safe', 'suggestive'],
+        'includes' => ['cover_art'],
+        'order' => ['followedCount' => 'desc'],
+    ]],
+
+    // Tests run on 2026-10-24, so "created in the last 30 days" starts at 2026-09-24 00:00 UTC.
+    'popular-new' => ['/manga', [
+        'createdAtSince' => '2026-09-24T00:00:00',
+        'hasAvailableChapters' => true,
+        'limit' => 20,
+        'contentRating' => ['safe', 'suggestive'],
+        'includes' => ['cover_art'],
+        'order' => ['followedCount' => 'desc'],
+    ]],
+
+    // Latest updates for a Spanish (Latin America) reader: chain es-la → es → en.
+    'latest-es-la' => ['/chapter', [
+        'translatedLanguage' => ['es-la', 'es', 'en'],
+        'includeFutureUpdates' => '0',
+        'limit' => 100,
+        'contentRating' => ['safe', 'suggestive'],
+        'includes' => ['scanlation_group'],
+        'order' => ['readableAt' => 'desc'],
+    ]],
+
+    // Covers for the first 20 series of latest-es-la.
+    'latest-es-la-manga' => ['/manga', [
+        'ids' => array_slice($mangaIdsOf('latest-es-la', 'data'), 0, 20),
+        'limit' => 100,
+        'contentRating' => ['safe', 'suggestive'],
+        'includes' => ['cover_art'],
     ]],
 
 ];

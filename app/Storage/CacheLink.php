@@ -2,6 +2,8 @@
 
 namespace App\Storage;
 
+use Illuminate\Support\Facades\File;
+
 final class CacheLink
 {
     public static function ensure(StorageBridge $bridge): string
@@ -15,6 +17,8 @@ final class CacheLink
 
         if (is_link($link) || is_file($link)) {
             unlink($link);
+        } elseif (is_dir($link)) {
+            File::deleteDirectory($link);
         }
 
         symlink($target, $link);

@@ -48,6 +48,27 @@ it('puts the four tabs under native chrome', function (string $uri, string $scre
     ['/settings', Settings::class, 'Settings'],
 ]);
 
+it('forces the dark scheme on the tab chrome', function () {
+    // Info.plist pins dark only in our own build; Jump follows the phone, so the
+    // nav title would be drawn black on black without the runtime `dark` prop.
+    $find = function (array $node) use (&$find): ?array {
+        if (($node['type'] ?? null) === 'native_root_tabs') {
+            return $node;
+        }
+        foreach ($node['children'] ?? [] as $child) {
+            if (is_array($child) && ($found = $find($child)) !== null) {
+                return $found;
+            }
+        }
+
+        return null;
+    };
+
+    $tabs = $find(Native::visit('/home')->tree());
+
+    expect($tabs['props']['dark'] ?? null)->toBeTrue();
+});
+
 it('shows the Library placeholder', function () {
     Native::visit('/library')->assertSee('Your series will show up here');
 });

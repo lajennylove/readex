@@ -102,8 +102,17 @@ final class ChapterRepository
      */
     public function sections(string $mangaId, string $language): array
     {
-        $chapters = $this->get($mangaId, $language)->data;
+        return self::group($this->get($mangaId, $language)->data);
+    }
 
+    /**
+     * The grouping behind `sections()`, also used by the Library (Task 9).
+     *
+     * @param  Collection<int, Chapter>  $chapters
+     * @return list<array{volume: ?string, chapters: Collection<int, Chapter>}>
+     */
+    public static function group(Collection $chapters): array
+    {
         $volumeOf = $chapters
             ->filter(fn (Chapter $c) => $c->number !== null && $c->volume !== null)
             ->groupBy('number')

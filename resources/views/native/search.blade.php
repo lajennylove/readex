@@ -1,5 +1,5 @@
 <native:column class="w-full h-full bg-theme-background">
-    <native:column class="w-full px-4 pt-2 pb-1">
+    <native:column class="w-full px-4 pt-2 {{ isset($groups) || $tag !== null ? 'pb-1' : 'pb-3' }}">
         <native:row class="w-full items-center gap-2 px-3 py-2 rounded-lg bg-[#2C2C2E]">
             <native:icon name="search" size="17" color="#8E8E93" />
             <native:bare-text-input

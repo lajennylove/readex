@@ -12,6 +12,7 @@ use App\Repositories\Result;
 use Illuminate\Support\Carbon;
 use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Exceptions\AsyncTaskException;
+use Native\Mobile\Facades\Network;
 
 /**
  * Spec §7 loop for a screen. `load()` reads repositories (SQLite only) and passes each
@@ -33,6 +34,12 @@ trait RefreshesData
     /** Key => ms of the last successful refresh, so empty-but-fresh data can't loop. */
     public array $refreshedAt = [];
 
+    /** Key => ms of the last Offline outcome; the poll retries it after OFFLINE_RETRY_MS. */
+    public array $offlineAt = [];
+
+    /** A dropped connection (cellular hand-off, Wi-Fi to 5G) comes back on its own. */
+    public const OFFLINE_RETRY_MS = 15_000;
+
     private bool $forceRefresh = false;
 
     /** Read every repository the screen shows and call keepFresh() for each Result. */
@@ -42,6 +49,7 @@ trait RefreshesData
     public function pullToRefresh(): void
     {
         $this->problems = [];
+        $this->offlineAt = [];
         $this->forceRefresh = true;
 
         try {
@@ -69,6 +77,35 @@ trait RefreshesData
                 $this->settle($key, $outcome);
             }
         }
+
+        $this->retryOffline();
+    }
+
+    /** Offline refreshes are retried while the phone isn't known to be disconnected. */
+    private function retryOffline(): void
+    {
+        $now = Carbon::now()->getTimestampMs();
+        $due = array_filter($this->offlineAt, fn (int $at) => $now - $at >= self::OFFLINE_RETRY_MS);
+
+        if ($due === []) {
+            return;
+        }
+
+        if (Network::status()?->connected === false) {
+            foreach (array_keys($due) as $key) {
+                $this->offlineAt[$key] = $now;
+            }
+
+            return;
+        }
+
+        $this->load();
+    }
+
+    private function offlineRetryDue(string $key): bool
+    {
+        return isset($this->offlineAt[$key])
+            && Carbon::now()->getTimestampMs() - $this->offlineAt[$key] >= self::OFFLINE_RETRY_MS;
     }
 
     /** The most important line among this screen's refreshes (§13), or null. */
@@ -114,7 +151,7 @@ trait RefreshesData
                 return;
             }
 
-            if ($this->refreshedRecently($key) || isset($this->problems[$key])) {
+            if ($this->refreshedRecently($key) || (isset($this->problems[$key]) && ! $this->offlineRetryDue($key))) {
                 return;
             }
         }
@@ -135,7 +172,7 @@ trait RefreshesData
     private function refreshFinished(Refresh $refresh, Outcome $outcome): void
     {
         $key = $refresh->key();
-        unset($this->refreshing[$key]);
+        unset($this->refreshing[$key], $this->offlineAt[$key]);
 
         if ($outcome->status->retriesLater()) {
             $this->problems[$key] = $outcome->toArray();
@@ -152,6 +189,10 @@ trait RefreshesData
     {
         if ($outcome->status !== RefreshStatus::Ok) {
             $this->problems[$key] = $outcome->toArray();
+
+            if ($outcome->status === RefreshStatus::Offline) {
+                $this->offlineAt[$key] = Carbon::now()->getTimestampMs();
+            }
 
             return;
         }

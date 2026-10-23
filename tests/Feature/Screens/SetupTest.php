@@ -44,7 +44,7 @@ function languagePicker(string $value): Closure
 /** Node id of a rating toggle in the last render. */
 function toggleId(array $node, string $label): ?int
 {
-    if (($node['type'] ?? null) === 'toggle' && ($node['props']['label'] ?? null) === $label) {
+    if (($node['type'] ?? null) === 'toggle' && ($node['props']['a11y_label'] ?? null) === $label) {
         return $node['id'];
     }
 
@@ -59,8 +59,19 @@ function toggleId(array $node, string $label): ?int
 
 function ratingToggle(string $label, bool $on): Closure
 {
-    return fn (array $node) => ($node['props']['label'] ?? null) === $label && ($node['props']['value'] ?? null) === $on;
+    return fn (array $node) => ($node['props']['a11y_label'] ?? null) === $label && ($node['props']['value'] ?? null) === $on;
 }
+
+it('labels the rating toggles with theme text, since the iOS toggle label ignores the theme', function () {
+    $screen = Native::test(Setup::class);
+
+    foreach (['Safe', 'Suggestive', 'Erotica', 'Pornographic'] as $label) {
+        $screen->assertElement('text', fn (array $node) => ($node['props']['text'] ?? null) === $label
+            && ($node['props']['color'] ?? null) === config('native-ui.theme.dark.on-background'));
+    }
+
+    $screen->assertMissingElement('toggle', fn (array $node) => isset($node['props']['label']));
+});
 
 it('preselects Français on a fr-CA phone (spec §10)', function () {
     Native::fakeBridge()->respondTo('MdxStorage.PreferredLanguage', ['language' => 'fr-CA']);

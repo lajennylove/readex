@@ -12,6 +12,7 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Log;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
+use Tests\Support\Covers;
 
 it('sends a first launch to Setup', function () {
     Native::visit('/')->assertReplacedWith('/setup');
@@ -85,6 +86,16 @@ it('pushes the detail screen inside the tab it was opened from', function (strin
     ['search', 'Search'],
     ['library', 'Library'],
 ]);
+
+it('gives the detail screen a nav title', function () {
+    // iOS tabs only build their NavigationStack when the current screen has a title;
+    // with an empty one the push showed the tab root's cached tree with no bar.
+    Native::visit('/home/manga/abc-123')->assertNavTitle('Series');
+
+    Covers::manga('m1', title: 'Frieren');
+
+    Native::visit('/search/manga/m1')->assertNavTitle('Frieren');
+});
 
 it('builds detail URIs per tab', function () {
     expect(TabsLayout::mangaUri('search', 'x'))->toBe('/search/manga/x')

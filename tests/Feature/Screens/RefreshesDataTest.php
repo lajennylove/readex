@@ -121,6 +121,77 @@ it('keeps saved data and says offline when there is no connection', function () 
     expect(FakeRefreshTarget::$calls)->toHaveCount(2);
 });
 
+it('retries an offline refresh from the poll once the connection had time to come back', function () {
+    staleRow();
+    FakeRefreshTarget::$script = [new ConnectionException('cURL error 28')];
+
+    $screen = Native::test(RefreshingScreen::class)->assertSee('Offline, showing saved data');
+
+    $this->travel(14)->seconds();
+    $screen->call('checkWaitingRefreshes');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(1);
+
+    $this->travel(1)->seconds();
+    $screen->call('checkWaitingRefreshes')
+        ->assertSet('items', ['fresh'])
+        ->assertSet('problems', [])
+        ->assertSet('offlineAt', [])
+        ->assertSee('All good');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(2);
+});
+
+it('keeps the offline line while a retry fails again, and waits another 15 seconds', function () {
+    staleRow();
+    FakeRefreshTarget::$script = [new ConnectionException('down'), new ConnectionException('down')];
+
+    $screen = Native::test(RefreshingScreen::class);
+
+    $this->travel(15)->seconds();
+    $screen->call('checkWaitingRefreshes')->assertSee('Offline, showing saved data');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(2);
+
+    $this->travel(14)->seconds();
+    $screen->call('checkWaitingRefreshes');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(2);
+
+    $this->travel(1)->seconds();
+    $screen->call('checkWaitingRefreshes')->assertSet('items', ['fresh']);
+    expect(FakeRefreshTarget::$calls)->toHaveCount(3);
+});
+
+it('does not retry while the phone says it has no connection', function () {
+    staleRow();
+    FakeRefreshTarget::$script = [new ConnectionException('down')];
+    Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
+
+    $screen = Native::test(RefreshingScreen::class);
+
+    $this->travel(15)->seconds();
+    $screen->call('checkWaitingRefreshes')->assertSee('Offline, showing saved data');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(1);
+
+    Native::fakeBridge()->respondTo('Network.Status', ['connected' => true]);
+    $this->travel(14)->seconds();
+    $screen->call('checkWaitingRefreshes');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(1);
+
+    $this->travel(1)->seconds();
+    $screen->call('checkWaitingRefreshes')->assertSet('items', ['fresh']);
+    expect(FakeRefreshTarget::$calls)->toHaveCount(2);
+});
+
+it('leaves a failed refresh for pull to refresh', function () {
+    staleRow();
+    FakeRefreshTarget::$script = [new RuntimeException('boom')];
+    Exceptions::fake();
+
+    $screen = Native::test(RefreshingScreen::class)->assertSee('Something went wrong');
+
+    $this->travel(5)->minutes();
+    $screen->call('checkWaitingRefreshes');
+    expect(FakeRefreshTarget::$calls)->toHaveCount(1);
+});
+
 it('says busy and queues the retry job when there is no request slot', function () {
     staleRow();
     FakeRefreshTarget::$script = [deferred(BusyReason::Saturated)];

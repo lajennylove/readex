@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Manga;
 use App\NativeComponents\Home;
 use App\NativeComponents\Library;
 use App\NativeComponents\MangaDetail;
@@ -10,9 +11,19 @@ use App\NativeLayouts\TabsLayout;
 use App\Repositories\SettingsRepository;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
+use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
+
+// The detail screen loads on open; keep its refreshes and cover downloads off the network.
+beforeEach(function () {
+    Queue::fake();
+    AsyncTask::fake();
+});
+
+afterEach(fn () => AsyncTask::clearFake());
 
 it('sends a first launch to Setup', function () {
     Native::visit('/')->assertReplacedWith('/setup');
@@ -116,6 +127,10 @@ it('renders every screen without dropped Tailwind classes', function () {
             $dropped[] = $log->context;
         }
     });
+
+    // A saved series, so the detail screen renders its whole header.
+    Covers::manga('x');
+    Manga::query()->whereKey('x')->update(['authors' => json_encode(['A']), 'artists' => json_encode(['B']), 'status' => 'ongoing', 'year' => 2020]);
 
     foreach (['/setup', '/home', '/search', '/library', '/settings', '/home/manga/x'] as $uri) {
         Native::visit($uri);

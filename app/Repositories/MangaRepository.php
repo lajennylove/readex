@@ -139,11 +139,13 @@ final class MangaRepository
         }
     }
 
+    /** Stale while only a list call saved it: list calls don't include author and artist. */
     public function detail(string $id): Result
     {
         $manga = Manga::query()->find($id);
+        $result = Freshness::result($manga, $manga?->fetched_at, 'manga');
 
-        return Freshness::result($manga, $manga?->fetched_at, 'manga');
+        return $manga !== null && $manga->authors === null ? new Result($manga, $result->fetchedAt, true) : $result;
     }
 
     public function refreshDetail(string $id, Priority $priority = Priority::Interactive): void

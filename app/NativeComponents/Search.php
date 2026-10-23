@@ -21,8 +21,9 @@ use Native\Mobile\Edge\NativeComponent;
  * Spec §5.7, choice 5: a search field pinned at the top of the screen (a nav-bar field in a tab
  * stays tucked away until pulled down, and tabs can't pin it); while it's empty, the tag browser.
  * Results (title, tag, or both) are a 3-column cover grid in a virtual list, one list row per
- * grid row, and the next batch loads when the visible window gets near the end. Rated content
- * (`readex.rated_content`) comes after everything else, under a divider and its own title row.
+ * grid row, and the next batch loads when the visible window gets near the end. When the settings
+ * include rated content (`readex.rated_content`), it comes after everything else, under a divider
+ * and its own title row; otherwise the results stay one grid.
  */
 class Search extends NativeComponent
 {
@@ -239,7 +240,8 @@ class Search extends NativeComponent
      */
     private function rows(Result $result): array
     {
-        [$rated, $rest] = ($result->data ?? collect())->partition(fn (Manga $m) => in_array($m->content_rating, config('readex.rated_content'), true));
+        $ratedOn = array_intersect(config('readex.rated_content'), app(SettingsRepository::class)->contentRatings());
+        [$rated, $rest] = ($result->data ?? collect())->partition(fn (Manga $m) => in_array($m->content_rating, $ratedOn, true));
         $rows = array_chunk($rest->values()->all(), self::COLUMNS);
 
         if ($rated->isNotEmpty()) {

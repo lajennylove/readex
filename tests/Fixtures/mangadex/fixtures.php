@@ -205,4 +205,7 @@ return [
     // Detail screen's More like this (Plan 04 Task 7): a new series nobody recommended anything for yet.
     'recommendations-nova' => ['/manga/8a45c930-32d1-423e-bffd-9e8d71312134/recommendation', []],
 
+    // Reader (Plan 05): @Home server for the 20-page oneshot of feed-oneshot-en.
+    'at-home-oneshot' => ['/at-home/server/4e01bda4-0a04-4cdd-b3a9-edcafa7bbfd4', []],
+
 ];

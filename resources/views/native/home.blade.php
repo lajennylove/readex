@@ -1,0 +1,21 @@
+<native:refreshable class="w-full h-full bg-theme-background" @refresh="pullToRefresh">
+    <native:column class="w-full gap-6 pb-6">
+        @include('native.partials.status-line', ['line' => $line])
+
+        @if ($nothingSaved)
+            <native:column class="w-full items-center gap-3 p-6">
+                <native:text class="text-lg font-bold text-theme-on-background">Nothing saved yet</native:text>
+                <native:text class="text-sm text-center text-theme-on-surface-variant">Home fills in once MangaDex can be reached.</native:text>
+                <native:button label="Retry" variant="primary" @press="pullToRefresh" />
+            </native:column>
+        @else
+            @if ($continue !== [])
+                @include('native.partials.row', ['label' => 'Continue reading', 'tiles' => $continue])
+            @endif
+
+            @foreach (\App\NativeComponents\Home::ROWS as $key => $label)
+                @include('native.partials.row', ['label' => $label, 'tiles' => $rows[$key]])
+            @endforeach
+        @endif
+    </native:column>
+</native:refreshable>

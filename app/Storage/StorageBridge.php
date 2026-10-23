@@ -11,4 +11,7 @@ interface StorageBridge
     public function cachesPath(): string;
 
     public function excludeFromBackup(string $path): bool;
+
+    /** IANA zone of the phone (the app itself runs in UTC). */
+    public function timeZone(): string;
 }

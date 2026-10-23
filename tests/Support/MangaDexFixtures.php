@@ -23,8 +23,9 @@ final class MangaDexFixtures
     }
 
     /**
-     * Serve these fixtures to matching GETs (same path, same query in any order). Any other
-     * request throws, so a repository asking for something unrecorded fails loudly.
+     * Serve these fixtures to matching GETs (same path, same query in any order). Covers aren't
+     * recorded: they answer 404, so a screen's cover fetch skips them. Any other request throws,
+     * so a repository asking for something unrecorded fails loudly.
      */
     public static function fake(string ...$names): void
     {
@@ -47,6 +48,10 @@ final class MangaDexFixtures
         }
 
         return function (Request $request) use ($responses) {
+            if (str_starts_with($request->url(), rtrim(config('mangadex.covers_url'), '/').'/')) {
+                return Http::response('', 404);
+            }
+
             $found = $responses[self::key($request->url())] ?? null;
 
             if ($found === null || $request->method() !== 'GET') {

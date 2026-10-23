@@ -1,11 +1,9 @@
 <?php
 
-use App\Jobs\DownloadCovers;
 use App\Language\Languages;
 use App\MangaDex\Exceptions\RequestDeferred;
 use App\MangaDex\RateLimit\Busy;
 use App\MangaDex\RateLimit\BusyReason;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\ChapterFeed;
 use App\Models\Collection as LibraryEntry;
@@ -447,15 +445,15 @@ it('shows More like this between the description and the chapters, in reading or
         ->assertNavigatedTo("/search/manga/{$first->id}");
 });
 
-it('queues the recommended covers after the series cover, the first ones interactive', function () {
+it('fetches the series cover and the first recommended covers right away, and queues the rest', function () {
     Native::visit('/search/manga/'.DETAIL_RTW);
-    $jobs = Queue::pushed(DownloadCovers::class)->values();
-    $queued = $jobs->flatMap(fn (DownloadCovers $job) => $job->mangaIds)->all();
+    $fetched = Covers::fetched($this->async);
+    $requested = Covers::requested($this->async);
     $expected = app(RecommendationRepository::class)->get(DETAIL_RTW)->data->pluck('id')->all();
 
-    expect($queued[0])->toBe(DETAIL_RTW)
-        ->and(array_values(array_intersect($queued, $expected)))->toBe($expected)
-        ->and($jobs->first(fn (DownloadCovers $job) => in_array($expected[0], $job->mangaIds, true))->priority)->toBe(Priority::Interactive);
+    expect($fetched[0])->toBe(DETAIL_RTW)
+        ->and($fetched)->toContain($expected[0])
+        ->and(array_values(array_intersect(array_unique($requested), $expected)))->toBe($expected);
 });
 
 it('leaves the row out for a series nobody recommended anything for, and asks again only after 7 days', function () {

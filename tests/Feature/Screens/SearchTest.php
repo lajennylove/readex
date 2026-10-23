@@ -43,7 +43,9 @@ beforeEach(function () {
         $fixtures = MangaDexFixtures::stub('tags', 'search-one-punch', 'search-one-punch-p1', 'search-one-punch-p2', 'browse-cooking');
 
         Http::fake(function (Request $request) use ($override, $fixtures) {
-            $this->asked[] = rawurldecode($request->url());
+            if (! str_contains($request->url(), 'uploads.mangadex.org/covers/')) {
+                $this->asked[] = rawurldecode($request->url());
+            }
 
             if ($override !== null && ($answer = $override($request)) !== null) {
                 return $answer;
@@ -333,7 +335,7 @@ it('waits for the window to get near the end before loading more', function () {
     $screen = Native::test(Search::class)->call('searchFor', 'one punch');
     $ids = app(MangaRepository::class)->search('one punch')->data->pluck('id')->all();
     expect($screen->get('more'))->toBeNull()
-        ->and(Queue::pushed(DownloadCovers::class)->flatMap->mangaIds->all())->toBe(array_slice($ids, 0, 45));
+        ->and(Covers::requested($this->async))->toBe(array_slice($ids, 0, 45));
 
     $this->asked = [];
     $screen->call('windowChanged', 0, 14);
@@ -376,7 +378,7 @@ it('puts rated content (erotica, pornographic) at the bottom, under a divider an
         ->and(searchNodes($screen->tree(), 'divider'))->toHaveCount(1)
         // 1 grid row + the title row + 1 grid row.
         ->and(searchNodes($screen->tree(), 'virtual_list')[0]['props'])->toMatchArray(['count' => 3])
-        ->and(Queue::pushed(DownloadCovers::class)->flatMap->mangaIds->all())->toBe(array_map(
+        ->and(Covers::requested($this->async))->toBe(array_map(
             fn (int $i) => sprintf('00000000-0000-4000-8000-%012d', $i),
             [0, 2, 4, 1, 3, 5],
         ));
@@ -476,16 +478,16 @@ it('opens a result in the Search tab', function () {
     $screen->tap(tileTitles($screen->tree())[0])->assertNavigatedTo("/search/manga/{$first->id}");
 });
 
-it('queues the covers of the rows in the window, the first 12 interactive', function () {
+it('fetches the first 12 covers of the rows in the window right away and queues the rest', function () {
     config(['readex.page_sizes.list' => 20]);
     Native::test(Search::class)->call('searchFor', 'one punch');
     $ids = app(MangaRepository::class)->search('one punch')->data->pluck('id')->all();
 
     $jobs = Queue::pushed(DownloadCovers::class)->values();
-    expect($jobs[0]->priority)->toBe(Priority::Interactive)
-        ->and($jobs[0]->mangaIds)->toBe(array_slice($ids, 0, 12))
-        ->and($jobs[1]->priority)->toBe(Priority::Prefetch)
-        ->and($jobs[1]->mangaIds)->toBe(array_slice($ids, 12));
+    expect(Covers::fetched($this->async))->toBe(array_slice($ids, 0, 12))
+        ->and($jobs)->toHaveCount(1)
+        ->and($jobs[0]->priority)->toBe(Priority::Prefetch)
+        ->and($jobs[0]->mangaIds)->toBe(array_slice($ids, 12));
 });
 
 it('refreshes stale results and the tag list in the background', function () {

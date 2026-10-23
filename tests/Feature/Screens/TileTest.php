@@ -4,9 +4,11 @@ use App\Jobs\DownloadCovers;
 use App\MangaDex\RateLimit\Priority;
 use App\NativeLayouts\TabsLayout;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
+use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
@@ -71,7 +73,9 @@ it('opens the series inside the tab the screen belongs to', function () {
         ->assertNavigatedTo('/search/manga/m1');
 });
 
-it('queues the first twelve covers as interactive and the rest in the background', function () {
+it('downloads the first twelve covers right away and queues the rest in the background', function () {
+    Http::fake(['uploads.mangadex.org/*' => Http::response(Covers::jpeg())]);
+    $async = AsyncTask::fake();
     $ids = array_map(fn (int $i) => sprintf('m%02d', $i), range(1, 14));
     foreach ($ids as $id) {
         Covers::manga($id);
@@ -80,11 +84,13 @@ it('queues the first twelve covers as interactive and the rest in the background
 
     Native::test(TileScreen::class);
 
-    Queue::assertPushed(DownloadCovers::class, 2);
-    Queue::assertPushed(DownloadCovers::class, fn (DownloadCovers $job) => $job->priority === Priority::Interactive
-        && $job->mangaIds === array_slice($ids, 0, 12));
+    $async->assertDispatchedTimes(1);
+    expect(Http::recorded()->map(fn (array $pair) => explode('/', parse_url($pair[0]->url(), PHP_URL_PATH))[2])->all())
+        ->toBe(array_slice($ids, 0, 12));
+    Queue::assertPushed(DownloadCovers::class, 1);
     Queue::assertPushed(DownloadCovers::class, fn (DownloadCovers $job) => $job->priority === Priority::Prefetch
         && $job->mangaIds === ['m13', 'm14']);
+    AsyncTask::clearFake();
 });
 
 it('renders the tile without dropped Tailwind classes', function () {

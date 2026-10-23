@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "lajennylove/plugin-mdx-storage": "@dev",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "nativephp/mobile": "^4.6"
@@ -84,5 +85,11 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": {
+        "mdx-storage": {
+            "type": "path",
+            "url": "packages/lajennylove/plugin-mdx-storage"
+        }
+    }
 }

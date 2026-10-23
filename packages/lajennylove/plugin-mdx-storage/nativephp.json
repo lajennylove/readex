@@ -1,0 +1,76 @@
+{
+    "name": "lajennylove/plugin-mdx-storage",
+    "version": "1.0.0",
+    "description": "ReaDex storage helpers: preferred language, caches path, backup exclusion",
+    "namespace": "MdxStorage",
+    "keywords": [],
+    "category": "utilities",
+    "license": "MIT",
+    "pricing": {
+        "type": "free"
+    },
+    "author": {
+        "name": "Jenny Martinez",
+        "email": "",
+        "url": ""
+    },
+    "homepage": "",
+    "repository": "",
+    "funding": [],
+    "platforms": [
+        "android",
+        "ios"
+    ],
+    "icon": "resources/icon.png",
+    "screenshots": [],
+    "bridge_functions": [
+        {
+            "name": "MdxStorage.PreferredLanguage",
+            "ios": "MdxStorageFunctions.PreferredLanguage",
+            "description": "First entry of Locale.preferredLanguages"
+        },
+        {
+            "name": "MdxStorage.CachesPath",
+            "ios": "MdxStorageFunctions.CachesPath",
+            "description": "Library/Caches/readex path, created if missing"
+        },
+        {
+            "name": "MdxStorage.ExcludeFromBackup",
+            "ios": "MdxStorageFunctions.ExcludeFromBackup",
+            "description": "Sets isExcludedFromBackup on a path"
+        }
+    ],
+    "android": {
+        "min_version": 21,
+        "permissions": [],
+        "repositories": [],
+        "dependencies": {
+            "implementation": []
+        },
+        "activities": [],
+        "services": [],
+        "receivers": [],
+        "providers": []
+    },
+    "ios": {
+        "min_version": "15.0",
+        "permissions": [],
+        "repositories": [],
+        "dependencies": {
+            "swift_packages": [],
+            "pods": []
+        }
+    },
+    "assets": {
+        "android": [],
+        "ios": []
+    },
+    "secrets": [],
+    "events": [
+        "Lajennylove\\MdxStorage\\Events\\MdxStorageCompleted"
+    ],
+    "service_provider": "Lajennylove\\MdxStorage\\MdxStorageServiceProvider",
+    "hooks": {
+        "copy_assets": "nativephp:mdx-storage:copy-assets"
+    }
+}

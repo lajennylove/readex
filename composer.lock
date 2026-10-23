@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c918f3bff67a33b82274c8f529e26f48",
+    "content-hash": "bca94d03607d28f6a349b5bf4eb53972",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1282,6 +1282,55 @@
                 }
             ],
             "time": "2026-08-24T17:13:02+00:00"
+        },
+        {
+            "name": "lajennylove/plugin-mdx-storage",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "packages/lajennylove/plugin-mdx-storage",
+                "reference": "77716247999d409a811a3415eec271b770d7a8cd"
+            },
+            "require": {
+                "nativephp/mobile": "^4.6",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "pestphp/pest": "^5.0"
+            },
+            "type": "nativephp-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lajennylove\\MdxStorage\\MdxStorageServiceProvider"
+                    ]
+                },
+                "nativephp": {
+                    "manifest": "nativephp.json"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lajennylove\\MdxStorage\\": "src/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "pest"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jenny Martinez"
+                }
+            ],
+            "description": "ReaDex storage helpers: preferred language, caches path, backup exclusion",
+            "transport-options": {
+                "relative": true
+            }
         },
         {
             "name": "laravel/framework",
@@ -10572,7 +10621,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "lajennylove/plugin-mdx-storage": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

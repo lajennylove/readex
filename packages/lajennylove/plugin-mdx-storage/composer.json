@@ -1,0 +1,41 @@
+{
+    "name": "lajennylove/plugin-mdx-storage",
+    "description": "ReaDex storage helpers: preferred language, caches path, backup exclusion",
+    "type": "nativephp-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jenny Martinez"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "nativephp/mobile": "^4.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lajennylove\\MdxStorage\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lajennylove\\MdxStorage\\MdxStorageServiceProvider"
+            ]
+        },
+        "nativephp": {
+            "manifest": "nativephp.json"
+        }
+    },
+    "require-dev": {
+        "pestphp/pest": "^5.0"
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

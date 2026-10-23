@@ -81,10 +81,12 @@ function searchNodes(array $node, string $type): array
     return $found;
 }
 
-/** Tile titles in grid order (each tile's image alt is its title). */
+/** Tile titles in grid order (the field's clear button is the one pressable without text). */
 function tileTitles(array $tree): array
 {
-    return array_map(fn (array $tile) => searchNodes($tile, 'text')[0]['props']['text'], searchNodes($tree, 'pressable'));
+    $tiles = array_filter(searchNodes($tree, 'pressable'), fn (array $node) => searchNodes($node, 'text') !== []);
+
+    return array_values(array_map(fn (array $tile) => searchNodes($tile, 'text')[0]['props']['text'], $tiles));
 }
 
 function asked(array $asked, string $needle): int
@@ -97,12 +99,25 @@ function busy(): RequestDeferred
     return new RequestDeferred(new Busy(Carbon::now()->addMinute()->getTimestampMs() / 1000, BusyReason::Saturated));
 }
 
-it('puts the iOS search field in the Search nav bar (choice 5)', function () {
-    $props = Native::visit('/search')->tree()['props'];
+it('puts the search field at the top of the screen, not in the nav bar (iOS tucks a tab nav-bar field away until pulled down)', function () {
+    $screen = Native::visit('/search');
+    $fields = searchNodes($screen->tree(), 'bare_text_input');
 
-    expect($props['nav_search_placeholder'])->toBe('Titles')
-        ->and($props['nav_search_on_query'])->toBeInt()
-        ->and($props['nav_search_debounce_ms'])->toBe(400);
+    expect($screen->tree()['props'])->not->toHaveKey('nav_search_placeholder')
+        ->and($fields)->toHaveCount(1)
+        ->and($fields[0]['props'])->toMatchArray(['placeholder' => 'Titles', 'value' => '', 'sync_mode' => 'debounce', 'debounce_ms' => 400])
+        ->and($fields[0]['props']['on_change'])->toBeInt()
+        ->and(searchNodes($screen->tree(), 'icon'))->toHaveCount(1);
+
+    $screen->call('searchFor', 'one punch');
+    expect(searchNodes($screen->tree(), 'bare_text_input'))->toHaveCount(1);
+});
+
+it('searches as the field is typed in, keeping the typed text as it is', function () {
+    $screen = Native::test(Search::class)->input('searchFor', 'one ');
+
+    $screen->assertSet('query', 'one')->assertSet('text', 'one ');
+    expect(searchNodes($screen->tree(), 'bare_text_input')[0]['props']['value'])->toBe('one ');
 });
 
 it('shows the tag browser for an empty query, grouped Genre, Theme, Format, Content', function () {
@@ -134,7 +149,7 @@ it("shows a tag's series when its chip is tapped, and the tags again when it's c
     expect(searchNodes($screen->tree(), 'chip'))->toHaveCount(77);
 });
 
-it('searches titles from the nav bar field, in reading-language order with badges', function () {
+it('searches titles from the search field, in reading-language order with badges', function () {
     $screen = Native::test(Search::class)->call('searchFor', '  one   punch ')->assertSet('query', 'one punch');
     expect($screen->get('more'))->toBeTrue();
 
@@ -194,23 +209,27 @@ it('starts fresh after the field is emptied or the tag chip is deselected', func
     Native::test(Search::class)->assertSet('query', '')->assertSet('tagId', null)->assertSee('Genre');
 });
 
-it('shows the kept title as a chip that clears it, because the iOS field comes back empty', function () {
+it('puts the kept title back in the field, and its clear button empties it', function () {
     Native::test(Search::class)->call('searchFor', 'one punch');
 
     $screen = Native::test(Search::class);
-    expect(searchNodes($screen->tree(), 'chip'))->toHaveCount(1)
-        ->and(searchNodes($screen->tree(), 'chip')[0]['props'])->toMatchArray(['label' => '“one punch”', 'value' => true]);
+    expect(searchNodes($screen->tree(), 'bare_text_input')[0]['props']['value'])->toBe('one punch')
+        ->and(searchNodes($screen->tree(), 'chip'))->toBe([])
+        ->and(searchNodes($screen->tree(), 'icon'))->toHaveCount(2);
 
-    $screen->toggle('clearQuery', false)->assertSet('query', '')->assertSee('Genre');
+    $screen->press('clearQuery')->assertSet('query', '')->assertSet('text', '')->assertSee('Genre');
+    expect(searchNodes($screen->tree(), 'bare_text_input')[0]['props']['value'])->toBe('')
+        ->and(searchNodes($screen->tree(), 'icon'))->toHaveCount(1);
     Native::test(Search::class)->assertSet('query', '')->assertSee('Genre');
 });
 
-it('lists the tag chip before the title chip when both are kept', function () {
+it('shows only the tag as a chip when a title and a tag are kept', function () {
     Native::test(Search::class)->toggle("openTag('".COOKING_TAG."')", true)->call('searchFor', 'one punch');
 
-    $chips = searchNodes(Native::test(Search::class)->tree(), 'chip');
+    $screen = Native::test(Search::class);
 
-    expect(array_map(fn (array $chip) => $chip['props']['label'], $chips))->toBe(['Cooking', '“one punch”']);
+    expect(array_map(fn (array $chip) => $chip['props']['label'], searchNodes($screen->tree(), 'chip')))->toBe(['Cooking'])
+        ->and(searchNodes($screen->tree(), 'bare_text_input')[0]['props']['value'])->toBe('one punch');
 });
 
 it('forgets a kept tag that is no longer saved', function () {

@@ -94,7 +94,8 @@ trait RefreshesData
      */
     protected function refreshLanded(string $key, mixed $result): void {}
 
-    protected function keepFresh(Result $result, Refresh $refresh): void
+    /** `$emptyIsAnswer`: a fetched, fresh, empty list is MangaDex's answer (no recommendations), not missing data. */
+    protected function keepFresh(Result $result, Refresh $refresh, bool $emptyIsAnswer = false): void
     {
         $key = $refresh->key();
 
@@ -103,7 +104,7 @@ trait RefreshesData
         }
 
         if (! $this->forceRefresh) {
-            if (! $result->isEmpty() && ! $result->isStale) {
+            if (! $result->isStale && (! $result->isEmpty() || $emptyIsAnswer)) {
                 return;
             }
 

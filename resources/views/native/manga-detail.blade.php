@@ -40,6 +40,13 @@
             <native:text class="px-4 pb-4 text-sm text-theme-on-background">{{ $description }}</native:text>
         @endif
 
+        {{-- Placeholders only while the call is on its way; none recommended, or the call failed: no row. --}}
+        @if ($similar !== [] || $loadingSimilar)
+            <native:column class="w-full pb-4">
+                @include('native.partials.row', ['label' => 'More like this', 'tiles' => $similar])
+            </native:column>
+        @endif
+
         <native:text class="px-4 pt-2 pb-2 text-xl font-bold text-theme-on-background">Chapters</native:text>
 
         @if ($switch !== [])

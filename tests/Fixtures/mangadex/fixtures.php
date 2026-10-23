@@ -202,4 +202,7 @@ return [
     // One manga: adds the rating distribution.
     'statistics-rtw' => ["/statistics/manga/{$releaseThatWitch}", []],
 
+    // Detail screen's More like this (Plan 04 Task 7): a new series nobody recommended anything for yet.
+    'recommendations-nova' => ['/manga/8a45c930-32d1-423e-bffd-9e8d71312134/recommendation', []],
+
 ];

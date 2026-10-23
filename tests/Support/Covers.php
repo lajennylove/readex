@@ -29,14 +29,14 @@ final class Covers
         return (string) ob_get_clean();
     }
 
-    public static function manga(string $id, ?string $coverFile = 'cover.jpg', string $title = 'Series'): Manga
+    public static function manga(string $id, ?string $coverFile = 'cover.jpg', string $title = 'Series', string $rating = 'safe'): Manga
     {
         return Manga::query()->create([
             'id' => $id,
             'title' => ['en' => $title],
             'alt_titles' => [],
             'description' => [],
-            'content_rating' => 'safe',
+            'content_rating' => $rating,
             'available_languages' => ['en'],
             'tag_ids' => [],
             'cover_file' => $coverFile,

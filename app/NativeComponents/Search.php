@@ -21,7 +21,8 @@ use Native\Mobile\Edge\NativeComponent;
  * Spec §5.7, choice 5: a search field pinned at the top of the screen (a nav-bar field in a tab
  * stays tucked away until pulled down, and tabs can't pin it); while it's empty, the tag browser.
  * Results (title, tag, or both) are a 3-column cover grid in a virtual list, one list row per
- * grid row, and the next batch loads when the visible window gets near the end.
+ * grid row, and the next batch loads when the visible window gets near the end. Rated content
+ * (`readex.rated_content`) comes after everything else, under a divider and its own title row.
  */
 class Search extends NativeComponent
 {
@@ -36,6 +37,9 @@ class Search extends NativeComponent
 
     /** Grey slot height for grid rows outside the window: w-28 2:3 cover, two title lines, gap. */
     public const ROW_HEIGHT = 220;
+
+    /** The list row holding the rated content title, in place of a grid row's tiles. */
+    public const RATED_TITLE = 'rated';
 
     /** Grid rows emitted before the first window change; kept small so native reports scrolling. */
     private const FIRST_WINDOW_ROWS = 15;
@@ -165,7 +169,7 @@ class Search extends NativeComponent
         $rows = [];
 
         foreach ($this->windowRows($result) as $index => $mangas) {
-            $rows[$index] = array_map(fn (Manga $m) => $this->tile($m, $chain), $mangas);
+            $rows[$index] = $mangas === self::RATED_TITLE ? $mangas : array_map(fn (Manga $m) => $this->tile($m, $chain), $mangas);
         }
 
         // virtual_list item views only get $index.
@@ -225,20 +229,35 @@ class Search extends NativeComponent
 
     private function rowCount(Result $result): int
     {
-        return (int) ceil(($result->data?->count() ?? 0) / self::COLUMNS);
+        return count($this->rows($result));
     }
 
-    /** @return array<int, list<Manga>> grid row index => its manga, for the rows in the window */
+    /**
+     * Rated content goes after every other series, so it moves down as more batches load.
+     *
+     * @return list<list<Manga>|self::RATED_TITLE> list rows: grid rows, then the title row and the rated grid rows
+     */
+    private function rows(Result $result): array
+    {
+        [$rated, $rest] = ($result->data ?? collect())->partition(fn (Manga $m) => in_array($m->content_rating, config('readex.rated_content'), true));
+        $rows = array_chunk($rest->values()->all(), self::COLUMNS);
+
+        if ($rated->isNotEmpty()) {
+            $rows = [...$rows, self::RATED_TITLE, ...array_chunk($rated->values()->all(), self::COLUMNS)];
+        }
+
+        return $rows;
+    }
+
+    /** @return array<int, list<Manga>|self::RATED_TITLE> list row index => its manga (or the title), for the rows in the window */
     private function windowRows(Result $result): array
     {
-        $rows = array_chunk(($result->data ?? collect())->values()->all(), self::COLUMNS);
-
-        return array_slice($rows, $this->virtualWindowFrom, $this->virtualWindowTo - $this->virtualWindowFrom + 1, preserve_keys: true);
+        return array_slice($this->rows($result), $this->virtualWindowFrom, $this->virtualWindowTo - $this->virtualWindowFrom + 1, preserve_keys: true);
     }
 
     private function queueWindowCovers(Result $result): void
     {
-        $this->queueCovers(array_merge(...array_values($this->windowRows($result))));
+        $this->queueCovers(array_merge(...array_values(array_filter($this->windowRows($result), 'is_array'))));
     }
 
     /** @return array<string, list<array{id: string, name: string}>> heading => chips, TAG_GROUPS order */

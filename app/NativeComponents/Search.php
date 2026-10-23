@@ -15,11 +15,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View as Views;
 use Illuminate\View\View;
 use Native\Mobile\Edge\Concerns\HasVirtualListWindow;
-use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 
 /**
- * Spec §5.7, choice 5: the iOS search field in the nav bar; while it's empty, the tag browser.
+ * Spec §5.7, choice 5: a search field pinned at the top of the screen (a nav-bar field in a tab
+ * stays tucked away until pulled down, and tabs can't pin it); while it's empty, the tag browser.
  * Results (title, tag, or both) are a 3-column cover grid in a virtual list, one list row per
  * grid row, and the next batch loads when the visible window gets near the end.
  */
@@ -43,6 +43,9 @@ class Search extends NativeComponent
     /** The next batch starts once the window's last row is this close to the end. */
     private const LOAD_AHEAD_ROWS = 5;
 
+    /** The field's text as typed; sending back a trimmed copy would overwrite the field while typing. */
+    public string $text = '';
+
     public string $query = '';
 
     public ?string $tagId = null;
@@ -55,24 +58,21 @@ class Search extends NativeComponent
         return 'Search';
     }
 
-    public function navigationOptions(): ?NavBarOptions
-    {
-        return NavBarOptions::make()->searchBar(placeholder: 'Titles', onQuery: 'searchFor', debounceMs: 400);
-    }
-
     /** Every tab tap makes a new Search screen, so the search lives in the settings, not on the screen. */
     public function mount(SettingsRepository $settings): void
     {
         ['query' => $this->query, 'tag_id' => $tagId] = $settings->lastSearch();
+        $this->text = $this->query;
         $this->tagId = $tagId !== null && Tag::query()->whereKey($tagId)->exists() ? $tagId : null;
 
         $this->setVirtualWindow(0, self::FIRST_WINDOW_ROWS - 1);
         $this->load();
     }
 
-    /** The nav-bar field's text, debounced on the phone. Empty = back to the tags (or the tag's list). */
+    /** The field's text, debounced on the phone. Empty = back to the tags (or the tag's list). */
     public function searchFor(string $text): void
     {
+        $this->text = $text;
         $query = preg_replace('/\s+/u', ' ', trim($text));
 
         if ($query !== $this->query) {
@@ -93,9 +93,10 @@ class Search extends NativeComponent
         $this->startOver();
     }
 
-    /** The title chip: a kept title comes back with an empty iOS field, which can't be emptied. */
+    /** The field's clear button. */
     public function clearQuery(): void
     {
+        $this->text = '';
         $this->query = '';
         $this->startOver();
     }
@@ -152,6 +153,7 @@ class Search extends NativeComponent
 
         if ($this->browsingTags()) {
             return view('native.search', [
+                'text' => $this->text,
                 'line' => $line,
                 'busy' => $busy,
                 'groups' => $this->tagGroups(app(TagRepository::class)->get()->data ?? collect()),
@@ -170,6 +172,7 @@ class Search extends NativeComponent
         Views::share('searchRows', $rows);
 
         return view('native.search', [
+            'text' => $this->text,
             'line' => $line,
             'busy' => $busy,
             'tag' => $this->tagId === null ? null : (Tag::query()->find($this->tagId)?->name['en'] ?? null),

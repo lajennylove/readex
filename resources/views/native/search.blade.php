@@ -1,4 +1,24 @@
 <native:column class="w-full h-full bg-theme-background">
+    <native:column class="w-full px-4 pt-2 pb-1">
+        <native:row class="w-full items-center gap-2 px-3 py-2 rounded-lg bg-[#2C2C2E]">
+            <native:icon name="search" size="17" color="#8E8E93" />
+            <native:bare-text-input
+                class="flex-1"
+                placeholder="Titles"
+                :value="$text"
+                sync-mode="debounce"
+                debounce-ms="400"
+                @change="searchFor"
+                @submit="searchFor"
+                a11y-label="Search titles" />
+            @if ($text !== '')
+                <native:pressable @press="clearQuery" a11y-label="Clear search">
+                    <native:icon name="close" size="17" color="#8E8E93" />
+                </native:pressable>
+            @endif
+        </native:row>
+    </native:column>
+
     @include('native.partials.status-line', ['line' => $line])
 
     @isset($groups)
@@ -26,14 +46,9 @@
             </native:column>
         </native:refreshable>
     @else
-        @if ($tag !== null || $query !== '')
+        @if ($tag !== null)
             <native:row class="w-full flex-wrap gap-2 px-4 py-2">
-                @if ($tag !== null)
-                    <native:chip label="{{ $tag }}" :selected="true" @change="clearTag" />
-                @endif
-                @if ($query !== '')
-                    <native:chip label="“{{ $query }}”" :selected="true" @change="clearQuery" />
-                @endif
+                <native:chip label="{{ $tag }}" :selected="true" @change="clearTag" />
             </native:row>
         @endif
 

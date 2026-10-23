@@ -136,6 +136,32 @@ it('shows the tag browser for an empty query, grouped Genre, Theme, Format, Cont
         ->and(asked($this->asked, '/manga/tag'))->toBe(1);
 });
 
+it('lays each tag group out as up to 3 chip lines scrolling sideways, never a wrapping row (iOS ignores flex-wrap)', function () {
+    $tree = Native::test(Search::class)->tree();
+    $wrapping = array_filter(searchNodes($tree, 'row'), fn (array $row) => ($row['layout']['flex_wrap'] ?? 0) !== 0);
+    $scrolls = searchNodes($tree, 'scroll_view');
+    $lines = fn (array $scroll) => array_map(
+        fn (array $row) => array_map(fn (array $chip) => $chip['props']['label'], searchNodes($row, 'chip')),
+        searchNodes($scroll, 'row'),
+    );
+
+    expect($wrapping)->toBe([])
+        ->and($scrolls)->toHaveCount(4)
+        ->and(array_unique(array_map(fn (array $s) => $s['props']['axis'] ?? null, $scrolls)))->toBe(['horizontal'])
+        ->and(array_sum(array_map(fn (array $s) => count(searchNodes($s, 'chip')), $scrolls)))->toBe(77);
+
+    foreach ($scrolls as $scroll) {
+        $chips = array_merge(...$lines($scroll));
+        $sorted = $chips;
+        natcasesort($sorted);
+
+        expect(count($lines($scroll)))->toBeLessThanOrEqual(3)
+            ->and($chips)->toBe(array_values($sorted));
+    }
+
+    expect(count($lines($scrolls[1])))->toBe(3);
+});
+
 it("shows a tag's series when its chip is tapped, and the tags again when it's cleared", function () {
     $screen = Native::test(Search::class)->toggle("openTag('".COOKING_TAG."')", true);
 

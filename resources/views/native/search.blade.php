@@ -23,15 +23,21 @@
 
     @isset($groups)
         <native:refreshable class="w-full flex-1" @refresh="pullToRefresh">
-            <native:column class="w-full gap-5 p-4">
-                @forelse ($groups as $heading => $tags)
+            <native:column class="w-full gap-5 py-4">
+                @forelse ($groups as $heading => $lines)
                     <native:column class="w-full gap-2">
-                        <native:text class="text-xl font-bold text-theme-on-background">{{ $heading }}</native:text>
-                        <native:row class="w-full flex-wrap gap-2">
-                            @foreach ($tags as $tag)
-                                <native:chip label="{{ $tag['name'] }}" @change="openTag('{{ $tag['id'] }}')" />
-                            @endforeach
-                        </native:row>
+                        <native:text class="px-4 text-xl font-bold text-theme-on-background">{{ $heading }}</native:text>
+                        <native:scroll-view axis="horizontal" :shows-indicators="false" class="w-full">
+                            <native:column class="gap-2 px-4">
+                                @foreach ($lines as $chips)
+                                    <native:row class="gap-2">
+                                        @foreach ($chips as $tag)
+                                            <native:chip label="{{ $tag['name'] }}" @change="openTag('{{ $tag['id'] }}')" />
+                                        @endforeach
+                                    </native:row>
+                                @endforeach
+                            </native:column>
+                        </native:scroll-view>
                     </native:column>
                 @empty
                     @if ($busy)

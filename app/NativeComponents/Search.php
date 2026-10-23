@@ -36,6 +36,11 @@ class Search extends NativeComponent
     /** Tag group => heading, in screen order. */
     public const TAG_GROUPS = ['genre' => 'Genre', 'theme' => 'Theme', 'format' => 'Format', 'content' => 'Content'];
 
+    /** Most chip lines per tag group; a group gets another line for every CHIPS_PER_LINE chips. */
+    private const TAG_LINES = 3;
+
+    private const CHIPS_PER_LINE = 8;
+
     /** Grey slot height for grid rows outside the window: w-28 2:3 cover, two title lines, gap. */
     public const ROW_HEIGHT = 220;
 
@@ -262,13 +267,20 @@ class Search extends NativeComponent
         $this->queueCovers(array_merge(...array_values(array_filter($this->windowRows($result), 'is_array'))));
     }
 
-    /** @return array<string, list<array{id: string, name: string}>> heading => chips, TAG_GROUPS order */
+    /**
+     * iOS never wraps a `flex-wrap` row (NativePHP's FlexContainer ignores it), so each group is up
+     * to TAG_LINES chip lines in one sideways scroll, filled in order line by line.
+     *
+     * @return array<string, list<list<array{id: string, name: string}>>> heading => chip lines, TAG_GROUPS order
+     */
     private function tagGroups(Collection $tags): array
     {
         $groups = [];
 
         foreach ($tags->groupBy('group') as $group => $inGroup) {
-            $groups[$group] = $inGroup->map(fn (Tag $t) => ['id' => $t->id, 'name' => $t->name['en'] ?? reset($t->name)])->values()->all();
+            $chips = $inGroup->map(fn (Tag $t) => ['id' => $t->id, 'name' => $t->name['en'] ?? reset($t->name)])->values()->all();
+            $lines = min(self::TAG_LINES, (int) ceil(count($chips) / self::CHIPS_PER_LINE));
+            $groups[$group] = array_chunk($chips, (int) ceil(count($chips) / $lines));
         }
 
         $ordered = [];

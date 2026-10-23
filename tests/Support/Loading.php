@@ -1,0 +1,41 @@
+<?php
+
+namespace Tests\Support;
+
+use Closure;
+use Illuminate\Http\Client\Factory;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+
+/** The recorded first-run calls (es-la reader, 2026-10-24) plus cover thumbnails. */
+final class Loading
+{
+    public const FIXTURES = ['tags', 'seasonal-json', 'season-manga', 'popular-new', 'latest-es-la', 'latest-es-la-manga'];
+
+    /**
+     * `$override` answers a request first (return null to pass it on), e.g. to make one
+     * row hang or the phone offline.
+     *
+     * @param  list<string>  $covers  filled with each cover URL asked for
+     */
+    public static function fake(?Closure $override = null, array &$covers = []): void
+    {
+        Http::swap(new Factory(app('events')));
+        $fixtures = MangaDexFixtures::stub(...self::FIXTURES);
+        $jpeg = Covers::jpeg();
+
+        Http::fake(function (Request $request) use ($override, $fixtures, $jpeg, &$covers) {
+            if ($override !== null && ($answer = $override($request)) !== null) {
+                return $answer;
+            }
+
+            if (parse_url($request->url(), PHP_URL_HOST) === 'uploads.mangadex.org') {
+                $covers[] = $request->url();
+
+                return Http::response($jpeg, 200, ['Content-Type' => 'image/jpeg']);
+            }
+
+            return $fixtures($request);
+        });
+    }
+}

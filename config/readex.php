@@ -51,6 +51,9 @@ return [
         'queued_seconds' => 600,
     ],
 
+    // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
+    'setup_cutoff_seconds' => 10,
+
     'seasonal_url' => 'https://antsylich.github.io/mangadex-seasonal/seasonal-list.json',
 
 ];

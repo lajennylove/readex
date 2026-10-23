@@ -24,6 +24,7 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 use Tests\Support\MangaDexFixtures;
+use Tests\Support\Skeletons;
 
 const DETAIL_RTW = 'aafb046c-9de4-4c3d-990c-6d75b079c0b9';
 const DETAIL_NOVA = '8a45c930-32d1-423e-bffd-9e8d71312134';
@@ -336,6 +337,27 @@ it('has no language switch for a series in one language, and says when it has no
         ->and(detailTexts($screen->tree()))->toContain('No chapters yet');
 });
 
+it('shows pulsing chapter rows while the first chapter list waits for MangaDex', function () {
+    detailSeries(DETAIL_SEEDED, ['en']);
+    ChapterFeed::query()->where('manga_id', DETAIL_SEEDED)->delete();
+    $busy = true;
+    Http::swap(new Factory(app('events')));
+    Http::fake(function (Request $request) use (&$busy) {
+        if ($busy && str_contains($request->url(), '/feed')) {
+            throw new RequestDeferred(new Busy(Carbon::now()->addMinute()->getTimestampMs() / 1000, BusyReason::Saturated));
+        }
+
+        return Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0]);
+    });
+
+    $waiting = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('MangaDex is busy');
+    $busy = false;
+    $answered = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('No chapters yet');
+
+    expect(json_encode($waiting->tree()))->not->toContain('activity_indicator')
+        ->and(count(Skeletons::pulsing($waiting->tree())) - count(Skeletons::pulsing($answered->tree())))->toBe(6 * 2);
+});
+
 it('marks read, started and up-next chapters and highlights the one Continue opens', function () {
     detailSeries(DETAIL_SEEDED, ['es-la']);
     seededChapter('c-1', DETAIL_SEEDED, '1');
@@ -415,18 +437,6 @@ function detailTileTitles(array $node): array
     return $titles;
 }
 
-/** Grey 2:3 placeholders of an empty tile row (w-28, nothing inside). */
-function detailPlaceholders(array $node): int
-{
-    $count = ($node['type'] ?? null) === 'stack' && ($node['layout']['width'] ?? null) == 112 && ($node['children'] ?? []) === [] ? 1 : 0;
-
-    foreach ($node['children'] ?? [] as $child) {
-        $count += detailPlaceholders($child);
-    }
-
-    return $count;
-}
-
 it('shows More like this between the description and the chapters, in reading order, and opens a tile in the same tab', function () {
     $screen = Native::visit('/search/manga/'.DETAIL_RTW);
     $texts = detailTexts($screen->tree());
@@ -480,10 +490,10 @@ it('keeps the row in place with placeholders while MangaDex is busy, and leaves 
     $busy = Native::visit('/search/manga/'.DETAIL_RTW);
     expect(detailTexts($busy->tree()))->toContain('More like this')
         ->and(detailTileTitles($busy->tree()))->toBe([])
-        ->and(detailPlaceholders($busy->tree()))->toBe(4);
+        ->and(Skeletons::tiles($busy->tree()))->toBe(4);
 
     $fail = new ConnectionException('offline');
     $offline = Native::visit('/search/manga/'.DETAIL_RTW);
     expect(detailTexts($offline->tree()))->not->toContain('More like this')
-        ->and(detailPlaceholders($offline->tree()))->toBe(0);
+        ->and(Skeletons::tiles($offline->tree()))->toBe(0);
 });

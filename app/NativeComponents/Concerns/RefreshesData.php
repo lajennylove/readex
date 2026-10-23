@@ -94,6 +94,12 @@ trait RefreshesData
      */
     protected function refreshLanded(string $key, mixed $result): void {}
 
+    /** On the async lane, or waiting for the RefreshRepository job. */
+    protected function inFlight(Refresh $refresh): bool
+    {
+        return isset($this->refreshing[$refresh->key()]) || isset($this->waiting[$refresh->key()]);
+    }
+
     /** `$emptyIsAnswer`: a fetched, fresh, empty list is MangaDex's answer (no recommendations), not missing data. */
     protected function keepFresh(Result $result, Refresh $refresh, bool $emptyIsAnswer = false): void
     {

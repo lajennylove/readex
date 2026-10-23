@@ -24,6 +24,7 @@ use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 use Tests\Support\MangaDexFixtures;
+use Tests\Support\Skeletons;
 
 const COOKING_TAG = 'ea2bc92d-1c26-4930-9b7c-d5c0dc1b6869';
 
@@ -136,6 +137,19 @@ it('shows the tag browser for an empty query, grouped Genre, Theme, Format, Cont
         ->and($at('Gore'))->toBeGreaterThan($at('Content'))
         ->and(searchNodes($screen->tree(), 'chip'))->toHaveCount(77)
         ->and(asked($this->asked, '/manga/tag'))->toBe(1);
+});
+
+it('shows pulsing tag groups while the tags are on their way', function () {
+    ($this->fake)(fn (Request $request) => str_contains($request->url(), '/manga/tag') ? throw busy() : null);
+
+    $collisions = Skeletons::keyCollisions(fn () => $this->tree = Native::test(Search::class)->assertDontSee('No tags saved yet')->tree());
+    $tree = $this->tree;
+
+    expect($collisions)->toBe([])
+        ->and(searchNodes($tree, 'activity_indicator'))->toBe([])
+        ->and(searchNodes($tree, 'chip'))->toBe([])
+        ->and(Skeletons::pulsing($tree))->toHaveCount(3 * (1 + 2 * 5))
+        ->and(array_unique(array_column(Skeletons::all($tree), 'id')))->toHaveCount(33);
 });
 
 it('lays each tag group out as up to 3 chip lines scrolling sideways, never a wrapping row (iOS ignores flex-wrap)', function () {
@@ -436,12 +450,15 @@ it("drops the old search's status line when the search changes", function () {
 it('keeps searching, not "Nothing saved", while MangaDex is busy', function () {
     ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=') ? throw busy() : null);
 
-    $screen = Native::test(Search::class)
-        ->call('searchFor', 'one punch')
-        ->assertSee('MangaDex is busy, will update shortly')
+    $screen = Native::test(Search::class);
+    $collisions = Skeletons::keyCollisions(fn () => $screen->call('searchFor', 'one punch'));
+    $screen->assertSee('MangaDex is busy, will update shortly')
         ->assertDontSee('Nothing saved for this search');
 
-    expect(searchNodes($screen->tree(), 'activity_indicator'))->toHaveCount(1);
+    expect($collisions)->toBe([])
+        ->and(searchNodes($screen->tree(), 'activity_indicator'))->toBe([])
+        ->and(Skeletons::tiles($screen->tree()))->toBe(3 * Search::COLUMNS)
+        ->and(array_unique(array_column(Skeletons::all($screen->tree()), 'id')))->toHaveCount(3 * Search::COLUMNS * 3);
 });
 
 it('says nothing is saved for this search and offers Retry when offline (spec §13)', function () {

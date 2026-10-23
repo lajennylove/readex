@@ -190,7 +190,7 @@ it('keeps an empty row in place with placeholders while the others load (Review 
 
     $screen = Native::test(Home::class)->assertSee('This season')->assertSee('Something went wrong');
 
-    expect(rowItems($screen->tree(), 'This season'))->toBe(array_fill(0, 4, 'stack'))
+    expect(rowItems($screen->tree(), 'This season'))->toBe(array_fill(0, 4, 'column'))
         ->and(rowItems($screen->tree(), 'Popular new titles'))->each->toBe('pressable')
         ->and(array_unique(array_map(fn (array $n) => $n['props']['axis'] ?? null, homeNodes($screen->tree(), 'scroll_view'))))->toBe(['horizontal']);
 });
@@ -229,7 +229,7 @@ it('shows empty rows, not "Nothing saved yet", when MangaDex has nothing', funct
 
     $screen = Native::test(Home::class)->assertDontSee('Nothing saved yet')->assertSee('Latest updates');
 
-    expect(rowItems($screen->tree(), 'Latest updates'))->toBe(array_fill(0, 4, 'stack'));
+    expect(rowItems($screen->tree(), 'Latest updates'))->toBe(array_fill(0, 4, 'column'));
 });
 
 it('keeps the saved rows when offline', function () {

@@ -10,6 +10,7 @@
                 @if ($cover)
                     <native:image src="{{ $cover }}" class="w-full h-full rounded-md object-cover" alt="{{ $title }}" />
                 @endif
+                @include('native.partials.skeleton', ['key' => 'detail-cover', 'class' => 'w-full h-full rounded-md', 'loaded' => $cover !== null])
             </native:stack>
             <native:column class="flex-1 gap-1">
                 <native:text class="text-xl font-bold text-theme-on-background" max-lines="4">{{ $title }}</native:text>
@@ -66,7 +67,12 @@
             @endforeach
         @empty
             @if ($loadingChapters)
-                <native:activity-indicator class="w-full p-6" />
+                @for ($i = 0; $i < 6; $i++)
+                    <native:column native:key="chapter-skeleton-{{ $i }}" class="w-full gap-2 px-4 py-2">
+                        @include('native.partials.skeleton', ['key' => 'label', 'class' => 'w-48 h-4 rounded-sm'])
+                        @include('native.partials.skeleton', ['key' => 'caption', 'class' => 'w-32 h-3 rounded-sm'])
+                    </native:column>
+                @endfor
             @elseif ($line === null)
                 <native:text class="px-4 py-2 text-sm text-theme-on-surface-variant">{{ $languageName === null ? 'No chapters yet' : "No chapters in {$languageName} yet" }}</native:text>
             @endif

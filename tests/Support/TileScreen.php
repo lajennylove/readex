@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\View as ViewFactory;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
-/** A row of tiles for the series in `$ids`, with optional badge / caption per id. */
+/**
+ * A row of tiles for the series in `$ids`, with optional badge / caption per id. `$view`
+ * `tile-rows`: the same tiles in two `native.partials.row` rows ("Row A", "Row B").
+ */
 final class TileScreen extends NativeComponent
 {
     use ShowsTiles;
@@ -22,11 +25,14 @@ final class TileScreen extends NativeComponent
     /** @var array<string, string> */
     public static array $captions = [];
 
-    public static function reset(array $ids = [], array $badges = [], array $captions = []): void
+    public static string $view = 'tile-screen';
+
+    public static function reset(array $ids = [], array $badges = [], array $captions = [], string $view = 'tile-screen'): void
     {
         self::$ids = $ids;
         self::$badges = $badges;
         self::$captions = $captions;
+        self::$view = $view;
     }
 
     public function mount(): void
@@ -38,7 +44,7 @@ final class TileScreen extends NativeComponent
     {
         ViewFactory::addNamespace('tests', __DIR__.'/views');
 
-        return view('tests::tile-screen', [
+        return view('tests::'.self::$view, [
             'mangas' => $this->mangas(),
             'badges' => self::$badges,
             'captions' => self::$captions,

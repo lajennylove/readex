@@ -228,11 +228,6 @@ class Search extends NativeComponent
         return Refresh::of([MangaRepository::class, 'loadMore'], $this->query, $this->tagIds());
     }
 
-    private function inFlight(Refresh $refresh): bool
-    {
-        return isset($this->refreshing[$refresh->key()]) || isset($this->waiting[$refresh->key()]);
-    }
-
     private function rowCount(Result $result): int
     {
         return count($this->rows($result));

@@ -6,6 +6,7 @@
             @if ($cover)
                 <native:image src="{{ $cover }}" class="w-full h-full rounded-md object-cover" alt="{{ $title }}" />
             @endif
+            @include('native.partials.skeleton', ['key' => "cover-{$manga->id}", 'class' => 'w-full h-full rounded-md', 'loaded' => $cover !== null])
             @if (! empty($badge))
                 <native:badge label="{{ $badge }}" variant="primary" class="absolute top-1 right-1" />
             @endif

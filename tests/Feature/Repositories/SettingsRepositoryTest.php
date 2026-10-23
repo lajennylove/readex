@@ -27,7 +27,8 @@ it('answers with the defaults when nothing is saved', function () {
         ->and($this->settings->imageQuality())->toBe('data-saver')
         ->and($this->settings->setupDone())->toBeFalse()
         ->and($this->settings->lastDataRefreshAt())->toBeNull()
-        ->and($this->settings->seasonalListId())->toBeNull();
+        ->and($this->settings->seasonalListId())->toBeNull()
+        ->and($this->settings->lastSearch())->toBe(['query' => '', 'tag_id' => null]);
 });
 
 it('saves every setting and reads it back', function () {
@@ -37,6 +38,7 @@ it('saves every setting and reads it back', function () {
     $this->settings->markSetupDone();
     $this->settings->markDataRefreshed();
     $this->settings->setSeasonalListId('list-1');
+    $this->settings->rememberSearch('one punch', 'tag-1');
 
     $fresh = new SettingsRepository;
 
@@ -46,7 +48,8 @@ it('saves every setting and reads it back', function () {
         ->and($fresh->imageQuality())->toBe('original')
         ->and($fresh->setupDone())->toBeTrue()
         ->and($fresh->lastDataRefreshAt()->toDateTimeString())->toBe('2026-10-24 12:00:00')
-        ->and($fresh->seasonalListId())->toBe('list-1');
+        ->and($fresh->seasonalListId())->toBe('list-1')
+        ->and($fresh->lastSearch())->toBe(['query' => 'one punch', 'tag_id' => 'tag-1']);
 });
 
 it('normalises the language code', function () {

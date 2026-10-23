@@ -167,6 +167,58 @@ it('searches inside the chosen tag', function () {
         ->and(searchNodes($screen->tree(), 'chip')[0]['props']['label'])->toBe('Cooking');
 });
 
+it('keeps the title search when Search is opened again (every tab tap makes a new screen)', function () {
+    Native::test(Search::class)->call('searchFor', 'one punch');
+    $titles = tileTitles(Native::test(Search::class)->tree());
+
+    $screen = Native::test(Search::class)->assertSet('query', 'one punch');
+
+    expect(tileTitles($screen->tree()))->toHaveCount(10)->toBe($titles)
+        ->and(asked($this->asked, 'title=one punch'))->toBe(1);
+});
+
+it('keeps the chosen tag, with its selected chip, when Search is opened again', function () {
+    Native::test(Search::class)->toggle("openTag('".COOKING_TAG."')", true);
+
+    $screen = Native::test(Search::class)->assertSet('tagId', COOKING_TAG);
+
+    expect(tileTitles($screen->tree()))->toHaveCount(10)
+        ->and(searchNodes($screen->tree(), 'chip'))->toHaveCount(1)
+        ->and(searchNodes($screen->tree(), 'chip')[0]['props'])->toMatchArray(['label' => 'Cooking', 'value' => true]);
+});
+
+it('starts fresh after the field is emptied or the tag chip is deselected', function () {
+    Native::test(Search::class)->toggle("openTag('".COOKING_TAG."')", true)->call('searchFor', 'one punch')->call('searchFor', '');
+    Native::test(Search::class)->assertSet('query', '')->assertSet('tagId', COOKING_TAG)->toggle('clearTag', false);
+
+    Native::test(Search::class)->assertSet('query', '')->assertSet('tagId', null)->assertSee('Genre');
+});
+
+it('shows the kept title as a chip that clears it, because the iOS field comes back empty', function () {
+    Native::test(Search::class)->call('searchFor', 'one punch');
+
+    $screen = Native::test(Search::class);
+    expect(searchNodes($screen->tree(), 'chip'))->toHaveCount(1)
+        ->and(searchNodes($screen->tree(), 'chip')[0]['props'])->toMatchArray(['label' => '“one punch”', 'value' => true]);
+
+    $screen->toggle('clearQuery', false)->assertSet('query', '')->assertSee('Genre');
+    Native::test(Search::class)->assertSet('query', '')->assertSee('Genre');
+});
+
+it('lists the tag chip before the title chip when both are kept', function () {
+    Native::test(Search::class)->toggle("openTag('".COOKING_TAG."')", true)->call('searchFor', 'one punch');
+
+    $chips = searchNodes(Native::test(Search::class)->tree(), 'chip');
+
+    expect(array_map(fn (array $chip) => $chip['props']['label'], $chips))->toBe(['Cooking', '“one punch”']);
+});
+
+it('forgets a kept tag that is no longer saved', function () {
+    app(SettingsRepository::class)->rememberSearch('', 'not-a-saved-tag');
+
+    Native::test(Search::class)->assertSet('tagId', null)->assertSee('Genre');
+});
+
 it('loads the next batch once when the window nears the end, earlier tiles keep their place (Review Focus 5)', function () {
     $screen = Native::test(Search::class)->call('searchFor', 'one punch');
     $first = tileTitles($screen->tree());

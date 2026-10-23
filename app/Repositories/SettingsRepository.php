@@ -117,6 +117,23 @@ final class SettingsRepository
         $this->write('seasonal_list_id', $id);
     }
 
+    /**
+     * Search keeps its title and tag until the field is emptied or the chip deselected.
+     *
+     * @return array{query: string, tag_id: ?string}
+     */
+    public function lastSearch(): array
+    {
+        $saved = $this->read('last_search') ?? [];
+
+        return ['query' => (string) ($saved['query'] ?? ''), 'tag_id' => $saved['tag_id'] ?? null];
+    }
+
+    public function rememberSearch(string $query, ?string $tagId): void
+    {
+        $this->write('last_search', ['query' => $query, 'tag_id' => $tagId]);
+    }
+
     private function read(string $key): mixed
     {
         return Setting::find($key)?->value;

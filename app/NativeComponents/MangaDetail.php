@@ -75,7 +75,7 @@ class MangaDetail extends NativeComponent
             $this->queueCovers([$detail->data]);
         }
 
-        if ($this->language === '') {
+        if ($this->language === '' || ! in_array($this->language, app(ChapterRepository::class)->languages($this->mangaId), true)) {
             $this->language = $this->openingLanguage();
         }
 
@@ -132,6 +132,7 @@ class MangaDetail extends NativeComponent
         $chain = app(SettingsRepository::class)->chain();
         $chapters = app(ChapterRepository::class);
         $current = app(LibraryRepository::class)->resume($this->mangaId);
+        $languages = $chapters->languages($this->mangaId);
 
         return view('native.manga-detail', [
             'manga' => $manga,
@@ -140,12 +141,12 @@ class MangaDetail extends NativeComponent
             'people' => self::people($manga->authors ?? [], $manga->artists ?? []),
             'facts' => implode(' · ', array_filter([$manga->status === null ? null : ucfirst($manga->status), $manga->year])),
             'stats' => self::stats(Statistic::query()->find($this->mangaId)),
-            'languages' => implode(' · ', array_map(Languages::name(...), $chapters->languages($this->mangaId))),
+            'languages' => implode(' · ', array_map(Languages::name(...), $languages)),
             'description' => $chain->description($manga->description ?? []),
             'favorite' => $this->isFavorite(),
             'continue' => $this->continueLabel($current),
-            'switch' => count($chapters->languages($this->mangaId)) > 1
-                ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $chapters->languages($this->mangaId))
+            'switch' => count($languages) > 1
+                ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $languages)
                 : [],
             'sections' => $this->language === '' ? [] : $this->chapterSections($current),
             'loadingChapters' => $this->language !== '' && isset($this->refreshing[Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language)->key()]),

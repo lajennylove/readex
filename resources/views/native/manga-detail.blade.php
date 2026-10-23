@@ -5,7 +5,8 @@
     @if ($manga)
         @php($cover = app(\App\Covers\CoverStore::class)->path($manga))
         <native:row class="w-full gap-4 px-4 pt-2 pb-4">
-            <native:stack class="w-32 aspect-[2/3] rounded-md bg-[#2C2C2E]">
+            {{-- Fixed height, not aspect-[2/3]: the iOS row measures children with no height, so an aspect-only cover overflows the row. --}}
+            <native:stack class="w-32 h-48 rounded-md bg-[#2C2C2E]">
                 @if ($cover)
                     <native:image src="{{ $cover }}" class="w-full h-full rounded-md object-cover" alt="{{ $title }}" />
                 @endif

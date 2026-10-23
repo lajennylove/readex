@@ -1,0 +1,534 @@
+{
+    "recorded_at": "2026-10-23T11:33:41+00:00",
+    "method": "GET",
+    "path": "/manga",
+    "query": {
+        "ids": [
+            "d8a959f7-648e-4c8d-8f23-f1f3f8e129f3",
+            "8a45c930-32d1-423e-bffd-9e8d71312134"
+        ],
+        "limit": 100,
+        "contentRating": [
+            "safe",
+            "suggestive",
+            "erotica",
+            "pornographic"
+        ],
+        "includes": [
+            "cover_art"
+        ]
+    },
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "collection",
+        "data": [
+            {
+                "id": "d8a959f7-648e-4c8d-8f23-f1f3f8e129f3",
+                "type": "manga",
+                "attributes": {
+                    "title": {
+                        "ja-ro": "One Punch-Man"
+                    },
+                    "altTitles": [
+                        {
+                            "ja": "ワンパンマン"
+                        },
+                        {
+                            "ja-ro": "Wanpanman"
+                        },
+                        {
+                            "en": "One-Punch Man"
+                        },
+                        {
+                            "en": "One Punch Man"
+                        },
+                        {
+                            "en": "OPM"
+                        },
+                        {
+                            "zh": "一拳超人"
+                        },
+                        {
+                            "ko": "원펀맨"
+                        },
+                        {
+                            "zh": "一击男"
+                        },
+                        {
+                            "ne": "वान्-पन्च् म्यान्"
+                        },
+                        {
+                            "ar": "ون بنش مان"
+                        },
+                        {
+                            "ar": "رجل اللكمة الواحدة"
+                        },
+                        {
+                            "th": "วันพันช์แมน"
+                        },
+                        {
+                            "he": "איש האגרוף הבודד"
+                        },
+                        {
+                            "he": "וואן פאנץ' מן"
+                        },
+                        {
+                            "kk": "Бірұрман"
+                        },
+                        {
+                            "kk": "Уанпанчмен"
+                        },
+                        {
+                            "de": "ONE-PUNCH MAN"
+                        },
+                        {
+                            "pt-br": "One-Punch Man"
+                        },
+                        {
+                            "uk": "Ванпанчмен"
+                        },
+                        {
+                            "es": "El hombre de un solo golpe"
+                        },
+                        {
+                            "bn": "এক মুষ্ট্যাঘাত মনুষ্য"
+                        },
+                        {
+                            "vi": "Nhất Quyền Nhân"
+                        },
+                        {
+                            "vi": "Đấm Phát Chết Luôn"
+                        },
+                        {
+                            "ur": "ون پنچ مین (ایک مکے والا آدمی)"
+                        },
+                        {
+                            "tr": "Tek Yumruk"
+                        },
+                        {
+                            "fa": "مرد تک‌مشتی"
+                        },
+                        {
+                            "fa": "وان‌پانچ‌من"
+                        },
+                        {
+                            "ru": "Ванпанчмен"
+                        }
+                    ],
+                    "description": {
+                        "en": "After rigorously training for three years, the ordinary Saitama has gained immense strength which allows him to take out anyone and anything with just one punch. He decides to put his new skill to good use by becoming a hero. However, he quickly becomes bored with easily defeating monsters, and wants someone to give him a challenge to bring back the spark of being a hero.  \n  \nUpon bearing witness to Saitama's amazing power, Genos, a cyborg, is determined to become Saitama's apprentice. During this time, Saitama realizes he is neither getting the recognition that he deserves nor known by the people due to him not being a part of the Hero Association. Wanting to boost his reputation, Saitama decides to have Genos register with him, in exchange for taking him in as a pupil. Together, the two begin working their way up toward becoming true heroes, hoping to find strong enemies and earn respect in the process.  \n  \n\n\n\n---\n\n**Notes:**  \n- Because some groups use the web version of the manga while others use the magazine version, the numbering won't match between different languages.  \n- **Because a takedown notice was sent to MangaDex from the owners of this series, fan translations of One Punch Man are currently unavailable to be uploaded. The series can be read in its entirety at [the official Shonen Jump website,](https://www.viz.com/shonenjump/chapters/one-punch-man) with the first and latest three chapters available at any time and the rest accessible with a Shonen Jump membership (which costs about $2 a month and can be accessed via a VPN if you are outside the US).**",
+                        "fa": "در جهان اَبَر قهرمان ها قهرمانی بسیار قدرتمند و شکست ناپذیر وجود داره که به (مرد تک مشتی) معروفه چون اون تمامی دشمنان و رقیب هاشو فقط با یک مشت از میدان به در میکنه. بعد از مدتی سایتاما  دیگه از مبارزاتش لذت نمیبره و احساساتی مثل هیجان و ترس رو در خودش فراموش میکنه! و همراه تنها شاگردش که یک سایبورگ هست به انتظار رقیبی خوب ، ماجراهایی رو دنبال میکنن و……",
+                        "ru": "Манга повествует о молодом человеке по имени Сайтама. Он — герой, обычный герой. Основная его проблема в том, что он вышибает дух из злодеев одним ударом. А это очень скучно…",
+                        "tr": "Üç yıllık sıkı bir eğitimden sonra, Saitama, tek bir yumrukla herkesi ve her şeyi alt etmesine izin veren muazzam bir güç kazandı. Bir kahraman olarak yeni becerisini iyi bir şekilde kullanmaya karar verir. Bununla birlikte, canavarları kolayca yenmekten çabucak sıkılır ve kahraman olma kıvılcımını geri getirmek için birinin ona meydan okumasını ister.\n  Bir cyborg olan Genos, Saitama'nın inanılmaz gücüne tanık olduktan sonra, Saitama'nın çırağı olmaya kararlıdır. Bu süre zarfında Saitama, Kahraman Derneği'nin bir parçası olmadığı için ne hak ettiği takdiri görmediğini ne de insanlar tarafından tanınmadığını fark eder. İtibarını artırmak isteyen Saitama, Genos'u öğrenci olarak alması karşılığında kendisine kaydettirmeye karar verir. İkisi birlikte, güçlü düşmanlar bulmayı ve bu süreçte saygı kazanmayı umarak gerçek kahramanlar olma yolunda ilerlemeye başlar.",
+                        "pt-br": "One-Punch Man conta a história de Saitama, um super-herói extremamente poderoso, que se entediou com a ausência dos desafios nas suas lutas contra o mau e procura encontrar um oponente digno para lutar."
+                    },
+                    "isLocked": false,
+                    "links": {
+                        "al": "74347",
+                        "ap": "one-punch-man",
+                        "bl": "377003",
+                        "bw": "series/70257/list",
+                        "kt": "24147",
+                        "mu": "e1096mh",
+                        "mal": "44347",
+                        "raw": "https://tonarinoyj.jp/episode/13932016480028985383",
+                        "engtl": "https://www.viz.com/shonenjump/chapters/one-punch-man"
+                    },
+                    "officialLinks": null,
+                    "originalLanguage": "ja",
+                    "lastVolume": "",
+                    "lastChapter": "",
+                    "publicationDemographic": "seinen",
+                    "status": "ongoing",
+                    "year": 2012,
+                    "contentRating": "suggestive",
+                    "tags": [
+                        {
+                            "id": "0a39b5a1-b235-4886-a747-1d05d216532d",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Award Winning"
+                                },
+                                "description": {},
+                                "group": "format",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "256c8bd9-4904-4360-bf4f-508a76d67183",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Sci-Fi"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "36fd93ea-e8b8-445e-b836-358f02b3d33d",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Monsters"
+                                },
+                                "description": {},
+                                "group": "theme",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "391b0423-d847-456f-aff0-8b0cfc03066b",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Action"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "4d32cc48-9f00-4cca-9b5a-a839f0764984",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Comedy"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "7064a261-a137-4d3a-8848-2d385de3a99c",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Superhero"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "799c202e-7daa-44eb-9cf7-8a3c0441531e",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Martial Arts"
+                                },
+                                "description": {},
+                                "group": "theme",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "b29d6a3d-1569-4e7a-8caf-7557bc92cd5d",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Gore"
+                                },
+                                "description": {},
+                                "group": "content",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "eabc5b4c-6aff-42f3-b657-3e90cbd00b75",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Supernatural"
+                                },
+                                "description": {},
+                                "group": "theme",
+                                "version": 1
+                            },
+                            "relationships": []
+                        }
+                    ],
+                    "state": "published",
+                    "chapterNumbersResetOnNewVolume": false,
+                    "createdAt": "2018-06-13T18:16:59+00:00",
+                    "updatedAt": "2026-10-22T12:43:14+00:00",
+                    "version": 99,
+                    "availableTranslatedLanguages": [
+                        "es",
+                        "es-la",
+                        "tr",
+                        "hu",
+                        "zh-hk",
+                        "ru",
+                        "ta",
+                        "ar",
+                        "he",
+                        "it",
+                        "id",
+                        "uk",
+                        "hi",
+                        "pt-br",
+                        "pl",
+                        "vi",
+                        "ne",
+                        "en",
+                        "sr",
+                        "fr",
+                        "el",
+                        "fa"
+                    ],
+                    "latestUploadedChapter": "847a29a8-b3bc-4183-a939-e8b19f5af41c"
+                },
+                "relationships": [
+                    {
+                        "id": "16b98239-6452-4859-b6df-fdb1c7f12b52",
+                        "type": "author"
+                    },
+                    {
+                        "id": "47cd4e57-3fc4-4d76-97e4-b3933a5b05ef",
+                        "type": "artist"
+                    },
+                    {
+                        "id": "c7afbc6d-4511-4fe7-9151-eb5143229a2d",
+                        "type": "cover_art",
+                        "attributes": {
+                            "description": "",
+                            "volume": "37",
+                            "fileName": "d22cfde3-268a-48a3-b5ed-73772834764d.jpg",
+                            "locale": "ja",
+                            "createdAt": "2026-10-08T16:38:36+00:00",
+                            "updatedAt": "2026-10-08T16:38:36+00:00",
+                            "version": 1
+                        }
+                    },
+                    {
+                        "id": "0cad2d89-a02d-455f-a027-74f52f81eb7f",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "0ea2f16b-8fbf-48bf-97c4-7649bb3c4044",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "29c42e49-d6f5-4084-9cec-771f5660c90f",
+                        "type": "manga",
+                        "related": "colored"
+                    },
+                    {
+                        "id": "5ea5f435-49ae-4328-9062-fec7affbe879",
+                        "type": "manga",
+                        "related": "side_story"
+                    },
+                    {
+                        "id": "636c607c-44b0-4c1a-8592-d0a602de95d9",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "6431a544-f126-449d-ac00-64df39f549a7",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "7a2438d6-67d4-40db-8a53-879354b894d1",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "7e52445d-ea1e-4fc9-90ec-1120c49fddcd",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "8f8c4f0e-93f5-433e-ba13-017746b485ec",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "8f8c4f0e-93f5-433e-ba13-017746b485ec",
+                        "type": "manga",
+                        "related": "spin_off"
+                    },
+                    {
+                        "id": "9147871d-eb19-4acf-8530-233b88e4fe91",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "b7d069cb-4ab9-4c21-a20b-38f7c269be4e",
+                        "type": "manga",
+                        "related": "preserialization"
+                    },
+                    {
+                        "id": "ed9d3980-a9f4-465e-a299-aa4e7197ea28",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "f004b6bd-4961-40c3-b40c-1648e1b70273",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "f0af90c5-05ea-411b-8cc6-8070765898df",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    },
+                    {
+                        "id": "fc102424-d94b-4a1b-98bc-d5062cd768d6",
+                        "type": "manga",
+                        "related": "doujinshi"
+                    }
+                ]
+            },
+            {
+                "id": "8a45c930-32d1-423e-bffd-9e8d71312134",
+                "type": "manga",
+                "attributes": {
+                    "title": {
+                        "zh-ro": "Nova"
+                    },
+                    "altTitles": [],
+                    "description": {
+                        "es-la": "La diseñadora de moda Lan Tianhua ha visto cómo su talento era descaradamente robado, pero aun así está decidida a hacer brillar su propia marca independiente.\nEntonces, Nova, una influencer brillante y extremadamente popular, irrumpe de repente en su vida y la ayuda, de forma decidida, a recuperar el mérito por los diseños que le fueron arrebatados.\nA medida que ambas se vuelven más cercanas en privado, una atracción ambigua comienza a florecer silenciosamente. Sin embargo, Lan Tianhua no puede dejar de sentir que hay algo extrañamente familiar en Nova..."
+                    },
+                    "isLocked": false,
+                    "links": {
+                        "raw": "https://m.kuaikanmanhua.com/"
+                    },
+                    "officialLinks": null,
+                    "originalLanguage": "zh",
+                    "lastVolume": "",
+                    "lastChapter": "",
+                    "publicationDemographic": null,
+                    "status": "ongoing",
+                    "year": 2026,
+                    "contentRating": "safe",
+                    "tags": [
+                        {
+                            "id": "3e2b8dae-350e-4ab8-a8ce-016e844b9f0d",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Long Strip"
+                                },
+                                "description": {},
+                                "group": "format",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "423e2eae-a7a2-4a8b-ac03-a8351462d71d",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Romance"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "891cf039-b895-47f0-9229-bef4c96eccd4",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Self-Published"
+                                },
+                                "description": {},
+                                "group": "format",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "a3c67850-4684-404e-9b7f-c69850ee5da6",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Girls' Love"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        },
+                        {
+                            "id": "b9af3a63-f058-46de-a9a0-e0c13906197a",
+                            "type": "tag",
+                            "attributes": {
+                                "name": {
+                                    "en": "Drama"
+                                },
+                                "description": {},
+                                "group": "genre",
+                                "version": 1
+                            },
+                            "relationships": []
+                        }
+                    ],
+                    "state": "published",
+                    "chapterNumbersResetOnNewVolume": false,
+                    "createdAt": "2026-10-23T07:57:43+00:00",
+                    "updatedAt": "2026-10-23T10:44:51+00:00",
+                    "version": 5,
+                    "availableTranslatedLanguages": [],
+                    "latestUploadedChapter": null
+                },
+                "relationships": [
+                    {
+                        "id": "8cdc04d1-bf8c-45e9-a1df-bce92fdf830d",
+                        "type": "author"
+                    },
+                    {
+                        "id": "8cdc04d1-bf8c-45e9-a1df-bce92fdf830d",
+                        "type": "artist"
+                    },
+                    {
+                        "id": "9e68279b-86d2-49bf-a1f9-6c211ee42d23",
+                        "type": "cover_art",
+                        "attributes": {
+                            "description": "",
+                            "volume": null,
+                            "fileName": "e0c01cf2-e693-4133-a86c-f76cab24be9c.jpg",
+                            "locale": "zh",
+                            "createdAt": "2026-10-23T07:57:46+00:00",
+                            "updatedAt": "2026-10-23T10:47:02+00:00",
+                            "version": 3
+                        }
+                    },
+                    {
+                        "id": "aa89fcfa-cc56-4d71-a9b8-6410a92900c3",
+                        "type": "creator"
+                    }
+                ]
+            }
+        ],
+        "limit": 100,
+        "offset": 0,
+        "total": 2
+    }
+}

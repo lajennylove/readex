@@ -232,6 +232,24 @@ it('shows only the tag as a chip when a title and a tag are kept', function () {
         ->and(searchNodes($screen->tree(), 'bare_text_input')[0]['props']['value'])->toBe('one punch');
 });
 
+it('leaves the same room between the field and the results with or without a tag chip', function () {
+    $holds = fn (array $node, string $type) => array_filter($node['children'] ?? [], fn (array $child) => $child['type'] === $type) !== [];
+    $holding = fn (array $tree, string $type) => array_values(array_filter(searchNodes($tree, 'row'), fn (array $row) => $holds($row, $type)))[0];
+    $below = fn (array $tree) => array_values(array_filter(
+        searchNodes($tree, 'column'),
+        fn (array $column) => array_filter($column['children'] ?? [], fn (array $child) => $holds($child, 'bare_text_input')) !== [],
+    ))[0]['layout']['padding'][2];
+
+    $screen = Native::test(Search::class)->call('searchFor', 'one punch');
+    expect(searchNodes($screen->tree(), 'chip'))->toBe([]);
+    $plain = $below($screen->tree());
+
+    $screen->toggle("openTag('".COOKING_TAG."')", true);
+    $tagged = $below($screen->tree()) + $holding($screen->tree(), 'chip')['layout']['padding'][0];
+
+    expect($plain)->toBe($tagged)->toBe(12.0);
+});
+
 it('forgets a kept tag that is no longer saved', function () {
     app(SettingsRepository::class)->rememberSearch('', 'not-a-saved-tag');
 

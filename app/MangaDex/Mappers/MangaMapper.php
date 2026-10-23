@@ -22,6 +22,7 @@ final class MangaMapper
             'original_language' => $a['originalLanguage'] ?? null,
             'tag_ids' => array_column($a['tags'] ?? [], 'id'),
             'cover_file' => self::coverFile($manga),
+            ...self::people($manga),
         ];
     }
 
@@ -41,5 +42,30 @@ final class MangaMapper
         }
 
         return null;
+    }
+
+    /**
+     * `authors` / `artists` only when the call sent `includes[]=author&includes[]=artist` (detail call),
+     * so list calls, which don't, leave the saved names alone.
+     */
+    private static function people(array $manga): array
+    {
+        $names = ['author' => [], 'artist' => []];
+        $included = false;
+
+        foreach ($manga['relationships'] ?? [] as $relation) {
+            if (isset($names[$relation['type']], $relation['attributes'])) {
+                $included = true;
+                $names[$relation['type']][] = trim($relation['attributes']['name'] ?? '');
+            }
+        }
+
+        if (! $included) {
+            return [];
+        }
+
+        $clean = fn (array $list) => array_values(array_unique(array_filter($list, fn (string $name) => $name !== '')));
+
+        return ['authors' => $clean($names['author']), 'artists' => $clean($names['artist'])];
     }
 }

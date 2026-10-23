@@ -1,0 +1,129 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Language\LanguageChain;
+use App\Models\Setting;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+
+final class SettingsRepository
+{
+    public function language(): string
+    {
+        return $this->read('language') ?? config('readex.defaults.language');
+    }
+
+    public function chain(): LanguageChain
+    {
+        return new LanguageChain($this->language());
+    }
+
+    /** Choice 5: Latest updates is filtered by language, so it goes stale; other lists are re-sorted at read time. */
+    public function setLanguage(string $code): void
+    {
+        $code = strtolower(trim($code));
+
+        if (preg_match('/^[a-z]{2,3}(-[a-z]{2,4})?$/', $code) !== 1) {
+            throw new InvalidArgumentException("Not a MangaDex language code [{$code}].");
+        }
+
+        if ($code === $this->language()) {
+            return;
+        }
+
+        DB::transaction(function () use ($code) {
+            $this->write('language', $code);
+            DB::table('manga_lists')->where('list_key', 'home.latest')->update(['fetched_at' => null]);
+        });
+    }
+
+    /** @return list<string> */
+    public function contentRatings(): array
+    {
+        return $this->read('content_ratings') ?? config('readex.defaults.content_ratings');
+    }
+
+    /**
+     * Choice 5 / spec §8: a different set clears every saved list (Home included); downloads and Library stay.
+     *
+     * @param  list<string>  $ratings
+     */
+    public function setContentRatings(array $ratings): void
+    {
+        $known = config('readex.content_ratings');
+
+        if ($ratings === [] || array_diff($ratings, $known) !== []) {
+            throw new InvalidArgumentException('Content ratings must be a non-empty subset of '.implode(', ', $known).'.');
+        }
+
+        $ratings = array_values(array_intersect($known, $ratings));
+
+        if ($ratings === $this->contentRatings()) {
+            return;
+        }
+
+        DB::transaction(function () use ($ratings) {
+            $this->write('content_ratings', $ratings);
+            DB::table('manga_lists')->delete();
+        });
+    }
+
+    public function imageQuality(): string
+    {
+        return $this->read('image_quality') ?? config('readex.defaults.image_quality');
+    }
+
+    public function setImageQuality(string $quality): void
+    {
+        if (! in_array($quality, config('readex.image_qualities'), true)) {
+            throw new InvalidArgumentException("Unknown image quality [{$quality}].");
+        }
+
+        $this->write('image_quality', $quality);
+    }
+
+    public function setupDone(): bool
+    {
+        return $this->read('setup_done') === true;
+    }
+
+    public function markSetupDone(): void
+    {
+        $this->write('setup_done', true);
+    }
+
+    public function lastDataRefreshAt(): ?CarbonImmutable
+    {
+        $value = $this->read('last_data_refresh_at');
+
+        return $value === null ? null : CarbonImmutable::parse($value);
+    }
+
+    public function markDataRefreshed(): void
+    {
+        $this->write('last_data_refresh_at', Carbon::now()->toIso8601String());
+    }
+
+    public function seasonalListId(): ?string
+    {
+        return $this->read('seasonal_list_id');
+    }
+
+    public function setSeasonalListId(string $id): void
+    {
+        $this->write('seasonal_list_id', $id);
+    }
+
+    private function read(string $key): mixed
+    {
+        return Setting::find($key)?->value;
+    }
+
+    private function write(string $key, mixed $value): void
+    {
+        Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+    }
+}

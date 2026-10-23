@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Lajennylove\MdxStorage\MdxStorageServiceProvider;
+use Native\Mobile\Providers\BrowserServiceProvider;
 use Native\Mobile\UI\NativeUIServiceProvider;
 
 class NativeServiceProvider extends ServiceProvider
@@ -38,6 +39,7 @@ class NativeServiceProvider extends ServiceProvider
         return [
             MdxStorageServiceProvider::class,
             NativeUIServiceProvider::class,
+            BrowserServiceProvider::class,
         ];
     }
 }

@@ -378,7 +378,7 @@ it('shows every upload until the reader has a group, then one per number with th
         ->toBe(['Group B', 'Group B']);
 });
 
-it('opens a licensed chapter in the browser and a readable one with the reader-later toast', function () {
+it('opens a licensed chapter in the in-app browser and a readable one with the reader-later toast', function () {
     detailSeries(DETAIL_SEEDED, ['es-la']);
     seededChapter('ext-1', DETAIL_SEEDED, '1', ['group_name' => 'MangaPlus', 'external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1000']);
     seededChapter('own-2', DETAIL_SEEDED, '2');
@@ -387,8 +387,9 @@ it('opens a licensed chapter in the browser and a readable one with the reader-l
     expect(detailRows($screen->tree())[0]['caption'])->toBe('MangaPlus · Opens on mangaplus.shueisha.co.jp');
 
     $screen->tap('Ch. 1')
-        ->assertNativeCalled('Browser.Open', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1000');
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1000')
+        ->assertNativeNotCalled('Browser.Open');
     $screen->tap('Ch. 2')
         ->assertNativeCalled('Dialog.Toast', fn (array $p) => $p['message'] === 'Reader comes in the next phase')
-        ->assertNativeCalledTimes('Browser.Open', 1);
+        ->assertNativeCalledTimes('Browser.OpenInApp', 1);
 });

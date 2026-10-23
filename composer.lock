@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "25bcb638ce0d567b8198043d86ae32ed",
+    "content-hash": "8f979b20e5e09fc22e00fec931ae16a0",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1285,7 +1285,7 @@
         },
         {
             "name": "lajennylove/plugin-mdx-storage",
-            "version": "dev-main",
+            "version": "dev-plan04-check",
             "dist": {
                 "type": "path",
                 "url": "packages/lajennylove/plugin-mdx-storage",
@@ -2512,6 +2512,61 @@
                 "source": "https://github.com/NativePHP/mobile-air/tree/4.6.0"
             },
             "time": "2026-10-02T23:19:44+00:00"
+        },
+        {
+            "name": "nativephp/mobile-browser",
+            "version": "1.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/NativePHP/mobile-browser.git",
+                "reference": "fdb892601f44bc7c72e6182f8754db6ed3c7c1b0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/NativePHP/mobile-browser/zipball/fdb892601f44bc7c72e6182f8754db6ed3c7c1b0",
+                "reference": "fdb892601f44bc7c72e6182f8754db6ed3c7c1b0",
+                "shasum": ""
+            },
+            "require": {
+                "nativephp/mobile": "^3.0 || ^4.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0",
+                "pestphp/pest": "^2.7|^3.0|^4.0"
+            },
+            "type": "nativephp-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Native\\Mobile\\Providers\\BrowserServiceProvider"
+                    ]
+                },
+                "nativephp": {
+                    "manifest": "nativephp.json"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Native\\Mobile\\Providers\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "NativePHP",
+                    "email": "info@nativephp.com"
+                }
+            ],
+            "description": "Browser functionality for NativePHP Mobile - open URLs in system browser, in-app browser, and OAuth authentication",
+            "support": {
+                "issues": "https://github.com/NativePHP/mobile-browser/issues",
+                "source": "https://github.com/NativePHP/mobile-browser/tree/1.2.1"
+            },
+            "time": "2026-10-22T19:51:21+00:00"
         },
         {
             "name": "nativephp/mobile-ui",

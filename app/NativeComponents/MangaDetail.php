@@ -107,13 +107,13 @@ class MangaDetail extends NativeComponent
         $this->load();
     }
 
-    /** Licensed chapters (MangaPlus, VIZ…) only exist on the publisher's site: open it in the browser. */
+    /** Licensed chapters (MangaPlus, VIZ…) only exist on the publisher's site: open it in the in-app browser, never leave the app. */
     public function openChapter(string $chapterId): void
     {
         $url = Chapter::query()->find($chapterId)?->external_url;
 
         if ($url !== null) {
-            Browser::open($url);
+            Browser::inApp($url);
 
             return;
         }

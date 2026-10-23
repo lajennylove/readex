@@ -28,6 +28,9 @@ return [
 
     'content_ratings' => ['safe', 'suggestive', 'erotica', 'pornographic'],
 
+    // Search shows these after the rest, under a "Rated content" title.
+    'rated_content' => ['erotica', 'pornographic'],
+
     'image_qualities' => ['data-saver', 'original'],
 
     'page_sizes' => [

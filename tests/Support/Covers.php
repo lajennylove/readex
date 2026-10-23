@@ -2,10 +2,14 @@
 
 namespace Tests\Support;
 
+use App\Covers\FetchCovers;
+use App\Jobs\DownloadCovers;
 use App\Models\Manga;
 use App\Storage\LocalStorageBridge;
 use App\Storage\StorageBridge;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
+use Native\Mobile\Testing\FakeAsyncTask;
 
 final class Covers
 {
@@ -41,6 +45,20 @@ final class Covers
             'tag_ids' => [],
             'cover_file' => $coverFile,
         ]);
+    }
+
+    /** @return list<string> manga ids handed to FetchCovers, in dispatch order */
+    public static function fetched(FakeAsyncTask $async): array
+    {
+        $tasks = array_filter($async->dispatched, fn (array $d) => ($d['work']['task'] ?? null) === FetchCovers::class);
+
+        return array_merge([], ...array_map(fn (array $d) => $d['work']['args'][0], array_values($tasks)));
+    }
+
+    /** @return list<string> every cover a screen asked for: fetched right away, then queued */
+    public static function requested(FakeAsyncTask $async): array
+    {
+        return [...self::fetched($async), ...Queue::pushed(DownloadCovers::class)->flatMap(fn (DownloadCovers $job) => $job->mangaIds)->all()];
     }
 
     /** Put a thumbnail on disk as if it had been downloaded. */

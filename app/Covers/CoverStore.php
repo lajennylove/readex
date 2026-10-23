@@ -12,6 +12,7 @@ use App\Storage\StorageBridge;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Native\Mobile\PendingAsyncTask;
 
 /**
  * Cover thumbnails in the cache tier (spec §11.1): `<caches>/covers/<manga id>/<file>.256.jpg`,
@@ -41,23 +42,24 @@ final class CoverStore
      */
     public function queue(iterable $mangas, Priority $priority): void
     {
-        $ids = [];
-
-        foreach ($mangas as $manga) {
-            $relative = $this->relative($manga);
-
-            if ($relative === null || is_file($this->absolute($relative))) {
-                continue;
-            }
-
-            if (Cache::add('readex.cover.queued.'.sha1($relative), true, config('readex.covers.queued_seconds'))) {
-                $ids[] = $manga->id;
-            }
-        }
+        $ids = $this->missing($mangas, 'queued');
 
         if ($ids !== []) {
             DownloadCovers::dispatch($ids, $priority);
         }
+    }
+
+    /**
+     * Start a FetchCovers task for the covers on screen that are missing and not fetched in the
+     * last `queued_seconds`. Its own guard, so covers a queued job holds are still fetched now.
+     *
+     * @param  iterable<Manga>  $mangas
+     */
+    public function fetch(iterable $mangas): ?PendingAsyncTask
+    {
+        $ids = $this->missing($mangas, 'fetched');
+
+        return $ids === [] ? null : FetchCovers::dispatch($ids);
     }
 
     /**
@@ -105,6 +107,32 @@ final class CoverStore
         $size = config('readex.covers.size');
 
         return rtrim(config('mangadex.covers_url'), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";
+    }
+
+    /**
+     * Ids in order whose cover isn't on disk, each claimed under `$guard` for `queued_seconds`
+     * (screens re-render every few seconds).
+     *
+     * @param  iterable<Manga>  $mangas
+     * @return list<string>
+     */
+    private function missing(iterable $mangas, string $guard): array
+    {
+        $ids = [];
+
+        foreach ($mangas as $manga) {
+            $relative = $this->relative($manga);
+
+            if ($relative === null || is_file($this->absolute($relative))) {
+                continue;
+            }
+
+            if (Cache::add("readex.cover.{$guard}.".sha1($relative), true, config('readex.covers.queued_seconds'))) {
+                $ids[] = $manga->id;
+            }
+        }
+
+        return $ids;
     }
 
     private function relative(Manga $manga): ?string

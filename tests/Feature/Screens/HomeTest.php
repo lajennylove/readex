@@ -268,7 +268,7 @@ it('opens a tile in the Home tab', function () {
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$first->id}");
 });
 
-it('queues covers in screen order, the first 12 interactive', function () {
+it('fetches the first 12 covers right away and queues the rest, in screen order', function () {
     fillHome();
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
     app(LibraryRepository::class)->saveProgress($chapter->id, 0, 10);
@@ -278,9 +278,9 @@ it('queues covers in screen order, the first 12 interactive', function () {
     Native::test(Home::class);
 
     $jobs = Queue::pushed(DownloadCovers::class)->values();
-    expect($jobs[0]->priority)->toBe(Priority::Interactive)
-        ->and($jobs[0]->mangaIds)->toBe(array_values(array_unique(array_slice($order, 0, 12))))
-        ->and($jobs[1]->priority)->toBe(Priority::Prefetch);
+    expect(Covers::fetched($this->async))->toBe(array_values(array_unique(array_slice($order, 0, 12))))
+        ->and($jobs)->toHaveCount(1)
+        ->and($jobs[0]->priority)->toBe(Priority::Prefetch);
 });
 
 it('shows Continue reading on the Library placeholder too (choice 2)', function () {
@@ -296,7 +296,7 @@ it('shows Continue reading on the Library placeholder too (choice 2)', function 
         ->assertSee(Home::chapterLabel($chapter).' · 50%')
         ->assertSee('Your series will show up here');
 
-    Queue::assertPushed(DownloadCovers::class, fn (DownloadCovers $job) => $job->mangaIds === [$chapter->manga_id] && $job->priority === Priority::Interactive);
+    expect(Covers::fetched($this->async))->toContain($chapter->manga_id);
 });
 
 it('renders Home and Library without dropped Tailwind classes', function () {

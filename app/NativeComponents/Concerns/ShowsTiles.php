@@ -31,8 +31,8 @@ trait ShowsTiles
     }
 
     /**
-     * Missing covers for these tiles, in screen order: the first `visible` at interactive
-     * priority, the rest in the background.
+     * Missing covers for these tiles, in screen order: the first `visible` downloaded right away
+     * (FetchCovers), the rest queued in the background.
      *
      * @param  list<Manga>  $mangas
      */
@@ -41,7 +41,7 @@ trait ShowsTiles
         $visible = config('readex.covers.visible');
         $covers = app(CoverStore::class);
 
-        $covers->queue(array_slice($mangas, 0, $visible), Priority::Interactive);
+        $covers->fetch(array_slice($mangas, 0, $visible));
         $covers->queue(array_slice($mangas, $visible), Priority::Prefetch);
     }
 

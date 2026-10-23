@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Covers;
+
+use App\Jobs\DownloadCovers;
+use App\MangaDex\Client;
+use App\MangaDex\Exceptions\ApiError;
+use App\MangaDex\Exceptions\RequestDeferred;
+use App\MangaDex\RateLimit\Priority;
+use App\Models\Manga;
+use App\Storage\StorageBridge;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+
+/**
+ * Cover thumbnails in the cache tier (spec §11.1): `<caches>/covers/<manga id>/<file>.256.jpg`,
+ * shown through the `storage/cache` link. iOS may purge the folder, so a missing file only
+ * means "download it again".
+ */
+final class CoverStore
+{
+    public function __construct(
+        private readonly Client $client,
+        private readonly StorageBridge $bridge,
+    ) {}
+
+    /** Image src for a tile, or null while the thumbnail isn't on the phone (grey placeholder). */
+    public function path(Manga $manga): ?string
+    {
+        $relative = $this->relative($manga);
+
+        return $relative !== null && is_file($this->absolute($relative)) ? 'storage/cache/'.$relative : null;
+    }
+
+    /**
+     * Queue a DownloadCovers job for the covers that are missing and not queued in the last
+     * `queued_seconds`.
+     *
+     * @param  iterable<Manga>  $mangas
+     */
+    public function queue(iterable $mangas, Priority $priority): void
+    {
+        $ids = [];
+
+        foreach ($mangas as $manga) {
+            $relative = $this->relative($manga);
+
+            if ($relative === null || is_file($this->absolute($relative))) {
+                continue;
+            }
+
+            if (Cache::add('readex.cover.queued.'.sha1($relative), true, config('readex.covers.queued_seconds'))) {
+                $ids[] = $manga->id;
+            }
+        }
+
+        if ($ids !== []) {
+            DownloadCovers::dispatch($ids, $priority);
+        }
+    }
+
+    /**
+     * Download one thumbnail (covers bucket). False when the series has no cover or the
+     * response isn't an image; the series' older cover files are removed on success.
+     *
+     * @throws RequestDeferred|ApiError|ConnectionException
+     */
+    public function download(Manga $manga, Priority $priority, float $maxWait = 10.0): bool
+    {
+        $relative = $this->relative($manga);
+
+        if ($relative === null) {
+            return false;
+        }
+
+        $path = $this->absolute($relative);
+
+        if (is_file($path)) {
+            return true;
+        }
+
+        $bytes = $this->client->download($this->url($manga), $priority, $maxWait);
+
+        if (@getimagesizefromstring($bytes) === false) {
+            return false;
+        }
+
+        File::ensureDirectoryExists(dirname($path));
+        $part = $path.'.'.bin2hex(random_bytes(4)).'.part';
+        file_put_contents($part, $bytes);
+        rename($part, $path);
+
+        foreach (glob(dirname($path).'/*.jpg') ?: [] as $old) {
+            if ($old !== $path) {
+                @unlink($old);
+            }
+        }
+
+        return true;
+    }
+
+    public function url(Manga $manga): string
+    {
+        $size = config('readex.covers.size');
+
+        return rtrim(config('mangadex.covers_url'), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";
+    }
+
+    private function relative(Manga $manga): ?string
+    {
+        $file = (string) $manga->cover_file;
+
+        if ($file === '' || basename($file) !== $file || basename((string) $manga->id) !== $manga->id) {
+            return null;
+        }
+
+        return "covers/{$manga->id}/{$file}.".config('readex.covers.size').'.jpg';
+    }
+
+    private function absolute(string $relative): string
+    {
+        return rtrim($this->bridge->cachesPath(), '/').'/'.$relative;
+    }
+}

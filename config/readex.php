@@ -42,6 +42,15 @@ return [
     // Popular new titles: series created in the last this-many days.
     'popular_new_days' => 30,
 
+    'covers' => [
+        // MangaDex thumbnail width (it serves .256.jpg and .512.jpg).
+        'size' => 256,
+        // Tiles a screen shows first; their covers download at interactive priority.
+        'visible' => 12,
+        // A queued cover isn't queued again for this long (screens re-render every few seconds).
+        'queued_seconds' => 600,
+    ],
+
     'seasonal_url' => 'https://antsylich.github.io/mangadex-seasonal/seasonal-list.json',
 
 ];

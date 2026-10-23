@@ -114,6 +114,10 @@ final class LibraryRepository
             ->orderBy('collections.manga_id')
             ->pluck('collections.manga_id');
 
+        if ($filter === 'reading') {
+            $ids = $ids->filter(fn (string $id) => $this->resume($id) !== null)->values();
+        }
+
         $manga = Manga::query()->whereIn('id', $ids)->get()->keyBy('id');
 
         return $ids->map(fn (string $id) => $manga->get($id))->filter()->values();
@@ -153,8 +157,22 @@ final class LibraryRepository
     }
 
     /**
-     * Home "Continue reading": one tile per series, last read first. A finished chapter moves on
-     * to the next one in Library order (same language); a series with nothing after it is left out.
+     * Where a series picks up (Detail / Collection "Continue" button): the last chapter read on
+     * its saved page; once that one is finished, the next chapter in Library order (same
+     * language), on its own saved page if it has one (else `progress = null`, from the start).
+     * Null when never read, or caught up.
+     */
+    public function resume(string $mangaId): ?ContinueReading
+    {
+        $progress = ReadingProgress::query()->where('manga_id', $mangaId)
+            ->orderByDesc('updated_at')->orderBy('chapter_id')->first();
+
+        return $progress === null ? null : $this->tile($progress);
+    }
+
+    /**
+     * Home "Continue reading": `resume()` for every started series, last read first; caught-up
+     * series are left out.
      *
      * @return Collection<int, ContinueReading>
      */
@@ -164,16 +182,7 @@ final class LibraryRepository
         $latest = ReadingProgress::query()->orderByDesc('updated_at')->orderBy('chapter_id')->get()->unique('manga_id');
 
         foreach ($latest as $progress) {
-            $chapter = Chapter::query()->find($progress->chapter_id);
-            $manga = Manga::query()->find($progress->manga_id);
-
-            if ($chapter === null || $manga === null) {
-                continue;
-            }
-
-            $tile = $progress->finished_at === null
-                ? new ContinueReading($manga, $chapter, $progress)
-                : $this->next($manga, $chapter);
+            $tile = $this->tile($progress);
 
             if ($tile !== null) {
                 $tiles->push($tile);
@@ -185,6 +194,20 @@ final class LibraryRepository
         }
 
         return $tiles;
+    }
+
+    private function tile(ReadingProgress $progress): ?ContinueReading
+    {
+        $chapter = Chapter::query()->find($progress->chapter_id);
+        $manga = Manga::query()->find($progress->manga_id);
+
+        if ($chapter === null || $manga === null) {
+            return null;
+        }
+
+        return $progress->finished_at === null
+            ? new ContinueReading($manga, $chapter, $progress)
+            : $this->next($manga, $chapter);
     }
 
     private function next(Manga $manga, Chapter $chapter): ?ContinueReading

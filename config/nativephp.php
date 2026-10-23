@@ -126,7 +126,7 @@ return [
     |
     */
 
-    'appearance' => env('NATIVEPHP_APPEARANCE', 'system'),
+    'appearance' => env('NATIVEPHP_APPEARANCE', 'dark'),
 
     /*
     |--------------------------------------------------------------------------

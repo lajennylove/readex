@@ -5,10 +5,10 @@ namespace App\NativeComponents;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
-class Hello extends NativeComponent
+class Setup extends NativeComponent
 {
     public function render(): View
     {
-        return view('native.hello');
+        return view('native.partials.empty-state', ['title' => 'Welcome to ReaDex']);
     }
 }

@@ -282,6 +282,8 @@ return [
         'storage/framework/cache',
         'storage/framework/testing',
         'storage/logs/laravel.log',
+        'storage/app/public/cache',
+        'storage/app/local-bridge',
     ],
 
     /*

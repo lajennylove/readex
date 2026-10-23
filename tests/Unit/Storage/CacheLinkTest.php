@@ -27,3 +27,14 @@ it('re-points the link when the caches folder moved (app update)', function () {
 
     expect(readlink($this->root.'/public/cache'))->toBe($new->cachesPath());
 });
+
+it('replaces a real folder left at the link path (build copy follows symlinks)', function () {
+    mkdir($this->root.'/public/cache/sub', 0755, true);
+    file_put_contents($this->root.'/public/cache/sub/page.jpg', 'x');
+    $bridge = new LocalStorageBridge($this->root.'/a');
+
+    CacheLink::ensure($bridge);
+
+    expect(is_link($this->root.'/public/cache'))->toBeTrue()
+        ->and(readlink($this->root.'/public/cache'))->toBe($bridge->cachesPath());
+});

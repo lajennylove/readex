@@ -41,7 +41,18 @@
                     </native:column>
                 @empty
                     @if ($busy)
-                        <native:activity-indicator class="w-full p-6" />
+                        @for ($g = 0; $g < 3; $g++)
+                            <native:column native:key="tags-skeleton-{{ $g }}" class="w-full gap-2 px-4">
+                                @include('native.partials.skeleton', ['key' => 'heading', 'class' => 'w-24 h-6 rounded-sm'])
+                                @for ($l = 0; $l < 2; $l++)
+                                    <native:row class="gap-2">
+                                        @for ($c = 0; $c < 5; $c++)
+                                            @include('native.partials.skeleton', ['key' => "chip-{$l}-{$c}", 'class' => ['w-20', 'w-16', 'w-24'][($c + $l) % 3].' h-8 rounded-full'])
+                                        @endfor
+                                    </native:row>
+                                @endfor
+                            </native:column>
+                        @endfor
                     @else
                         <native:column class="w-full items-center gap-3 p-6">
                             <native:text class="text-lg font-bold text-theme-on-background">No tags saved yet</native:text>
@@ -69,7 +80,15 @@
                 :overscan="2"
                 on-window-change="windowChanged" />
         @elseif ($busy)
-            <native:activity-indicator class="w-full p-6" />
+            <native:column class="w-full pt-2">
+                @for ($r = 0; $r < 3; $r++)
+                    <native:row native:key="results-skeleton-{{ $r }}" class="w-full gap-4 px-4 pb-4">
+                        @for ($c = 0; $c < \App\NativeComponents\Search::COLUMNS; $c++)
+                            @include('native.partials.tile-skeleton', ['key' => "tile-{$c}"])
+                        @endfor
+                    </native:row>
+                @endfor
+            </native:column>
         @elseif ($line !== null)
             <native:column class="w-full items-center gap-3 p-6">
                 <native:text class="text-lg font-bold text-theme-on-background">Nothing saved for this search</native:text>

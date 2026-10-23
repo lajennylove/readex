@@ -136,7 +136,6 @@ class MangaDetail extends NativeComponent
         $chapters = app(ChapterRepository::class);
         $current = app(LibraryRepository::class)->resume($this->mangaId);
         $languages = $chapters->languages($this->mangaId);
-        $similarKey = $this->similarRefresh()->key();
 
         return view('native.manga-detail', [
             'manga' => $manga,
@@ -148,14 +147,14 @@ class MangaDetail extends NativeComponent
             'languages' => implode(' · ', array_map(Languages::name(...), $languages)),
             'description' => $chain->description($manga->description ?? []),
             'similar' => app(RecommendationRepository::class)->get($this->mangaId)->data->map(fn (Manga $m) => $this->tile($m, $chain))->all(),
-            'loadingSimilar' => isset($this->refreshing[$similarKey]) || isset($this->waiting[$similarKey]),
+            'loadingSimilar' => $this->inFlight($this->similarRefresh()),
             'favorite' => $this->isFavorite(),
             'continue' => $this->continueLabel($current),
             'switch' => count($languages) > 1
                 ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $languages)
                 : [],
             'sections' => $this->language === '' ? [] : $this->chapterSections($current),
-            'loadingChapters' => $this->language !== '' && isset($this->refreshing[Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language)->key()]),
+            'loadingChapters' => $this->language !== '' && $this->inFlight(Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language)),
             'languageName' => $this->language === '' ? null : Languages::name($this->language),
         ]);
     }

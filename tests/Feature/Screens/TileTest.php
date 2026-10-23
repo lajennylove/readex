@@ -12,6 +12,7 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
+use Tests\Support\Skeletons;
 use Tests\Support\TileScreen;
 
 beforeEach(function () {
@@ -24,18 +25,50 @@ function imageSrcIs(string $src): Closure
     return fn (array $node) => ($node['props']['src'] ?? null) === $src;
 }
 
-it('shows a grey placeholder until the cover is stored, then the cover', function () {
+it('pulses a skeleton until the cover is stored, then shows the cover and fades the skeleton out on the same node', function () {
     $manga = Covers::manga('m1', title: 'Frieren');
     TileScreen::reset(['m1']);
 
-    Native::test(TileScreen::class)
+    $loading = Native::test(TileScreen::class)
         ->assertSee('Frieren')
         ->assertMissingElement('image');
+    $pulsing = Skeletons::pulsing($loading->tree());
+
+    expect($pulsing)->toHaveCount(1)
+        ->and(Skeletons::faded($loading->tree()))->toBe([]);
 
     Covers::store($this->caches, $manga);
 
-    Native::test(TileScreen::class)
+    $loaded = Native::test(TileScreen::class)
         ->assertElement('image', imageSrcIs('storage/cache/covers/m1/cover.jpg.256.jpg'));
+    $faded = Skeletons::faded($loaded->tree());
+
+    expect(Skeletons::pulsing($loaded->tree()))->toBe([])
+        ->and($faded)->toHaveCount(1)
+        ->and($faded[0]['id'])->toBe($pulsing[0]['id']);
+});
+
+it('gives the same series a different skeleton node in each row', function () {
+    Covers::manga('m1', title: 'Frieren');
+    Covers::manga('m2', title: 'Second');
+    TileScreen::reset(['m1', 'm2'], view: 'tile-rows');
+
+    $collisions = Skeletons::keyCollisions(fn () => $this->tree = Native::test(TileScreen::class)->tree());
+    $ids = array_column(Skeletons::all($this->tree), 'id');
+
+    expect($collisions)->toBe([])
+        ->and($ids)->toHaveCount(4)
+        ->and(array_unique($ids))->toHaveCount(4);
+});
+
+it('keeps an empty row in place with four pulsing placeholder tiles', function () {
+    TileScreen::reset([], view: 'tile-rows');
+
+    $collisions = Skeletons::keyCollisions(fn () => $this->tree = Native::test(TileScreen::class)->tree());
+
+    expect($collisions)->toBe([])
+        ->and(Skeletons::tiles($this->tree))->toBe(8)
+        ->and(array_unique(array_column(Skeletons::all($this->tree), 'id')))->toHaveCount(24);
 });
 
 it('shows the language badge and the caption only when given', function () {
@@ -108,6 +141,8 @@ it('renders the tile without dropped Tailwind classes', function () {
     Covers::manga('m2', title: 'Second');
     TileScreen::reset(['m1', 'm2'], badges: ['m1' => 'ES'], captions: ['m2' => 'Ch. 12']);
 
+    Native::test(TileScreen::class);
+    TileScreen::reset([], view: 'tile-rows');
     Native::test(TileScreen::class);
 
     expect($dropped)->toBe([]);

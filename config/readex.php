@@ -35,7 +35,12 @@ return [
         'feed' => 500,
         'ids' => 100,
         'latest' => 100,
+        // Tiles per Home row (Popular new, Latest updates).
+        'home_row' => 20,
     ],
+
+    // Popular new titles: series created in the last this-many days.
+    'popular_new_days' => 30,
 
     'seasonal_url' => 'https://antsylich.github.io/mangadex-seasonal/seasonal-list.json',
 

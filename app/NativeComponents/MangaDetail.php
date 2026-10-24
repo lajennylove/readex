@@ -22,8 +22,6 @@ use App\Repositories\SettingsRepository;
 use App\Repositories\StatisticsRepository;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
-use Native\Mobile\Facades\Browser;
-use Native\Mobile\Facades\Dialog;
 
 /**
  * Spec §5.7 / §11.3, D30: the one series screen for Home, Search and Library (no separate
@@ -36,9 +34,6 @@ class MangaDetail extends NativeComponent
 {
     use RefreshesData;
     use ShowsTiles;
-
-    /** Choice 3: chapter and Continue taps until Phase 5 brings the reader. */
-    public const READER_LATER = 'Reader comes in the next phase';
 
     public string $mangaId = '';
 
@@ -97,7 +92,11 @@ class MangaDetail extends NativeComponent
 
     public function resumeReading(): void
     {
-        Dialog::toast(self::READER_LATER);
+        $current = app(LibraryRepository::class)->resume($this->mangaId);
+
+        if ($current !== null) {
+            $this->showChapter($current->chapter);
+        }
     }
 
     public function pickLanguage(string $language): void
@@ -108,20 +107,6 @@ class MangaDetail extends NativeComponent
 
         $this->language = $language;
         $this->load();
-    }
-
-    /** Licensed chapters (MangaPlus, VIZ…) only exist on the publisher's site: open it in the in-app browser, never leave the app. */
-    public function openChapter(string $chapterId): void
-    {
-        $url = Chapter::query()->find($chapterId)?->external_url;
-
-        if ($url !== null) {
-            Browser::inApp($url);
-
-            return;
-        }
-
-        Dialog::toast(self::READER_LATER);
     }
 
     public function render(): View

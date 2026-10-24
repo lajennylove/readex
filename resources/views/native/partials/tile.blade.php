@@ -1,6 +1,7 @@
-{{-- $manga (Manga), $title (string), optional $badge ("ES"), $caption (e.g. "Ch. 12"). Needs ShowsTiles. --}}
+{{-- $manga (Manga), $title (string), optional $badge ("ES"), $caption (e.g. "Ch. 12"), $chapterId (the tile opens that chapter, else the series). Needs ShowsTiles. --}}
 @php($cover = app(\App\Covers\CoverStore::class)->path($manga))
-<native:pressable class="w-28" @press="openManga('{{ $manga->id }}')">
+@php($press = empty($chapterId) ? "openManga('{$manga->id}')" : "openChapter('{$chapterId}')")
+<native:pressable class="w-28" @press="{{ $press }}">
     <native:column class="w-28 gap-1">
         <native:stack class="w-28 aspect-[2/3] rounded-md bg-[#2C2C2E]">
             @if ($cover)

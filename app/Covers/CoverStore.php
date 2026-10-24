@@ -102,6 +102,12 @@ final class CoverStore
         return true;
     }
 
+    /** Delete every thumbnail; a tile that shows its series downloads it again. */
+    public function clear(): void
+    {
+        File::deleteDirectory($this->absolute('covers'));
+    }
+
     public function url(Manga $manga): string
     {
         $size = config('readex.covers.size');

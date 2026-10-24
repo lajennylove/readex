@@ -54,6 +54,37 @@ return [
         'queued_seconds' => 600,
     ],
 
+    'pages' => [
+        // A FetchPages task counts as running this long (safety net if its thread dies).
+        'running_seconds' => 60,
+        // FetchPages stops taking new pages after this long; the rest goes to DownloadChapter.
+        'task_budget_seconds' => 30,
+        // A page one fetcher is downloading is skipped by the others for this long.
+        'claim_seconds' => 60,
+        // A page that failed twice shows "Tap to retry" for this long.
+        'failed_seconds' => 86400,
+    ],
+
+    'reader' => [
+        // Points. PHP gets no screen width; only used for the height of rows outside the list window (iPhone 17 Pro Max).
+        'width' => 440,
+        // Points. The page viewer's height below the nav bar (same phone), for how far a zoomed page may pan.
+        'viewer_height' => 820,
+        // Width / height of a page before any page of the chapter is stored (a typical manga page).
+        'page_ratio' => [5, 7],
+        // Pages past the list window the reader asks for, so the next ones are there before they scroll in.
+        'lookahead' => 3,
+        // While offline, the reader asks for its missing pages again this often.
+        'offline_retry_seconds' => 15,
+    ],
+
+    'cache' => [
+        // Spec §11.1: the cache tier (covers, opened and prefetched chapters) is trimmed to this, oldest-read first. Decimal, like iOS Storage.
+        'cap_bytes' => 1_000_000_000,
+        // Chapters PrefetchNext queues after the one being read (D33 choice 6).
+        'prefetch_chapters' => 2,
+    ],
+
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 

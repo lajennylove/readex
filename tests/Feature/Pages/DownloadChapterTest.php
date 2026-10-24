@@ -10,15 +10,18 @@ use App\Storage\PageStore;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Sleep;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
 use Tests\Support\Stored;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 18:30:00', 'UTC'));
+    Sleep::fake(syncWithCarbon: true);
     $this->caches = Covers::useTempCaches();
     Queue::fake();
     $this->store = app(PageStore::class);
@@ -188,6 +191,55 @@ it('stops for good when MangaDex no longer serves the chapter, or it is external
 
     expect($this->fetcher->state('c1'))->toBe(LoadState::Unavailable);
     Http::assertSentCount(1);
+});
+
+it('waits out a MangaDex outage, limit or ban on the lookup: released after 1 s, 4 s, 15 s, then every 60 s, the download still queued', function (int $status, array|string $body) {
+    Stored::useTempStorage();
+    Http::fake(['api.mangadex.org/at-home/server/*' => Http::response($body, $status)]);
+    Pages::chapter('c1');
+    app(Downloads::class)->download('c1');
+
+    foreach ([1, 4, 15, 60, 60] as $seconds) {
+        DB::table('rate_buckets')->delete();
+        runChapter('c1', 'local')->assertReleased($seconds);
+    }
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Retrying)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and(app(Downloads::class)->isQueued('c1'))->toBeTrue();
+})->with([
+    '503' => [503, ['result' => 'error', 'errors' => [['status' => 503]]]],
+    '429' => [429, ['result' => 'error', 'errors' => [['status' => 429]]]],
+    '403 ban' => [403, '<html>Forbidden</html>'],
+]);
+
+it('starts the outage backoff over after a slice that got through', function () {
+    $lookups = 0;
+    Http::fake(function (Request $request) use (&$lookups) {
+        if (str_contains($request->url(), '/at-home/server/')) {
+            return match ($lookups++) {
+                0 => Http::response('', 503),
+                1 => Http::response(Pages::atHome('https://dead.mangadex.network')),
+                default => Http::response('', 503),
+            };
+        }
+
+        if (str_ends_with($request->url(), '/p1.jpg')) {
+            $this->travel(40)->seconds();
+
+            return Http::response(Pages::image());
+        }
+
+        return str_contains($request->url(), 'api.mangadex.network') ? Http::response(['result' => 'ok']) : Http::response('', 502);
+    });
+    Pages::chapter('c1');
+
+    runChapter('c1')->assertReleased(1);
+    runChapter('c1')->assertReleased(0);
+    runChapter('c1')->assertReleased(1);
+
+    expect($this->store->missing('c1'))->toBe([1, 2])
+        ->and($this->fetcher->failed('c1'))->toBe([]);
 });
 
 it('is unique per chapter, prefetch by default, and gives up after an hour', function () {

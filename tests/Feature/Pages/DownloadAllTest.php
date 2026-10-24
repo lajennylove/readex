@@ -169,6 +169,19 @@ describe('Download all', function () {
             ->and($this->downloads->isQueued('t7-a1'))->toBeTrue();
     });
 
+    it('waits while MangaDex is having trouble: the job is released and nothing else starts', function () {
+        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
+        t7aBatch(3);
+        $this->downloads->downloadAll(T7_ALL, 'es-la');
+
+        t7aRun('t7-a1')->assertReleased(1);
+        t7aRun('t7-a1')->assertReleased(4);
+
+        expect(t7aQueued())->toBe(['t7-a1 local bulk'])
+            ->and($this->downloads->isQueued('t7-a1'))->toBeTrue()
+            ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 0, 'total' => 3]);
+    });
+
     it('moves a chapter all in the cache on its turn without a job and goes on to the next', function () {
         Pages::fake(count: 4);
         t7aBatch(4);

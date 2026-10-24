@@ -50,6 +50,8 @@ class FetchPages extends AsyncTask
             $state = LoadState::Busy;
         } catch (ConnectionException) {
             $state = LoadState::Offline;
+        } catch (MangaDexTrouble) {
+            $state = LoadState::Retrying;
         } catch (ApiError|ChapterUnavailable) {
             $state = LoadState::Unavailable;
         } catch (Throwable $e) {
@@ -63,7 +65,7 @@ class FetchPages extends AsyncTask
             EnforceCacheCap::dispatch();
         }
 
-        $queued = in_array($state, [LoadState::Done, LoadState::Busy, LoadState::Offline], true)
+        $queued = in_array($state, [LoadState::Done, LoadState::Busy, LoadState::Offline, LoadState::Retrying], true)
             && $fetcher->remaining($chapterId) > 0;
 
         if ($queued) {

@@ -54,6 +54,17 @@ return [
         'queued_seconds' => 600,
     ],
 
+    'pages' => [
+        // A FetchPages task counts as running this long (safety net if its thread dies).
+        'running_seconds' => 60,
+        // FetchPages stops taking new pages after this long; the rest goes to DownloadChapter.
+        'task_budget_seconds' => 30,
+        // A page one fetcher is downloading is skipped by the others for this long.
+        'claim_seconds' => 60,
+        // A page that failed twice shows "Tap to retry" for this long.
+        'failed_seconds' => 86400,
+    ],
+
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 

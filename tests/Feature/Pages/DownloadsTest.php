@@ -365,6 +365,11 @@ describe('status', function () {
         $this->downloads->download('t7-s-begun');
         Stored::partial('t7-s-begun', 0, 4, tier: 'local');
         Stored::partial('t7-s-read', 2, 4);
+        Stored::partial('t7-s-later', 1, 4, tier: 'local');
+        Download::query()->create(['chapter_id' => 't7-s-later', 'manga_id' => 't7-m', 'batch' => 'b', 'position' => 3, 'priority' => 'bulk', 'created_at' => now()]);
+        t7Chapter('t7-s-race');
+        $this->downloads->download('t7-s-race');
+        Stored::partial('t7-s-race', 1, 4);
         t7Chapter('t7-s-feed10', ['pages' => 10]);
         Stored::partial('t7-s-feed10', 3, 4, tier: 'local');
         Download::query()->create(['chapter_id' => 't7-s-read', 'manga_id' => 't7-m', 'batch' => 'b', 'position' => 2, 'priority' => 'bulk', 'created_at' => now()]);
@@ -373,7 +378,7 @@ describe('status', function () {
         DB::listen(function () use (&$queries) {
             $queries++;
         });
-        $states = $this->downloads->statuses(['t7-s-none', 't7-s-cached', 't7-s-done', 't7-s-stop', 't7-s-run', 't7-s-feed', 't7-s-zero', 't7-s-wait', 't7-s-begun', 't7-s-read', 't7-s-feed10']);
+        $states = $this->downloads->statuses(['t7-s-none', 't7-s-cached', 't7-s-done', 't7-s-stop', 't7-s-run', 't7-s-feed', 't7-s-zero', 't7-s-wait', 't7-s-begun', 't7-s-read', 't7-s-later', 't7-s-race', 't7-s-feed10']);
 
         expect($queries)->toBe(1)
             ->and(array_map(fn ($s) => $s->caption(), $states))->toBe([
@@ -387,6 +392,8 @@ describe('status', function () {
                 't7-s-wait' => 'Queued',
                 't7-s-begun' => 'Queued',
                 't7-s-read' => 'Queued',
+                't7-s-later' => 'Queued',
+                't7-s-race' => 'Queued',
                 't7-s-feed10' => 'Download stopped · 75%',
             ]);
     });

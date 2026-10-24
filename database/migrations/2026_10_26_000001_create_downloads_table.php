@@ -10,8 +10,8 @@ return new class extends Migration
      * The download queue (spec §11.3), shared by the UI, the queue worker and the async lane:
      * one row per chapter asked for. `batch` groups a Download all (null: one tapped Download),
      * `position` is its reading order, `started_at` is set when its DownloadChapter is
-     * dispatched, the chain's claim (null: behind the batch's current chapter; the screens go by
-     * the pages stored, not by this), `finished_at` when it ended
+     * dispatched, the chain's claim (null: behind the batch's current chapter, Queued; once set, the
+     * screens say Downloading when a page is in the downloads), `finished_at` when it ended
      * (done, unavailable or failed for good). Stop deletes the row.
      */
     public function up(): void

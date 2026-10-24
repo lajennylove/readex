@@ -166,6 +166,23 @@ describe('chapter rows', function () {
             ->toBe(['Group A · Queued', 'Group A · Queued', 'Group A · Downloading 5%']);
     });
 
+    it('says Queued for a stopped download waiting in a Download all, and Downloading once its turn starts', function () {
+        t7dChapter('t7-d1', '1');
+        t7dChapter('t7-d2', '2');
+        t7dEntry('t7-d1', 0, started: '2026-10-24 11:00:00');
+        Stored::partial('t7-d2', 9, 20, tier: 'local');
+        t7dEntry('t7-d2', 1);
+
+        $screen = Native::visit('/home/manga/'.T7_DETAIL);
+        expect(array_column(t7dRows($screen->tree()), 'caption'))->toBe(['Group A · Queued', 'Group A · Queued']);
+        $screen->tap('Ch. 2')->assertNativeCalled('Dialog.Alert', t7dAlert('Ch. 2', '', ['Read', 'Stop download']));
+
+        app(Downloads::class)->stop('t7-d1');
+
+        Queue::assertPushed(DownloadChapter::class, fn (DownloadChapter $j) => $j->chapterId === 't7-d2' && $j->tier === 'local');
+        expect(array_column(t7dRows(Native::visit('/home/manga/'.T7_DETAIL)->tree()), 'caption'))->toBe(['Group A', 'Group A · Downloading 45%']);
+    });
+
     it('looks up the download state of every row in one query, however long the list', function () {
         $queries = function (int $chapters): int {
             DB::table('chapters')->delete();

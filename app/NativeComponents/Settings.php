@@ -183,6 +183,11 @@ class Settings extends NativeComponent implements HasResumeBar
         Browser::inApp(self::MANGADEX_URL);
     }
 
+    public function openSources(): void
+    {
+        $this->navigate('/settings/sources');
+    }
+
     /** "18:52" when MangaDex has paused this phone, else null. */
     private function paused(?ConnectionStatus $status = null): ?string
     {

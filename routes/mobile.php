@@ -8,6 +8,7 @@ use App\NativeComponents\Reader;
 use App\NativeComponents\Search;
 use App\NativeComponents\Settings;
 use App\NativeComponents\Setup;
+use App\NativeComponents\Sources;
 use App\NativeComponents\StartGate;
 use App\NativeLayouts\TabsLayout;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,7 @@ Route::nativeGroup(TabsLayout::class, function () {
     Route::native('/search', Search::class);
     Route::native('/library', Library::class);
     Route::native('/settings', Settings::class);
+    Route::native('/settings/sources', Sources::class);
 
     foreach (TabsLayout::DETAIL_TABS as $tab) {
         Route::native("/{$tab}/manga/{id}", MangaDetail::class);

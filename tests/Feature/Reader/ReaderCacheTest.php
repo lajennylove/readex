@@ -120,11 +120,21 @@ describe('prefetch', function () {
         Queue::assertPushed(PrefetchNext::class, 1);
     });
 
-    it('never prefetches for a licensed chapter or without a native bridge answer', function () {
+    it('never prefetches for a licensed chapter', function () {
         Pages::chapter('t6-r1', ['manga_id' => 't6-m', 'pages' => 0, 'external_url' => 'https://mangaplus.shueisha.co.jp/viewer/12']);
         Stored::network(Stored::wifi());
 
         Native::visit('/home/read/t6-r1')->firePoll('checkPages');
+
+        Queue::assertNotPushed(PrefetchNext::class);
+    });
+
+    it('never prefetches when the phone says nothing about its connection (Network::status() is null)', function () {
+        readerSeries();
+        Stored::chapter('t6-r1');
+        Stored::network(null);
+
+        Native::visit('/home/read/t6-r1')->firePoll('checkPages')->firePoll('checkPages');
 
         Queue::assertNotPushed(PrefetchNext::class);
     });

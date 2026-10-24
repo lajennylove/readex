@@ -1,5 +1,9 @@
 <?php
 
+use Native\Mobile\Facades\Network;
+use Native\Mobile\System;
+use Native\Mobile\Testing\FakeBridge;
+
 const SUITE_MIN_MEMORY_BYTES = 512 * 1024 * 1024;
 
 function parseMemoryLimitBytes(string $limit): int
@@ -26,6 +30,14 @@ function parseMemoryLimitBytes(string $limit): int
 
     return (int) $limit;
 }
+
+it('runs off Jump with a fake native bridge: unscripted calls answer null in-process, never on 127.0.0.1:3002', function () {
+    expect(System::runningInJump())->toBeFalse()
+        ->and(FakeBridge::current())->not->toBeNull()
+        ->and(Network::status())->toBeNull();
+
+    FakeBridge::current()->assertCalled('Network.Status');
+});
 
 it('runs the test suite with at least 512M memory', function () {
     expect(parseMemoryLimitBytes(ini_get('memory_limit')))

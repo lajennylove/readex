@@ -11,10 +11,6 @@
                 <native:button label="Retry" variant="primary" @press="pullToRefresh" />
             </native:column>
         @else
-            @if ($continue !== [])
-                @include('native.partials.row', ['label' => 'Continue reading', 'tiles' => $continue])
-            @endif
-
             @foreach (\App\NativeComponents\Home::ROWS as $key => $label)
                 @include('native.partials.row', ['label' => $label, 'tiles' => $rows[$key]])
             @endforeach

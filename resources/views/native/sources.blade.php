@@ -7,27 +7,46 @@
         <native:column class="w-full gap-3">
             @foreach ($sources as $source)
                 <native:column class="w-full gap-1" native:key="source-{{ $source['key'] }}">
-                    <native:row class="w-full items-center justify-between">
-                        <native:column class="gap-0">
+                    @if ($editing === $source['key'])
+                        <native:column class="w-full gap-2">
                             <native:text class="text-base text-theme-on-background">{{ $source['label'] }}</native:text>
-                            @if ($source['baseUrl'])
-                                <native:text class="text-xs text-theme-on-surface-variant">{{ $source['baseUrl'] }}</native:text>
+                            <native:outlined_text_input placeholder="https://" value="{{ $editUrl }}" @change="changeEditUrl" />
+                            @if ($editError)
+                                <native:text class="text-sm text-theme-destructive">{{ $editError }}</native:text>
                             @endif
-                            @if ($source['builtin'])
-                                <native:text class="text-xs text-theme-on-surface-variant">Built in</native:text>
-                            @endif
+                            <native:row class="w-full gap-2">
+                                <native:button label="Cancel" variant="secondary" @press="cancelEdit" />
+                                <native:button label="Save" variant="primary" @press="saveEdit" />
+                            </native:row>
                         </native:column>
-                        <native:toggle
-                            native:key="blocked-{{ $source['key'] }}"
-                            a11y-label="Block {{ $source['label'] }}"
-                            :value="! $source['blocked']"
-                            @change="toggleBlocked('{{ $source['key'] }}')" />
-                    </native:row>
-                    @unless ($source['builtin'])
-                        <native:pressable @press="askRemove('{{ $source['key'] }}')">
-                            <native:text class="text-sm text-theme-destructive">Remove</native:text>
-                        </native:pressable>
-                    @endunless
+                    @else
+                        <native:row class="w-full items-center justify-between">
+                            <native:column class="gap-0">
+                                <native:text class="text-base text-theme-on-background">{{ $source['label'] }}</native:text>
+                                @if ($source['baseUrl'])
+                                    <native:text class="text-xs text-theme-on-surface-variant">{{ $source['baseUrl'] }}</native:text>
+                                @endif
+                                @if ($source['builtin'])
+                                    <native:text class="text-xs text-theme-on-surface-variant">Built in</native:text>
+                                @endif
+                            </native:column>
+                            <native:toggle
+                                native:key="blocked-{{ $source['key'] }}"
+                                a11y-label="Block {{ $source['label'] }}"
+                                :value="! $source['blocked']"
+                                @change="toggleBlocked('{{ $source['key'] }}')" />
+                        </native:row>
+                        @unless ($source['builtin'])
+                            <native:row class="w-full gap-4">
+                                <native:pressable @press="startEdit('{{ $source['key'] }}')">
+                                    <native:text class="text-sm text-theme-accent">Edit URL</native:text>
+                                </native:pressable>
+                                <native:pressable @press="askRemove('{{ $source['key'] }}')">
+                                    <native:text class="text-sm text-theme-destructive">Remove</native:text>
+                                </native:pressable>
+                            </native:row>
+                        @endunless
+                    @endif
                 </native:column>
             @endforeach
         </native:column>

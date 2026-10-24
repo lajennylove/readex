@@ -11,13 +11,16 @@ use App\NativeComponents\Settings;
 use App\Repositories\HomeRepository;
 use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
+use App\Repositories\SourceRepository;
 use App\Storage\OpenChapter;
 use App\Storage\PageStore;
+use Illuminate\Http\Client\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
@@ -155,10 +158,10 @@ it('shows the MangaDex connection with request counts', function () {
     ]);
 
     Native::test(Settings::class)
-        ->assertSee('MangaDex connection')
+        ->assertSee('Provider connection')
         ->assertSee('OK')
         ->assertSee('3 requests in the last minute · 1,203 in the last hour')
-        ->assertElement('button', refreshButton('Refresh MangaDex data', false));
+        ->assertElement('button', refreshButton('Refresh provider data', false));
 });
 
 it('says "Slowed down" after a 429 halved the rate', function () {
@@ -175,8 +178,8 @@ it('asks before refreshing; Cancel clears nothing', function () {
     $lists = DB::table('manga_lists')->count();
 
     Native::test(Settings::class)
-        ->tap('Refresh MangaDex data')
-        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Refresh MangaDex data'
+        ->tap('Refresh provider data')
+        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Refresh provider data'
             && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Refresh', 'style' => 'destructive']])
         ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel'])
         ->assertSet('run', null);
@@ -190,7 +193,7 @@ it('clears the saved data, keeps the Library and starts the refill', function ()
     $kept = LibraryEntry::query()->value('manga_id');
 
     $screen = Native::test(Settings::class)
-        ->tap('Refresh MangaDex data')
+        ->tap('Refresh provider data')
         ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Refresh']);
 
     $run = $screen->get('run');
@@ -206,7 +209,7 @@ it('clears the saved data, keeps the Library and starts the refill', function ()
 
 it('disables the button while the refill runs and shows its progress', function () {
     $screen = Native::test(Settings::class)
-        ->tap('Refresh MangaDex data')
+        ->tap('Refresh provider data')
         ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Refresh']);
     $run = $screen->get('run');
     LoadProgress::record($run, 'tags', 'ok');
@@ -230,7 +233,7 @@ it('disables the button while the refill runs and shows its progress', function 
 
 it('enables the button again with the time of the refill once it lands', function () {
     $screen = Native::test(Settings::class)
-        ->tap('Refresh MangaDex data')
+        ->tap('Refresh provider data')
         ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Refresh']);
     foreach (array_keys(DataLoader::STEPS) as $step) {
         LoadProgress::record($screen->get('run'), $step, 'ok');
@@ -239,7 +242,7 @@ it('enables the button again with the time of the refill once it lands', functio
     app(SettingsRepository::class)->markDataRefreshed();
 
     $screen->firePoll('checkRefill')
-        ->assertElement('button', refreshButton('Refresh MangaDex data', false))
+        ->assertElement('button', refreshButton('Refresh provider data', false))
         ->assertSee('Last refreshed Oct 24, 08:00.')
         // The finished steps stay, so a step that failed can be seen.
         ->assertSee('Categories')
@@ -253,7 +256,7 @@ it('says "Needs internet" and clears nothing when offline (Review Focus 6)', fun
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
 
     Native::test(Settings::class)
-        ->tap('Refresh MangaDex data')
+        ->tap('Refresh provider data')
         ->assertSee('Needs internet')
         ->assertNativeNotCalled('Dialog.Alert');
 
@@ -266,7 +269,7 @@ it('clears nothing when the phone goes offline while the dialog is open (Review 
     settingsSavedData();
     $lists = DB::table('manga_lists')->count();
 
-    $screen = Native::test(Settings::class)->tap('Refresh MangaDex data');
+    $screen = Native::test(Settings::class)->tap('Refresh provider data');
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
     $screen->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Refresh'])
         ->assertSee('Needs internet')
@@ -321,11 +324,11 @@ it('renders without dropped Tailwind classes', function () {
     });
 
     $screen = Native::test(Settings::class)
-        ->tap('Refresh MangaDex data')
+        ->tap('Refresh provider data')
         ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Refresh']);
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
     Cache::forget(RefreshAllData::RUNNING_KEY);
-    $screen->firePoll('checkRefill')->tap('Refresh MangaDex data')->assertSee('Needs internet');
+    $screen->firePoll('checkRefill')->tap('Refresh provider data')->assertSee('Needs internet');
 
     expect($dropped)->toBe([]);
 });
@@ -407,4 +410,42 @@ it('clears the image cache but the open chapter, keeps progress, Library and dow
         ->and(ReadingProgress::query()->find('t6-a')->page)->toBe(1)
         ->and(LibraryEntry::query()->count())->toBe($entries);
     Queue::assertNothingPushed();
+});
+
+it('asks before a factory reset with alarming wording; Cancel deletes nothing (Plan-08 Task 4, Jenny 2026-10-24 18:29 EDT)', function () {
+    settingsSavedData();
+
+    Native::test(Settings::class)
+        ->tap('Delete everything')
+        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Delete everything?'
+            && str_contains($p['message'], "can't be undone")
+            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Delete everything', 'style' => 'destructive']])
+        ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel'])
+        ->assertNoNavigation();
+
+    expect(DB::table('manga_lists')->count())->toBeGreaterThan(0)
+        ->and(LibraryEntry::query()->count())->toBeGreaterThan(0);
+});
+
+it('wipes every table and file on confirm, and routes back to the real first-run flow', function () {
+    settingsSavedData();
+    app(SettingsRepository::class)->markSetupDone();
+    app(SettingsRepository::class)->acknowledgeEula();
+    Loading::fake(fn (Request $request) => $request->url() === 'https://example.test' ? Http::response('', 200) : null);
+    app(SourceRepository::class)->add('Mine', 'https://example.test');
+
+    Native::test(Settings::class)
+        ->tap('Delete everything')
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Delete everything'])
+        ->assertReplacedWith('/');
+
+    // The screen's own re-render after the wipe re-seeds the empty built-in row (same as any
+    // fresh install visiting Settings) — that's expected, not leftover user data. The real
+    // assertion is that the USER source + every other table's rows are gone.
+    expect(DB::table('manga_lists')->count())->toBe(0)
+        ->and(DB::table('collections')->count())->toBe(0)
+        ->and(DB::table('settings')->count())->toBe(0)
+        ->and(DB::table('sources')->where('kind', 'user')->count())->toBe(0)
+        ->and(app(SettingsRepository::class)->eulaAcknowledged())->toBeFalse()
+        ->and(app(SettingsRepository::class)->setupDone())->toBeFalse();
 });

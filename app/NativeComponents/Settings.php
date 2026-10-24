@@ -13,7 +13,9 @@ use App\NativeComponents\Concerns\ChoosesContentRatings;
 use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeLayouts\HasResumeBar;
 use App\Repositories\DataReset;
+use App\Repositories\FactoryReset;
 use App\Repositories\SettingsRepository;
+use App\Repositories\SourceRepository;
 use App\Storage\ImageCache;
 use App\Storage\StorageBridge;
 use Carbon\CarbonInterface;
@@ -28,8 +30,18 @@ use Native\Mobile\Facades\Network;
 
 /**
  * Settings tab (spec §5.7): reading language, content rating, image quality (§12.1),
- * "Refresh MangaDex data" (§7.1), the MangaDex connection row (§5.1a) and credits.
+ * "Refresh provider data" (§7.1), the provider connection row (§5.1a) and credits.
  * Storage: the image cache and "Clear image cache" (§11.1); iCloud comes with downloads.
+ *
+ * Plan-08 Task “screen audit” (Jenny 2026-10-24 18:29 EDT): section headings and field labels
+ * are generic ("Provider data" / "Provider connection" / "Refresh provider data") so the screen
+ * doesn't read as hardcoded to one named service — but the actual attribution text below them
+ * (`providerLabel()`/`providerUrl()`) stays dynamically accurate to whichever source is really
+ * configured and enabled, because it would be dishonest to say "data from your provider" when
+ * the real answer is a specific, nameable one. Judgment call, flagged in Plan-08: today that's
+ * always MangaDex, since it's still the only source with a real content adapter (Task 1/2 note
+ * that user-added sources aren't wired to fetch anything yet) — the moment a second adapter
+ * exists this method is the one place that needs to start asking which source actually answered.
  */
 class Settings extends NativeComponent implements HasResumeBar
 {
@@ -44,6 +56,8 @@ class Settings extends NativeComponent implements HasResumeBar
     public const REFRESH = 'Refresh';
 
     public const CLEAR = 'Clear';
+
+    public const FACTORY_RESET = 'Delete everything';
 
     public const NEEDS_INTERNET = 'Needs internet';
 
@@ -112,8 +126,8 @@ class Settings extends NativeComponent implements HasResumeBar
         }
 
         Dialog::alert(
-            'Refresh MangaDex data',
-            'Saved MangaDex data is cleared and loaded again. Your Library, reading progress and downloads stay.',
+            'Refresh provider data',
+            'Saved provider data is cleared and loaded again. Your Library, reading progress and downloads stay.',
             [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::REFRESH, 'style' => 'destructive']],
         )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::REFRESH ? $this->refreshAllData() : null);
     }
@@ -125,6 +139,22 @@ class Settings extends NativeComponent implements HasResumeBar
             'Covers and chapters saved for reading are deleted and loaded again when needed. Your Library, reading progress and downloads stay.',
             [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::CLEAR, 'style' => 'destructive']],
         )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::CLEAR ? $this->clearCache() : null);
+    }
+
+    /**
+     * Plan-08 Task 4 (Jenny 2026-10-24 18:29 EDT): "warn the user when tap it [that] this action
+     * will delete everything and prompt if this is really intended". Deliberately more alarming
+     * wording than Clear image cache / Refresh provider data — this is the one action in
+     * Settings with no undo and no exception (every table, every file, every setting, the
+     * sources themselves).
+     */
+    public function askFactoryReset(): void
+    {
+        Dialog::alert(
+            'Delete everything?',
+            "This permanently deletes your whole Library, reading progress, every download, every cached image, your content sources and all settings. This can't be undone. ReaDex will restart as if it were just installed.",
+            [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::FACTORY_RESET, 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::FACTORY_RESET ? $this->factoryReset() : null);
     }
 
     private function clearCache(): void
@@ -146,6 +176,17 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->run = (string) Str::uuid();
         $this->steps = [];
         RefreshAllData::start($this->run);
+    }
+
+    /**
+     * Everything gone; the next route check behaves exactly like a fresh install, because
+     * `eula_acknowledged` and `setup_done` are gone along with every other row (Jenny: "take the
+     * user to the splash window to add a new API source and select their settings").
+     */
+    private function factoryReset(): void
+    {
+        app(FactoryReset::class)->wipe();
+        $this->replace('/');
     }
 
     private function canRefresh(): bool
@@ -178,14 +219,28 @@ class Settings extends NativeComponent implements HasResumeBar
         return $this->run !== null && RefreshAllData::running() === $this->run;
     }
 
-    public function openMangaDex(): void
+    public function openProvider(): void
     {
-        Browser::inApp(self::MANGADEX_URL);
+        Browser::inApp($this->providerUrl());
     }
 
     public function openSources(): void
     {
         $this->navigate('/settings/sources');
+    }
+
+    /**
+     * The real, nameable provider currently answering content requests — MangaDex today, the
+     * only source with a working adapter (Task 1/2). Not genericized: see the class doc comment.
+     */
+    private function providerLabel(): string
+    {
+        return app(SourceRepository::class)->mangaDexEnabled() ? 'MangaDex' : 'your source';
+    }
+
+    private function providerUrl(): string
+    {
+        return self::MANGADEX_URL;
     }
 
     /** "18:52" when MangaDex has paused this phone, else null. */
@@ -239,6 +294,7 @@ class Settings extends NativeComponent implements HasResumeBar
         $status = app(RequestController::class)->status();
         $paused = $this->paused($status);
         $refreshedAt = app(SettingsRepository::class)->lastDataRefreshAt();
+        $provider = $this->providerLabel();
 
         return view('native.settings', [
             'languageName' => Languages::name($this->language),
@@ -250,13 +306,16 @@ class Settings extends NativeComponent implements HasResumeBar
             'refreshLabel' => match (true) {
                 $this->refilling() => 'Refreshing…',
                 $paused !== null => "Paused until {$paused}",
-                default => 'Refresh MangaDex data',
+                default => 'Refresh provider data',
             },
             'storage' => self::storageLine($this->cacheBytes, config('readex.cache.cap_bytes')),
             'refreshBlocked' => $this->refilling() || $paused !== null,
             'lastRefreshed' => $refreshedAt === null ? 'Never refreshed' : 'Last refreshed '.$this->localTime($refreshedAt, 'M j, H:i'),
             'stepLabels' => DataLoader::STEPS,
             'version' => config('mangadex.app_version'),
+            'providerLabel' => $provider,
+            'providerUrl' => $this->providerUrl(),
+            'providerCredit' => "Chapters are translated by the scanlation groups named on each chapter. ReaDex is not affiliated with {$provider}.",
         ]);
     }
 }

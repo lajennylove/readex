@@ -7,6 +7,7 @@ use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\Download;
 use App\Models\StoredChapter;
+use App\Pages\PageFetcher;
 use App\Repositories\LibraryChapter;
 use App\Repositories\LibraryRepository;
 use App\Storage\PageStore;
@@ -29,6 +30,7 @@ final class Downloads
     public function __construct(
         private readonly PageStore $pages,
         private readonly LibraryRepository $library,
+        private readonly PageFetcher $fetcher,
     ) {}
 
     /**
@@ -277,11 +279,13 @@ final class Downloads
 
     /**
      * A chapter the cap evicts between the check and the move gets its job like one never stored.
+     * Pages that failed are asked for again: a download the user starts is a retry.
      *
      * @return bool the chapter was all on the phone: moved, nothing to download
      */
     private function start(string $chapterId, Priority $priority): bool
     {
+        $this->fetcher->forgetFailed($chapterId);
         $complete = $this->pages->has($chapterId);
 
         if ($this->pages->promote($chapterId) && $complete) {

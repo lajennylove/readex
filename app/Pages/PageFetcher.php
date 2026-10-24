@@ -66,10 +66,16 @@ final class PageFetcher
     /** Tap to retry: the page is wanted again with a fresh retry budget. */
     public function retry(string $chapterId, int $index): bool
     {
-        $this->forgetFailed($chapterId, $index);
+        $this->forgetFailedPage($chapterId, $index);
         $wanted = Cache::get($this->key('want', $chapterId), []);
 
         return $this->want($chapterId, [$index, ...$wanted]);
+    }
+
+    /** A user-started download is a retry: every page that failed is asked for again. */
+    public function forgetFailed(string $chapterId): void
+    {
+        Cache::forget($this->key('failed', $chapterId));
     }
 
     /** @return list<int> pages that failed twice, shown with "Tap to retry" */
@@ -289,7 +295,7 @@ final class PageFetcher
         }
     }
 
-    private function forgetFailed(string $chapterId, int $index): void
+    private function forgetFailedPage(string $chapterId, int $index): void
     {
         $failed = $this->failed($chapterId);
 

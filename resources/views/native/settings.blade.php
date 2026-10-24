@@ -44,6 +44,13 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">Storage</native:text>
+            <native:text class="text-base text-theme-on-background">{{ $storage }}</native:text>
+            <native:button label="Clear image cache" variant="secondary" @press="askClearCache" />
+            <native:text class="text-xs text-theme-on-surface-variant">Covers, and chapters you opened or the app prefetched, go first when the cache is full. Clearing keeps your Library, reading progress and downloads.</native:text>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">About</native:text>
             <native:pressable class="w-full" @press="openMangaDex" a11y-label="Data from MangaDex">
                 <native:row class="w-full items-center justify-between">

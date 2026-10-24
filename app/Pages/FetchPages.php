@@ -3,6 +3,7 @@
 namespace App\Pages;
 
 use App\Jobs\DownloadChapter;
+use App\Jobs\EnforceCacheCap;
 use App\MangaDex\Exceptions\ApiError;
 use App\MangaDex\Exceptions\RequestDeferred;
 use App\MangaDex\RateLimit\Priority;
@@ -16,7 +17,8 @@ use Throwable;
  * The pages the reader shows, downloaded at once on the async lane (the phone's queue worker
  * pauses after every job and stops in the background). Follows the reader's wanted list while
  * it runs, so a fast scroll moves it to the new window. One per chapter (PageFetcher::want()).
- * When it stops, the rest of the chapter goes to a DownloadChapter job. Never throws.
+ * When it stops, the rest of the chapter goes to a DownloadChapter job, and pages stored queue
+ * EnforceCacheCap. Never throws.
  */
 class FetchPages extends AsyncTask
 {
@@ -56,6 +58,10 @@ class FetchPages extends AsyncTask
         }
 
         $fetcher->finished($chapterId, $state);
+
+        if ($fetched > 0) {
+            EnforceCacheCap::dispatch();
+        }
 
         $queued = in_array($state, [LoadState::Done, LoadState::Busy, LoadState::Offline], true)
             && $fetcher->remaining($chapterId) > 0;

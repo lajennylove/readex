@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\DownloadChapter;
+use App\Jobs\EnforceCacheCap;
 use App\MangaDex\RateLimit\Priority;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;
@@ -9,13 +10,16 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 18:30:00', 'UTC'));
     $this->caches = Covers::useTempCaches();
+    Queue::fake();
     $this->store = app(PageStore::class);
     $this->fetcher = app(PageFetcher::class);
 });
@@ -74,6 +78,39 @@ it('stores into the tier it was given', function () {
     runChapter('c1', 'local');
 
     expect($this->store->pathFor('c1', 0))->toBe('storage/downloads/c1/001.jpg');
+});
+
+it('queues the cache cap once at the end of a cache run, not per page', function () {
+    Pages::fake(count: 4);
+    Pages::chapter('c1', ['pages' => 4]);
+
+    runChapter('c1');
+
+    Queue::assertPushed(EnforceCacheCap::class, 1);
+});
+
+it('queues the cache cap when a cache run stops early too, and nothing for a download or a chapter it never ran', function () {
+    Http::fake(fn () => throw new ConnectionException('offline'));
+    Pages::chapter('c1');
+    Pages::chapter('c2', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1']);
+
+    runChapter('c1')->assertReleased(DownloadChapter::OFFLINE_RETRY_SECONDS);
+    Queue::assertPushed(EnforceCacheCap::class, 1);
+
+    Queue::fake();
+    runChapter('c2');
+    runChapter('gone');
+    Queue::assertNotPushed(EnforceCacheCap::class);
+
+    $storage = sys_get_temp_dir().'/readex-storage-'.bin2hex(random_bytes(4));
+    app()->useStoragePath($storage);
+    register_shutdown_function(fn () => File::deleteDirectory($storage));
+    Http::swap(new Factory(app('events')));
+    Pages::fake(count: 3);
+    Pages::chapter('c3');
+
+    runChapter('c3', 'local');
+    Queue::assertNotPushed(EnforceCacheCap::class);
 });
 
 it('waits for the controller when MangaDex is limiting the phone', function () {

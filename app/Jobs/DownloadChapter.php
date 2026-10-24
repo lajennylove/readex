@@ -19,7 +19,8 @@ use Illuminate\Support\Carbon;
 /**
  * Spec §5.6: the missing pages of a chapter in reading order, in the quality it started with.
  * Resumes from what's on disk. No slot → release until the controller's retry time; offline →
- * again in a minute; pages a FetchPages task is downloading are left to it.
+ * again in a minute; pages a FetchPages task is downloading are left to it. A cache run ends by
+ * queueing EnforceCacheCap.
  */
 class DownloadChapter implements ShouldBeUnique, ShouldQueue
 {
@@ -80,6 +81,10 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             $fetcher->record($this->chapterId, LoadState::Unavailable);
 
             return;
+        } finally {
+            if ($this->tier === 'cache') {
+                EnforceCacheCap::dispatch();
+            }
         }
 
         $fetcher->record($this->chapterId, LoadState::Done);

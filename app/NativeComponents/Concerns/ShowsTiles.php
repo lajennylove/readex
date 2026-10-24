@@ -18,10 +18,22 @@ use Illuminate\Support\Collection;
  */
 trait ShowsTiles
 {
+    use OpensChapters;
+
     /** Tile tap: the detail screen, pushed inside the tab this screen belongs to. */
     public function openManga(string $mangaId): void
     {
         $this->navigate(TabsLayout::mangaUri(TabsLayout::tabOf($this->nativeRouter?->currentUri()), $mangaId));
+    }
+
+    /** Chapter row or Continue reading tile tap. */
+    public function openChapter(string $chapterId): void
+    {
+        $chapter = Chapter::query()->find($chapterId);
+
+        if ($chapter !== null) {
+            $this->showChapter($chapter);
+        }
     }
 
     /** "Ch. 12", or "Oneshot" for a chapter without a number. */
@@ -48,15 +60,16 @@ trait ShowsTiles
     /**
      * What `native.partials.tile` needs; title and badge follow the reading chain (spec §10).
      *
-     * @return array{manga: Manga, title: string, badge: ?string, caption: ?string}
+     * @return array{manga: Manga, title: string, badge: ?string, caption: ?string, chapterId: ?string}
      */
-    protected function tile(Manga $manga, LanguageChain $chain, ?string $caption = null): array
+    protected function tile(Manga $manga, LanguageChain $chain, ?string $caption = null, ?string $chapterId = null): array
     {
         return [
             'manga' => $manga,
             'title' => $chain->title($manga->title ?? [], $manga->alt_titles ?? []),
             'badge' => $chain->badge($manga->available_languages ?? []),
             'caption' => $caption,
+            'chapterId' => $chapterId,
         ];
     }
 
@@ -66,7 +79,7 @@ trait ShowsTiles
         return app(LibraryRepository::class)->continueReading(config('readex.page_sizes.home_row'));
     }
 
-    /** "Ch. 12 · 40%" while reading, "Ch. 13 · Up next" for the next, unopened chapter. */
+    /** "Ch. 12 · 40%" while reading, "Ch. 13 · Up next" for the next, unopened chapter; opens that chapter (Kindle style), not the series. */
     protected function continueTile(ContinueReading $next, LanguageChain $chain): array
     {
         $progress = $next->progress;
@@ -74,6 +87,6 @@ trait ShowsTiles
             ? 'Up next'
             : intdiv(($progress->page + 1) * 100, $progress->page_count).'%';
 
-        return $this->tile($next->manga, $chain, self::chapterLabel($next->chapter)." · {$state}");
+        return $this->tile($next->manga, $chain, self::chapterLabel($next->chapter)." · {$state}", $next->chapter->id);
     }
 }

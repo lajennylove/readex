@@ -12,6 +12,7 @@ use App\MangaDex\RateLimit\RequestController;
 use App\NativeComponents\Concerns\ChoosesContentRatings;
 use App\Repositories\DataReset;
 use App\Repositories\SettingsRepository;
+use App\Storage\ImageCache;
 use App\Storage\StorageBridge;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ use Native\Mobile\Facades\Network;
 /**
  * Settings tab (spec §5.7): reading language, content rating, image quality (§12.1),
  * "Refresh MangaDex data" (§7.1), the MangaDex connection row (§5.1a) and credits.
- * Storage, iCloud and "Clear image cache" come with downloads (Phase 5).
+ * Storage: the image cache and "Clear image cache" (§11.1); iCloud comes with downloads.
  */
 class Settings extends NativeComponent
 {
@@ -38,6 +39,8 @@ class Settings extends NativeComponent
     ];
 
     public const REFRESH = 'Refresh';
+
+    public const CLEAR = 'Clear';
 
     public const NEEDS_INTERNET = 'Needs internet';
 
@@ -56,6 +59,9 @@ class Settings extends NativeComponent
     /** Why the last tap on Refresh didn't run. */
     public ?string $refreshNote = null;
 
+    /** Bytes of the image cache, counted when Settings opens and after Clear (not on every poll). */
+    public int $cacheBytes = 0;
+
     public function mount(SettingsRepository $settings): void
     {
         $this->language = $settings->language();
@@ -63,6 +69,7 @@ class Settings extends NativeComponent
         $this->quality = $settings->imageQuality();
         $this->run = RefreshAllData::running();
         $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
+        $this->cacheBytes = app(ImageCache::class)->usage();
     }
 
     public function navTitle(): string
@@ -106,6 +113,22 @@ class Settings extends NativeComponent
             'Saved MangaDex data is cleared and loaded again. Your Library, reading progress and downloads stay.',
             [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::REFRESH, 'style' => 'destructive']],
         )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::REFRESH ? $this->refreshAllData() : null);
+    }
+
+    public function askClearCache(): void
+    {
+        Dialog::alert(
+            'Clear image cache',
+            'Covers and chapters saved for reading are deleted and loaded again when needed. Your Library, reading progress and downloads stay.',
+            [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::CLEAR, 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::CLEAR ? $this->clearCache() : null);
+    }
+
+    private function clearCache(): void
+    {
+        $cache = app(ImageCache::class);
+        $cache->clear();
+        $this->cacheBytes = $cache->usage();
     }
 
     /** Checked again after the dialog: nothing is cleared unless the refill can start (§7.1). */
@@ -184,6 +207,19 @@ class Settings extends NativeComponent
         ];
     }
 
+    /** "Image cache 312 MB of 1 GB": decimal units like iOS Storage. */
+    public static function storageLine(int $used, int $cap): string
+    {
+        return 'Image cache '.self::size($used).' of '.self::size($cap);
+    }
+
+    private static function size(int $bytes): string
+    {
+        $megabytes = (int) round($bytes / 1_000_000);
+
+        return $megabytes < 1000 ? "{$megabytes} MB" : rtrim(rtrim(number_format($bytes / 1_000_000_000, 1), '0'), '.').' GB';
+    }
+
     /** The app runs in UTC; times on screen follow the phone's clock. */
     private function localTime(CarbonInterface $time, string $format): string
     {
@@ -208,6 +244,7 @@ class Settings extends NativeComponent
                 $paused !== null => "Paused until {$paused}",
                 default => 'Refresh MangaDex data',
             },
+            'storage' => self::storageLine($this->cacheBytes, config('readex.cache.cap_bytes')),
             'refreshBlocked' => $this->refilling() || $paused !== null,
             'lastRefreshed' => $refreshedAt === null ? 'Never refreshed' : 'Last refreshed '.$this->localTime($refreshedAt, 'M j, H:i'),
             'stepLabels' => DataLoader::STEPS,

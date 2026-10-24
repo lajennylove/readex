@@ -76,6 +76,13 @@ return [
         'offline_retry_seconds' => 15,
     ],
 
+    'cache' => [
+        // Spec §11.1: the cache tier (covers, opened and prefetched chapters) is trimmed to this, oldest-read first. Decimal, like iOS Storage.
+        'cap_bytes' => 1_000_000_000,
+        // Chapters PrefetchNext queues after the one being read (D33 choice 6).
+        'prefetch_chapters' => 2,
+    ],
+
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 

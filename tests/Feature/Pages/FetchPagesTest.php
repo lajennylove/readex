@@ -8,6 +8,7 @@ use App\Pages\FetchPages;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;
 use App\Repositories\SettingsRepository;
+use App\Storage\ImageCache;
 use App\Storage\PageStore;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
@@ -340,6 +341,39 @@ it('is retrying, without marking the page failed, when the fresh lookup after a 
         ->and($this->store->missing('c1'))->toBe([0, 1, 2])
         ->and($lookups)->toBe(2);
     Queue::assertPushed(DownloadChapter::class, 1);
+});
+
+it('stops at once when the image cache drops the chapter mid-run: nothing marked failed, no second lookup, nothing queued', function () {
+    Pages::fake(count: 3, image: function (Request $request) {
+        if (str_ends_with($request->url(), '/p2.jpg')) {
+            app(ImageCache::class)->clear();
+        }
+
+        return Http::response(Pages::image());
+    });
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0, 1, 2]);
+
+    expect(Pages::requested())->toHaveCount(2)
+        ->and(Pages::lookups())->toBe(1)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and($this->fetcher->isRunning('c1'))->toBeFalse()
+        ->and(StoredChapter::query()->count())->toBe(0);
+    Queue::assertNotPushed(DownloadChapter::class);
+});
+
+it('begins a chapter the image cache dropped again when the reader asks for it, and its cache job carries on', function () {
+    Pages::fake(count: 3);
+    Pages::chapter('c1');
+    $this->fetcher->want('c1', [0]);
+    app(ImageCache::class)->clear();
+
+    $this->fetcher->want('c1', [0]);
+    (new DownloadChapter('c1', 'cache', Priority::Interactive))->withFakeQueueInteractions()->handle($this->fetcher);
+
+    expect($this->store->has('c1'))->toBeTrue()
+        ->and(Pages::requested())->toHaveCount(4);
 });
 
 it('is unavailable when the @Home lookup lists no pages, and saves nothing', function () {

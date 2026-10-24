@@ -11,6 +11,7 @@ use App\Pages\ChapterUnavailable;
 use App\Pages\LoadState;
 use App\Pages\MangaDexTrouble;
 use App\Pages\PageFetcher;
+use App\Storage\ChapterGone;
 use App\Storage\PageStore;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -28,7 +29,8 @@ use Throwable;
  * downloading are left to it; when only those are left, the job checks back in 5 s. No slot →
  * release until the controller's retry time; offline → again in a minute; MangaDex answering the
  * lookup with 5xx / 429 / 403 → again after 1 s, 4 s, 15 s, then every minute. A cache run ends
- * by queueing EnforceCacheCap.
+ * by queueing EnforceCacheCap. A cache chapter that Clear image cache or the cap drops ends the
+ * job quietly, also between slices: only the reader or a download begins it again.
  *
  * Download work (spec §11.3): a `local` job, or any job for a chapter in the download queue
  * (the unique lock drops a download's dispatch while the reader's own job runs). It writes into
@@ -87,7 +89,7 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
         $download = $this->tier === 'local' || $downloads->isQueued($this->chapterId);
         $stopped = fn () => $download && ! $downloads->isQueued($this->chapterId);
 
-        if ($stopped()) {
+        if ($stopped() || (! $download && app(PageStore::class)->wasEvicted($this->chapterId))) {
             return;
         }
 
@@ -119,6 +121,12 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
         } catch (MangaDexTrouble) {
             $fetcher->record($this->chapterId, LoadState::Retrying);
             $this->release($this->troubleRetrySeconds());
+
+            return;
+        } catch (ChapterGone) {
+            if ($download) {
+                $this->release(0);
+            }
 
             return;
         } catch (ApiError|ChapterUnavailable) {

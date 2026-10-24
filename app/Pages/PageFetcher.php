@@ -11,6 +11,7 @@ use App\Models\Chapter;
 use App\Models\StoredChapter;
 use App\Repositories\AtHomeRepository;
 use App\Repositories\SettingsRepository;
+use App\Storage\ChapterGone;
 use App\Storage\PageStore;
 use Carbon\CarbonInterface;
 use Closure;
@@ -53,6 +54,8 @@ final class PageFetcher
         if ($this->nextWanted($chapterId, []) === null) {
             return false;
         }
+
+        $this->pages->forgetEvicted($chapterId);
 
         if (! Cache::add($this->key('running', $chapterId), true, config('readex.pages.running_seconds'))) {
             return false;
@@ -167,6 +170,7 @@ final class PageFetcher
      * @throws ApiError the @Home lookup failed (chapter removed)
      * @throws MangaDexTrouble the @Home lookup got 5xx / 429 / 403
      * @throws ChapterUnavailable the lookup lists no pages
+     * @throws ChapterGone the image cache dropped the chapter: the run stops, nothing is marked failed
      */
     public function run(Chapter $chapter, Closure $next, Priority $priority, float $maxWait, string $tier = 'cache', ?CarbonInterface $until = null): int
     {
@@ -206,7 +210,7 @@ final class PageFetcher
     /**
      * @param  array{server: AtHome, quality: string, urls: list<string>, relooked: bool}  $session
      *
-     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble
+     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble|ChapterGone
      */
     private function fetchPage(string $chapterId, int $index, array &$session, Priority $priority, float $maxWait): bool
     {
@@ -240,7 +244,7 @@ final class PageFetcher
         return false;
     }
 
-    /** @throws RequestDeferred|ConnectionException|ApiError */
+    /** @throws RequestDeferred|ConnectionException|ApiError|ChapterGone */
     private function download(string $chapterId, int $index, string $url, Priority $priority, float $maxWait): bool
     {
         return $this->pages->put($chapterId, $index, $this->client->download($url, $priority, $maxWait));
@@ -251,7 +255,7 @@ final class PageFetcher
      *
      * @return array{server: AtHome, quality: string, urls: list<string>, relooked: bool}
      *
-     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble|ChapterUnavailable
+     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble|ChapterUnavailable|ChapterGone
      */
     private function open(Chapter $chapter, Priority $priority, string $tier): array
     {

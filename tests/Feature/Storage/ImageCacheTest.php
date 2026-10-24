@@ -250,6 +250,7 @@ describe('downloaded chapters (Review Focus 8)', function () {
         expect(cachedIds())->toBe(['t7-ic-read'])
             ->and(StoredChapter::query()->find('t7-ic-read')->tier)->toBe('local');
 
+        $this->store->forgetEvicted('t7-ic-new');
         Stored::chapter('t7-ic-new', 2);
         app(ImageCache::class)->clear();
 

@@ -4,8 +4,10 @@ use App\Downloads\Downloads;
 use App\Jobs\DownloadChapter;
 use App\Jobs\EnforceCacheCap;
 use App\MangaDex\RateLimit\Priority;
+use App\Models\StoredChapter;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;
+use App\Storage\ImageCache;
 use App\Storage\PageStore;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
@@ -240,6 +242,101 @@ it('starts the outage backoff over after a slice that got through', function () 
 
     expect($this->store->missing('c1'))->toBe([1, 2])
         ->and($this->fetcher->failed('c1'))->toBe([]);
+});
+
+describe('Clear image cache or the cap while it runs', function () {
+    it('stops at once when the chapter is dropped between two pages: nothing marked failed, no second lookup, nothing begun again', function () {
+        Pages::fake(count: 3, image: function (Request $request) {
+            if (str_ends_with($request->url(), '/p2.jpg')) {
+                app(ImageCache::class)->clear();
+            }
+
+            return Http::response(Pages::image());
+        });
+        Pages::chapter('c1');
+
+        runChapter('c1')->assertNotReleased();
+
+        expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg'])
+            ->and(Pages::lookups())->toBe(1)
+            ->and($this->fetcher->failed('c1'))->toBe([])
+            ->and(StoredChapter::query()->count())->toBe(0)
+            ->and(is_dir("{$this->caches}/chapters/c1"))->toBeFalse();
+
+        runChapter('c1')->assertNotReleased();
+
+        expect(Pages::requested())->toHaveCount(2)
+            ->and(StoredChapter::query()->count())->toBe(0);
+    });
+
+    it('does not begin the chapter again in the slice after the one it was dropped behind', function () {
+        Pages::fake(count: 3, image: function () {
+            $this->travel(40)->seconds();
+
+            return Http::response(Pages::image());
+        });
+        Pages::chapter('c1');
+        runChapter('c1')->assertReleased(0);
+
+        config(['readex.cache.cap_bytes' => 0]);
+        app(ImageCache::class)->enforce();
+        $this->travel(11)->minutes();
+        runChapter('c1')->assertNotReleased();
+
+        expect(Pages::requested())->toHaveCount(1)
+            ->and(Pages::lookups())->toBe(1)
+            ->and(StoredChapter::query()->count())->toBe(0);
+    });
+
+    it('does not begin the chapter again when it is dropped while the slice looks @Home up', function () {
+        Stored::partial('c1', 1, 3);
+        Http::fake(function (Request $request) {
+            if (str_contains($request->url(), '/at-home/server/')) {
+                app(ImageCache::class)->clear();
+
+                return Http::response(Pages::atHome('https://a.mangadex.network'));
+            }
+
+            return Http::response(Pages::image());
+        });
+
+        runChapter('c1')->assertNotReleased();
+
+        expect(Pages::requested())->toBe([])
+            ->and(StoredChapter::query()->count())->toBe(0)
+            ->and(is_dir("{$this->caches}/chapters/c1"))->toBeFalse();
+    });
+
+    it('starts a download over in the downloads next slice if its chapter vanishes mid-run, still queued', function () {
+        Stored::useTempStorage();
+        Pages::fake(count: 3, image: function (Request $request) {
+            if (str_ends_with($request->url(), '/p2.jpg')) {
+                StoredChapter::query()->whereKey('c1')->delete();
+            }
+
+            return Http::response(Pages::image());
+        });
+        Pages::chapter('c1');
+        app(Downloads::class)->download('c1');
+
+        runChapter('c1', 'local')->assertReleased(0);
+
+        expect($this->fetcher->failed('c1'))->toBe([])
+            ->and(app(Downloads::class)->isQueued('c1'))->toBeTrue();
+    });
+
+    it('lets a Download begin a dropped chapter again, in the downloads', function () {
+        Stored::useTempStorage();
+        Pages::fake(count: 2);
+        Stored::chapter('c1', 2);
+        app(ImageCache::class)->clear();
+
+        app(Downloads::class)->download('c1');
+        runChapter('c1', 'local');
+
+        expect($this->store->pathFor('c1', 1))->toBe('storage/downloads/c1/002.jpg')
+            ->and(StoredChapter::query()->find('c1')->tier)->toBe('local');
+    });
 });
 
 it('is unique per chapter, prefetch by default, and gives up after an hour', function () {

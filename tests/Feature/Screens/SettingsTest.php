@@ -5,13 +5,19 @@ use App\Loading\DataLoader;
 use App\Loading\LoadProgress;
 use App\Models\Collection as LibraryEntry;
 use App\Models\Manga;
+use App\Models\ReadingProgress;
+use App\Models\StoredChapter;
 use App\NativeComponents\Settings;
 use App\Repositories\HomeRepository;
+use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
+use App\Storage\OpenChapter;
+use App\Storage\PageStore;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
@@ -19,11 +25,14 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Testing\Native;
+use Tests\Support\Covers;
 use Tests\Support\Loading;
+use Tests\Support\Stored;
 
 beforeEach(function () {
     Carbon::setTestNow('2026-10-24 12:00:00');
     Sleep::fake(syncWithCarbon: true);
+    $this->caches = Covers::useTempCaches();
     Queue::fake();
     AsyncTask::fake();
     Native::fakeBridge()->respondTo('MdxStorage.TimeZone', ['zone' => 'America/Toronto']);
@@ -312,4 +321,82 @@ it('renders without dropped Tailwind classes', function () {
     $screen->firePoll('checkRefill')->tap('Refresh MangaDex data')->assertSee('Needs internet');
 
     expect($dropped)->toBe([]);
+});
+
+/** A cache file of `$bytes` that takes no disk space. */
+function settingsCacheFile(string $caches, int $bytes): string
+{
+    $path = "{$caches}/covers/t6-big/big.jpg";
+    File::ensureDirectoryExists(dirname($path));
+    $file = fopen($path, 'w');
+    ftruncate($file, $bytes);
+    fclose($file);
+
+    return $path;
+}
+
+it('says how much of the 1 GB image cache is used, in decimal MB and GB', function () {
+    expect(Settings::storageLine(0, 1_000_000_000))->toBe('Image cache 0 MB of 1 GB')
+        ->and(Settings::storageLine(312_400_000, 1_000_000_000))->toBe('Image cache 312 MB of 1 GB')
+        ->and(Settings::storageLine(312_600_000, 1_000_000_000))->toBe('Image cache 313 MB of 1 GB')
+        ->and(Settings::storageLine(999_400_000, 1_000_000_000))->toBe('Image cache 999 MB of 1 GB')
+        ->and(Settings::storageLine(999_600_000, 1_000_000_000))->toBe('Image cache 1 GB of 1 GB')
+        ->and(Settings::storageLine(1_240_000_000, 1_000_000_000))->toBe('Image cache 1.2 GB of 1 GB')
+        ->and(Settings::storageLine(1_000_000, 500_000_000))->toBe('Image cache 1 MB of 500 MB');
+});
+
+it('shows the image cache under Storage, counted when Settings opens and not on every poll', function () {
+    $file = settingsCacheFile($this->caches, 312_400_000);
+
+    $screen = Native::test(Settings::class)
+        ->assertSee('Storage')
+        ->assertSee('Image cache 312 MB of 1 GB')
+        ->assertSee('Clear image cache');
+
+    unlink($file);
+    settingsCacheFile($this->caches, 700_000_000);
+    $screen->firePoll('checkRefill')->assertSee('Image cache 312 MB of 1 GB');
+});
+
+it('measures the cache against the configured cap', function () {
+    config(['readex.cache.cap_bytes' => 500_000_000]);
+
+    Native::test(Settings::class)->assertSee('Image cache 0 MB of 500 MB');
+});
+
+it('asks before clearing the image cache; Cancel clears nothing', function () {
+    Stored::chapter('t6-a');
+
+    Native::test(Settings::class)
+        ->tap('Clear image cache')
+        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Clear image cache'
+            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Clear', 'style' => 'destructive']])
+        ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel']);
+
+    expect(app(PageStore::class)->has('t6-a'))->toBeTrue();
+});
+
+it('clears the image cache but the open chapter, keeps progress, Library and downloads, and shows the new size', function () {
+    $storage = sys_get_temp_dir().'/readex-storage-'.bin2hex(random_bytes(4));
+    app()->useStoragePath($storage);
+    register_shutdown_function(fn () => File::deleteDirectory($storage));
+    $file = settingsCacheFile($this->caches, 312_400_000);
+    Stored::chapter('t6-a');
+    Stored::chapter('t6-open');
+    Stored::chapter('t6-local', tier: 'local');
+    app(LibraryRepository::class)->saveProgress('t6-a', 1, 2);
+    app(OpenChapter::class)->set('t6-open');
+    $entries = LibraryEntry::query()->count();
+
+    Native::test(Settings::class)
+        ->assertSee('Image cache 312 MB of 1 GB')
+        ->tap('Clear image cache')
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Clear'])
+        ->assertSee('Image cache 0 MB of 1 GB');
+
+    expect(is_file($file))->toBeFalse()
+        ->and(StoredChapter::query()->orderBy('chapter_id')->pluck('chapter_id')->all())->toBe(['t6-local', 't6-open'])
+        ->and(ReadingProgress::query()->find('t6-a')->page)->toBe(1)
+        ->and(LibraryEntry::query()->count())->toBe($entries);
+    Queue::assertNothingPushed();
 });

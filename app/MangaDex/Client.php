@@ -34,9 +34,13 @@ final class Client
      */
     public function get(string $path, array $query = [], Priority $priority = Priority::Interactive, float $maxWait = 10.0): array
     {
-        $url = rtrim(config('mangadex.api_url'), '/').'/'.ltrim($path, '/');
+        return $this->getJson($this->apiUrl($path, $query), $priority, $maxWait);
+    }
 
-        return $this->getJson($query === [] ? $url : $url.'?'.Query::build($query), $priority, $maxWait);
+    /** Drop the shared response of get($path, $query), so the next identical GET really asks MangaDex. */
+    public function forget(string $path, array $query = []): void
+    {
+        Cache::store(config('mangadex.share_store'))->forget($this->shareKey($this->apiUrl($path, $query)));
     }
 
     /** @throws RequestDeferred|ApiError|ConnectionException */
@@ -117,7 +121,7 @@ final class Client
     private function shared(string $url, float $maxWait, Closure $fetch): string
     {
         $store = Cache::store(config('mangadex.share_store'));
-        $key = 'mangadex:get:'.sha1($url);
+        $key = $this->shareKey($url);
 
         if (is_string($body = $store->get($key))) {
             return $body;
@@ -143,6 +147,18 @@ final class Client
         } finally {
             $lock->release();
         }
+    }
+
+    private function apiUrl(string $path, array $query): string
+    {
+        $url = rtrim(config('mangadex.api_url'), '/').'/'.ltrim($path, '/');
+
+        return $query === [] ? $url : $url.'?'.Query::build($query);
+    }
+
+    private function shareKey(string $url): string
+    {
+        return 'mangadex:get:'.sha1($url);
     }
 
     /** Fire and forget: dropped when the report bucket is busy, never throws. */

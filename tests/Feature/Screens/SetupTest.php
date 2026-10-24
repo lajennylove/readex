@@ -6,6 +6,7 @@ use App\NativeComponents\Setup;
 use App\Refresh\RefreshTask;
 use App\Repositories\HomeRepository;
 use App\Repositories\SettingsRepository;
+use App\Repositories\SourceRepository;
 use App\Storage\LocalStorageBridge;
 use App\Storage\NativeStorageBridge;
 use App\Storage\StorageBridge;
@@ -20,6 +21,7 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Testing\Native;
+use Native\Mobile\Testing\TestableComponent;
 use Tests\Support\Covers;
 use Tests\Support\Loading;
 
@@ -60,6 +62,12 @@ function toggleId(array $node, string $label): ?int
 function ratingToggle(string $label, bool $on): Closure
 {
     return fn (array $node) => ($node['props']['a11y_label'] ?? null) === $label && ($node['props']['value'] ?? null) === $on;
+}
+
+/** Types MangaDex's own API URL into the source field — the shortest path through Continue in most tests. */
+function withMangaDexSource(TestableComponent $screen): TestableComponent
+{
+    return $screen->call('changeSourceUrl', config('mangadex.api_url'));
 }
 
 it('labels the rating toggles with theme text, since the iOS toggle label ignores the theme', function () {
@@ -151,7 +159,7 @@ it('keeps at least one rating on', function () {
 });
 
 it('saves the choices, loads everything and opens Home', function () {
-    $screen = Native::test(Setup::class)
+    $screen = withMangaDexSource(Native::test(Setup::class))
         ->select('chooseLanguage', 'Español (Latinoamérica)')
         ->tap('Continue')
         ->assertReplacedWith('/home');
@@ -163,10 +171,12 @@ it('saves the choices, loads everything and opens Home', function () {
         ->and(app(HomeRepository::class)->latest()->isEmpty())->toBeFalse()
         ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
     $this->async->assertDispatched(fn (array $d) => $d['work']['task'] === LoadTask::class);
+
+    expect(app(SourceRepository::class)->mangaDexEnabled())->toBeTrue();
 });
 
 it('saves the content rating the reader picked', function () {
-    Native::test(Setup::class)
+    withMangaDexSource(Native::test(Setup::class))
         ->toggle("setRating('suggestive')", false)
         ->tap('Continue')
         ->assertReplacedWith('/home');
@@ -174,10 +184,46 @@ it('saves the content rating the reader picked', function () {
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe']);
 });
 
+it('keeps the reader on Setup with an error when the source field is left empty (Jenny: you need to add your API source)', function () {
+    Native::test(Setup::class)
+        ->tap('Continue')
+        ->assertSet('phase', Setup::SETTINGS)
+        ->assertSee('Not a valid URL.')
+        ->assertNoNavigation();
+
+    expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
+});
+
+it('keeps the reader on Setup with an error when the source URL fails its health check', function () {
+    Loading::fake(fn (Request $request) => $request->url() === 'https://down.example.test' ? Http::response('', 503) : null);
+
+    Native::test(Setup::class)
+        ->call('changeSourceUrl', 'https://down.example.test')
+        ->tap('Continue')
+        ->assertSet('phase', Setup::SETTINGS)
+        ->assertSee("Couldn't connect to that source. Check the URL and try again.")
+        ->assertNoNavigation();
+
+    expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
+});
+
+it('saves whatever other source URL the reader typed, labeled by its host, not just MangaDex', function () {
+    Loading::fake(fn (Request $request) => $request->url() === 'https://example.test/api' ? Http::response('', 200) : null);
+
+    Native::test(Setup::class)
+        ->call('changeSourceUrl', 'https://example.test/api')
+        ->tap('Continue')
+        ->assertReplacedWith('/home');
+
+    $source = app(SourceRepository::class)->all()->firstWhere('kind', 'user');
+    expect($source->label)->toBe('example.test')
+        ->and($source->config['base_url'])->toBe('https://example.test/api');
+});
+
 it('says "First launch needs internet" and stays in Setup when offline (Review Focus 1)', function () {
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
 
-    $screen = Native::test(Setup::class)
+    $screen = withMangaDexSource(Native::test(Setup::class))
         ->tap('Continue')
         ->assertSet('phase', Setup::OFFLINE)
         ->assertSee('First launch needs internet')
@@ -185,7 +231,7 @@ it('says "First launch needs internet" and stays in Setup when offline (Review F
         ->assertNoNavigation();
 
     expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
-    // Only the background tags task from mount().
+    // The background tags task from mount(), plus the source health check.
     $this->async->assertDispatchedTimes(1);
 
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => true]);
@@ -195,9 +241,9 @@ it('says "First launch needs internet" and stays in Setup when offline (Review F
 it('also catches no connection when the phone claims to be online', function () {
     Loading::fake(fn () => throw new ConnectionException('cURL error 6'));
 
-    Native::test(Setup::class)
+    withMangaDexSource(Native::test(Setup::class))
         ->tap('Continue')
-        ->assertSee('First launch needs internet')
+        ->assertSee("Couldn't connect to that source. Check the URL and try again.")
         ->assertNoNavigation();
 
     expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
@@ -206,7 +252,7 @@ it('also catches no connection when the phone claims to be online', function () 
 it('opens Home when rows load but one keeps failing', function () {
     Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
 
-    $screen = Native::test(Setup::class)->tap('Continue')->assertReplacedWith('/home');
+    $screen = withMangaDexSource(Native::test(Setup::class))->tap('Continue')->assertReplacedWith('/home');
 
     expect($screen->get('steps')['season'])->toBe('unavailable');
 });

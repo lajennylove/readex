@@ -29,6 +29,11 @@ final class Loading
                 return $answer;
             }
 
+            if (rtrim($request->url(), '/') === rtrim(config('mangadex.api_url'), '/')) {
+                // Setup's source-URL health check (Plan-08 Task 3): a bare GET of the base URL.
+                return Http::response('', 200);
+            }
+
             if (parse_url($request->url(), PHP_URL_HOST) === 'uploads.mangadex.org') {
                 $covers[] = $request->url();
 

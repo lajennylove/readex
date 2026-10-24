@@ -14,7 +14,7 @@
                     <native:text class="text-sm text-theme-on-surface-variant">›</native:text>
                 </native:row>
             </native:pressable>
-            <native:text class="text-xs text-theme-on-surface-variant">MangaDex plus any content sources you've added. Block, unblock or remove one, or add your own.</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">{{ $providerLabel }} plus any content sources you've added. Block, unblock or remove one, or add your own.</native:text>
         </native:column>
 
         <native:column class="w-full gap-2">
@@ -23,9 +23,9 @@
         </native:column>
 
         <native:column class="w-full gap-2">
-            <native:text class="text-lg font-bold text-theme-on-background">MangaDex data</native:text>
+            <native:text class="text-lg font-bold text-theme-on-background">Provider data</native:text>
             <native:row class="w-full items-center justify-between">
-                <native:text class="text-base text-theme-on-background">MangaDex connection</native:text>
+                <native:text class="text-base text-theme-on-background">Provider connection</native:text>
                 <native:text class="text-base text-theme-on-surface-variant">{{ $connection['state'] }}</native:text>
             </native:row>
             <native:text class="text-xs text-theme-on-surface-variant">{{ $connection['usage'] }}</native:text>
@@ -39,7 +39,7 @@
             @if ($refreshNote)
                 <native:text class="text-sm text-theme-on-background">{{ $refreshNote }}</native:text>
             @endif
-            <native:text class="text-xs text-theme-on-surface-variant">Clears saved MangaDex data and loads it again. Your Library, reading progress and downloads stay. {{ $lastRefreshed }}.</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">Clears saved provider data and loads it again. Your Library, reading progress and downloads stay. {{ $lastRefreshed }}.</native:text>
 
             @if ($run !== null)
                 <native:column class="w-full gap-2">
@@ -61,14 +61,20 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-destructive">Reset ReaDex</native:text>
+            <native:button label="Delete everything" variant="destructive" @press="askFactoryReset" />
+            <native:text class="text-xs text-theme-on-surface-variant">Deletes your whole Library, reading progress, every download, every cached image, your content sources and all settings. This can't be undone.</native:text>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">About</native:text>
-            <native:pressable class="w-full" @press="openMangaDex" a11y-label="Data from MangaDex">
+            <native:pressable class="w-full" @press="openProvider" a11y-label="Data from {{ $providerLabel }}">
                 <native:row class="w-full items-center justify-between">
-                    <native:text class="text-base text-theme-on-background">Data from MangaDex</native:text>
-                    <native:text class="text-sm text-theme-on-surface-variant">mangadex.org</native:text>
+                    <native:text class="text-base text-theme-on-background">Data from {{ $providerLabel }}</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">{{ parse_url($providerUrl, PHP_URL_HOST) }}</native:text>
                 </native:row>
             </native:pressable>
-            <native:text class="text-xs text-theme-on-surface-variant">Chapters are translated by the scanlation groups named on each chapter. ReaDex is not affiliated with MangaDex.</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">{{ $providerCredit }}</native:text>
             <native:text class="text-xs text-theme-on-surface-variant">ReaDex {{ $version }}</native:text>
         </native:column>
     </native:column>

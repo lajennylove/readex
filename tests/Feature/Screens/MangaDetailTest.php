@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use Native\Mobile\AsyncTask;
+use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 use Tests\Support\MangaDexFixtures;
@@ -420,6 +421,7 @@ it('opens a licensed chapter in the in-app browser and a readable one in the rea
         ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1000')
         ->assertNativeNotCalled('Browser.Open');
     $screen->tap('Ch. 2')
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Read'])
         ->assertNavigatedTo('/home/read/own-2')
         ->assertNativeNotCalled('Dialog.Toast')
         ->assertNativeCalledTimes('Browser.OpenInApp', 1);
@@ -430,8 +432,8 @@ it('opens chapters and Continue in the tab the series was opened from, a license
     seededChapter('own-2', DETAIL_SEEDED, '2');
     seededChapter('ext-3', DETAIL_SEEDED, '3', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/3']);
 
-    Native::visit('/search/manga/'.DETAIL_SEEDED)->tap('Ch. 2')->assertNavigatedTo('/search/read/own-2');
-    Native::visit('/library/manga/'.DETAIL_SEEDED)->tap('Ch. 2')->assertNavigatedTo('/library/read/own-2');
+    Native::visit('/search/manga/'.DETAIL_SEEDED)->tap('Ch. 2')->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Read'])->assertNavigatedTo('/search/read/own-2');
+    Native::visit('/library/manga/'.DETAIL_SEEDED)->tap('Ch. 2')->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Read'])->assertNavigatedTo('/library/read/own-2');
 
     app(LibraryRepository::class)->saveProgress('own-2', 4, 20);
     Native::visit('/search/manga/'.DETAIL_SEEDED)->tap('Continue · Ch. 2, page 5')->assertNavigatedTo('/search/read/own-2');

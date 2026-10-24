@@ -2,9 +2,13 @@
 
 use App\Models\StoredChapter;
 use App\Storage\PageStore;
+use App\Storage\StorageBridge;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Sleep;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
+use Tests\Support\Stored;
 
 beforeEach(function () {
     $this->caches = Covers::useTempCaches();
@@ -244,5 +248,143 @@ describe('local tier', function () {
         expect(is_file("{$storage}/app/public/downloads/c1/001.jpg"))->toBeTrue()
             ->and($this->pages->pathFor('c1', 0))->toBe('storage/downloads/c1/001.jpg')
             ->and($this->pages->usage())->toBe(0);
+    });
+});
+
+describe('promote and demote', function () {
+    beforeEach(function () {
+        $this->storage = Stored::useTempStorage();
+    });
+
+    it('moves a cached chapter to the downloads folder, keeping its quality, counts and manifest', function () {
+        Stored::partial('t7-p1', 2, 3, quality: 'original');
+        $before = StoredChapter::query()->find('t7-p1')->only(['quality', 'status', 'pages_done', 'page_count', 'bytes']);
+        $manifest = $this->pages->manifest('t7-p1');
+
+        expect($this->pages->promote('t7-p1'))->toBeTrue();
+
+        expect(StoredChapter::query()->find('t7-p1')->tier)->toBe('local')
+            ->and(StoredChapter::query()->find('t7-p1')->only(['quality', 'status', 'pages_done', 'page_count', 'bytes']))->toBe($before)
+            ->and($this->pages->manifest('t7-p1'))->toBe($manifest)
+            ->and(is_dir("{$this->caches}/chapters/t7-p1"))->toBeFalse()
+            ->and(is_file("{$this->storage}/app/public/downloads/t7-p1/001.jpg"))->toBeTrue()
+            ->and($this->pages->pathFor('t7-p1', 0))->toBe('storage/downloads/t7-p1/001.jpg')
+            ->and($this->pages->missing('t7-p1'))->toBe([2]);
+    });
+
+    it('moves a download back to the cache tier, still readable', function () {
+        Stored::chapter('t7-p1', 2);
+        $this->pages->promote('t7-p1');
+
+        expect($this->pages->demote('t7-p1'))->toBeTrue();
+
+        expect(StoredChapter::query()->find('t7-p1')->tier)->toBe('cache')
+            ->and(is_dir("{$this->storage}/app/public/downloads/t7-p1"))->toBeFalse()
+            ->and(is_file("{$this->caches}/chapters/t7-p1/002.jpg"))->toBeTrue()
+            ->and($this->pages->pathFor('t7-p1', 1))->toBe('storage/cache/chapters/t7-p1/002.jpg')
+            ->and($this->pages->has('t7-p1'))->toBeTrue();
+    });
+
+    it('says false for a chapter that is not stored, and leaves a chapter already in the tier alone', function () {
+        Stored::chapter('t7-p1', 2, tier: 'local');
+        Stored::chapter('t7-p2', 2);
+
+        expect($this->pages->promote('t7-none'))->toBeFalse()
+            ->and($this->pages->demote('t7-none'))->toBeFalse()
+            ->and($this->pages->promote('t7-p1'))->toBeTrue()
+            ->and($this->pages->demote('t7-p2'))->toBeTrue()
+            ->and($this->pages->pathFor('t7-p1', 0))->toBe('storage/downloads/t7-p1/001.jpg')
+            ->and($this->pages->pathFor('t7-p2', 0))->toBe('storage/cache/chapters/t7-p2/001.jpg')
+            ->and(StoredChapter::query()->find('t7-none'))->toBeNull();
+    });
+
+    it('keeps the downloads folder out of the iCloud backup', function () {
+        $bridge = new class(sys_get_temp_dir().'/readex-covers-'.bin2hex(random_bytes(4))) implements StorageBridge
+        {
+            public array $excluded = [];
+
+            public function __construct(private readonly string $root) {}
+
+            public function preferredLanguage(): ?string
+            {
+                return null;
+            }
+
+            public function cachesPath(): string
+            {
+                return $this->root.'/caches';
+            }
+
+            public function excludeFromBackup(string $path): bool
+            {
+                $this->excluded[] = $path;
+
+                return true;
+            }
+
+            public function timeZone(): string
+            {
+                return 'UTC';
+            }
+        };
+        app()->instance(StorageBridge::class, $bridge);
+        register_shutdown_function(fn () => File::deleteDirectory($bridge->cachesPath()));
+        Stored::chapter('t7-p1', 1);
+        expect($bridge->excluded)->toBe([]);
+
+        app(PageStore::class)->promote('t7-p1');
+
+        expect($bridge->excluded)->toBe(["{$this->storage}/app/public/downloads"])
+            ->and(is_dir("{$this->storage}/app/public/downloads"))->toBeTrue();
+
+        app(PageStore::class)->begin(Pages::chapter('t7-p2', ['pages' => 1]), 'data-saver', 1, 'cache');
+        app(PageStore::class)->begin(Pages::chapter('t7-p3', ['pages' => 1]), 'data-saver', 1, 'local');
+
+        expect($bridge->excluded)->toBe(["{$this->storage}/app/public/downloads", "{$this->storage}/app/public/downloads"]);
+    });
+
+    it('lands a page put during a promote in the downloads folder, with no folder left in the cache tier', function () {
+        Stored::partial('t7-p1', 1, 3);
+        $lock = Cache::lock('readex.pages.store.t7-p1', 30, 'other-runtime');
+        expect($lock->get())->toBeTrue();
+        Sleep::fake();
+        $moved = false;
+        Sleep::whenFakingSleep(function () use ($lock, &$moved) {
+            if (! $moved) {
+                $moved = true;
+                $lock->release();
+                app(PageStore::class)->promote('t7-p1');
+            }
+        });
+
+        expect($this->pages->put('t7-p1', 1, Pages::image()))->toBeTrue();
+
+        expect($moved)->toBeTrue()
+            ->and(is_dir("{$this->caches}/chapters/t7-p1"))->toBeFalse()
+            ->and(is_file("{$this->storage}/app/public/downloads/t7-p1/002.jpg"))->toBeTrue()
+            ->and($this->pages->missing('t7-p1'))->toBe([2])
+            ->and(StoredChapter::query()->find('t7-p1')->only(['tier', 'pages_done', 'status']))->toBe(['tier' => 'local', 'pages_done' => 2, 'status' => 'partial']);
+    });
+
+    it('waits for a page being written before it moves the folder', function () {
+        Stored::partial('t7-p1', 1, 3);
+        $lock = Cache::lock('readex.pages.store.t7-p1', 30, 'other-runtime');
+        $lock->get();
+        Sleep::fake();
+        $written = false;
+        Sleep::whenFakingSleep(function () use ($lock, &$written) {
+            if (! $written) {
+                $written = true;
+                $lock->release();
+                app(PageStore::class)->put('t7-p1', 1, Pages::image());
+            }
+        });
+
+        $this->pages->promote('t7-p1');
+
+        expect($written)->toBeTrue()
+            ->and(is_dir("{$this->caches}/chapters/t7-p1"))->toBeFalse()
+            ->and($this->pages->missing('t7-p1'))->toBe([2])
+            ->and(StoredChapter::query()->find('t7-p1')->pages_done)->toBe(2);
     });
 });

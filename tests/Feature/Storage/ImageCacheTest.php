@@ -1,5 +1,7 @@
 <?php
 
+use App\Downloads\Downloads;
+use App\Jobs\DownloadChapter;
 use App\Jobs\EnforceCacheCap;
 use App\Models\Collection as LibraryEntry;
 use App\Models\ReadingProgress;
@@ -12,6 +14,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\Support\Covers;
 use Tests\Support\Stored;
 
@@ -226,5 +230,32 @@ describe('Clear image cache', function () {
         app(ImageCache::class)->clear();
 
         expect(app(ImageCache::class)->usage())->toBe(0);
+    });
+});
+
+describe('downloaded chapters (Review Focus 8)', function () {
+    it('moves a chapter read yesterday to the downloads without asking for a page again; the cap and Clear image cache leave it alone', function () {
+        Stored::useTempStorage();
+        Queue::fake();
+        Http::fake(fn () => throw new RuntimeException('no network'));
+        Stored::chapter('t7-ic-read', 3, openedAt: '2026-10-23 20:00:00');
+        Stored::chapter('t7-ic-new', 2, openedAt: '2026-10-24 01:00:00');
+
+        app(Downloads::class)->download('t7-ic-read');
+        capAt(0);
+        enforceCap();
+
+        expect(cachedIds())->toBe(['t7-ic-read'])
+            ->and(StoredChapter::query()->find('t7-ic-read')->tier)->toBe('local');
+
+        Stored::chapter('t7-ic-new', 2);
+        app(ImageCache::class)->clear();
+
+        expect(cachedIds())->toBe(['t7-ic-read'])
+            ->and($this->store->has('t7-ic-read'))->toBeTrue()
+            ->and($this->store->pathFor('t7-ic-read', 2))->toBe('storage/downloads/t7-ic-read/003.jpg')
+            ->and(app(ImageCache::class)->usage())->toBe(0);
+        Http::assertNothingSent();
+        Queue::assertNotPushed(DownloadChapter::class);
     });
 });

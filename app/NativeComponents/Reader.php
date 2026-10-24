@@ -2,9 +2,12 @@
 
 namespace App\NativeComponents;
 
+use App\Downloads\Downloads;
+use App\Downloads\DownloadState;
 use App\Jobs\PrefetchNext;
 use App\Models\Chapter;
 use App\Models\StoredChapter;
+use App\NativeComponents\Concerns\ManagesDownloads;
 use App\NativeComponents\Concerns\OpensChapters;
 use App\NativeLayouts\TabsLayout;
 use App\Pages\LoadState;
@@ -17,6 +20,8 @@ use Illuminate\Support\Facades\View as Views;
 use Illuminate\View\View;
 use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Edge\Concerns\HasVirtualListWindow;
+use Native\Mobile\Edge\Layouts\Builders\NavAction;
+use Native\Mobile\Edge\Layouts\Builders\NavBarOptions;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Facades\Browser;
 use Native\Mobile\Facades\Network;
@@ -32,10 +37,14 @@ use Native\Mobile\Facades\Network;
  * The list only reports its window when the visible rows near its edge, so the page is the
  * window's first row + overscan, and the end row entering the window means the chapter was read
  * (about two pages before its last page).
+ *
+ * The bar has the chapter's download action (D35 10): Download, Stop download while it's in the
+ * queue, Remove download (asks first) once it's downloaded.
  */
 class Reader extends NativeComponent
 {
     use HasVirtualListWindow;
+    use ManagesDownloads;
     use OpensChapters;
 
     /** Rows the list keeps beyond the visible ones, each side. */
@@ -94,6 +103,42 @@ class Reader extends NativeComponent
         $count = $this->pageCount();
 
         return MangaDetail::chapterLabel($chapter).($count > 0 ? ' · '.(min($this->page, $count - 1) + 1)." / {$count}" : '');
+    }
+
+    /** None on a licensed chapter or one that isn't there. */
+    public function navigationOptions(): ?NavBarOptions
+    {
+        $chapter = $this->chapter();
+
+        if ($chapter === null || $chapter->external_url !== null) {
+            return null;
+        }
+
+        $action = match (app(Downloads::class)->status($this->chapterId)->state) {
+            DownloadState::Queued, DownloadState::Downloading => NavAction::make('stop-download')->icon('stop.circle')->a11yLabel('Stop download')->press('stopDownload'),
+            DownloadState::Downloaded => NavAction::make('remove-download')->icon('checkmark.circle.fill')->a11yLabel('Remove download')->press('removeDownload'),
+            default => NavAction::make('download')->icon('arrow.down.circle')->a11yLabel('Download')->press('downloadChapter'),
+        };
+
+        return NavBarOptions::make()->action($action);
+    }
+
+    public function downloadChapter(): void
+    {
+        $this->forget();
+        app(Downloads::class)->download($this->chapterId);
+    }
+
+    public function stopDownload(): void
+    {
+        $this->forget();
+        app(Downloads::class)->stop($this->chapterId);
+    }
+
+    public function removeDownload(): void
+    {
+        $this->forget();
+        $this->askRemoveDownload($this->chapterId);
     }
 
     /** Only pages have a tap target for the bar: every other screen keeps it, so back is there. */

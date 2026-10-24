@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Downloads\Downloads;
 use App\MangaDex\Exceptions\ApiError;
 use App\MangaDex\Exceptions\RequestDeferred;
 use App\MangaDex\RateLimit\Priority;
@@ -9,12 +10,14 @@ use App\Models\Chapter;
 use App\Pages\ChapterUnavailable;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;
+use App\Storage\PageStore;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
+use Throwable;
 
 /**
  * Spec §5.6: the missing pages of a chapter in reading order, in the quality it started with.
@@ -23,6 +26,11 @@ use Illuminate\Support\Carbon;
  * downloading are left to it; when only those are left, the job checks back in 5 s. No slot →
  * release until the controller's retry time; offline → again in a minute. A cache run ends by
  * queueing EnforceCacheCap.
+ *
+ * Download work (spec §11.3): a `local` job, or any job for a chapter in the download queue
+ * (the unique lock drops a download's dispatch while the reader's own job runs). It writes into
+ * the local tier, checks the queue between pages so Stop ends it at the next page, and tells
+ * Downloads when the chapter ends (done, unavailable, failed for good) so a Download all moves on.
  */
 class DownloadChapter implements ShouldBeUnique, ShouldQueue
 {
@@ -61,10 +69,24 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
 
     public function handle(PageFetcher $fetcher): void
     {
+        $downloads = app(Downloads::class);
         $chapter = Chapter::query()->find($this->chapterId);
 
         if ($chapter === null || $chapter->external_url !== null) {
+            $downloads->ended($this->chapterId);
+
             return;
+        }
+
+        $download = $this->tier === 'local' || $downloads->isQueued($this->chapterId);
+        $stopped = fn () => $download && ! $downloads->isQueued($this->chapterId);
+
+        if ($stopped()) {
+            return;
+        }
+
+        if ($download) {
+            app(PageStore::class)->promote($this->chapterId);
         }
 
         $until = Carbon::now()->addSeconds(config('readex.pages.job_budget_seconds'));
@@ -72,10 +94,10 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
         try {
             $fetcher->run(
                 $chapter,
-                fn (array $skip) => $fetcher->nextMissing($this->chapterId, $skip),
+                fn (array $skip) => $stopped() ? null : $fetcher->nextMissing($this->chapterId, $skip),
                 $this->priority,
                 self::MAX_WAIT_SECONDS,
-                $this->tier,
+                $download ? 'local' : $this->tier,
                 $until,
             );
         } catch (RequestDeferred $e) {
@@ -90,12 +112,17 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             return;
         } catch (ApiError|ChapterUnavailable) {
             $fetcher->record($this->chapterId, LoadState::Unavailable);
+            $downloads->ended($this->chapterId);
 
             return;
         } finally {
             if ($this->tier === 'cache') {
                 EnforceCacheCap::dispatch();
             }
+        }
+
+        if ($stopped()) {
+            return;
         }
 
         if ($fetcher->remaining($this->chapterId) > 0) {
@@ -106,6 +133,13 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
         }
 
         $fetcher->record($this->chapterId, LoadState::Done);
+        $downloads->finished($this->chapterId);
+    }
+
+    /** Gave up (retryUntil passed): the chapter's download ends too, so a Download all moves on. */
+    public function failed(?Throwable $e = null): void
+    {
+        app(Downloads::class)->ended($this->chapterId);
     }
 
     private function secondsUntil(float $retryAt): int

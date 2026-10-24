@@ -8,6 +8,16 @@
         @include('native.partials.rating-toggles')
 
         <native:column class="w-full gap-2">
+            <native:pressable class="w-full" @press="openSources" a11y-label="Sources">
+                <native:row class="w-full items-center justify-between">
+                    <native:text class="text-base text-theme-on-background">Sources</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">›</native:text>
+                </native:row>
+            </native:pressable>
+            <native:text class="text-xs text-theme-on-surface-variant">MangaDex plus any content sources you've added. Block, unblock or remove one, or add your own.</native:text>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:select label="Image quality" value="{{ $qualityName }}" :options="$qualityNames" @change="chooseQuality" />
             <native:text class="text-xs text-theme-on-surface-variant">HD uses about 8× more space and data. A chapter keeps the quality it was saved in.</native:text>
         </native:column>

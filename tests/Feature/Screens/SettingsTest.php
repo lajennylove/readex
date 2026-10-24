@@ -295,6 +295,13 @@ it('opens MangaDex in the in-app browser', function () {
         ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangadex.org');
 });
 
+it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {
+    Native::test(Settings::class)
+        ->assertSee('Sources')
+        ->tap('Sources')
+        ->assertNavigatedTo('/settings/sources');
+});
+
 it('credits MangaDex and the scanlation groups', function () {
     Native::test(Settings::class)
         ->assertSee('Data from MangaDex')

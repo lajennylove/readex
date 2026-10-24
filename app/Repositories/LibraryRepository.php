@@ -171,6 +171,17 @@ final class LibraryRepository
     }
 
     /**
+     * The resume bar (D31, D33 choice 8): `resume()` for the series read last. Null when nothing
+     * was read or that series is caught up; never another series.
+     */
+    public function lastOpened(): ?ContinueReading
+    {
+        $progress = ReadingProgress::query()->orderByDesc('updated_at')->orderBy('chapter_id')->first();
+
+        return $progress === null ? null : $this->tile($progress);
+    }
+
+    /**
      * Home "Continue reading": `resume()` for every started series, last read first; caught-up
      * series are left out.
      *

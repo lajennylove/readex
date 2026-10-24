@@ -4,7 +4,9 @@ namespace App\NativeComponents;
 
 use App\Models\Manga;
 use App\NativeComponents\Concerns\RefreshesData;
+use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeComponents\Concerns\ShowsTiles;
+use App\NativeLayouts\HasResumeBar;
 use App\Refresh\Refresh;
 use App\Repositories\HomeRepository;
 use App\Repositories\LatestUpdate;
@@ -18,9 +20,10 @@ use Native\Mobile\Edge\NativeComponent;
  * Each row refreshes on its own when empty or stale; an empty row keeps its place with
  * placeholder tiles until it loads (Review Focus 2).
  */
-class Home extends NativeComponent
+class Home extends NativeComponent implements HasResumeBar
 {
     use RefreshesData;
+    use ShowsResumeBar;
     use ShowsTiles;
 
     /** Row key => label, in screen order. */

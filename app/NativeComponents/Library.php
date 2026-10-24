@@ -2,15 +2,18 @@
 
 namespace App\NativeComponents;
 
+use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeComponents\Concerns\ShowsTiles;
+use App\NativeLayouts\HasResumeBar;
 use App\Repositories\ContinueReading;
 use App\Repositories\SettingsRepository;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
 /** Phase 4 placeholder (choice 2): Continue reading tiles; Phase 6 brings the grid and chips. */
-class Library extends NativeComponent
+class Library extends NativeComponent implements HasResumeBar
 {
+    use ShowsResumeBar;
     use ShowsTiles;
 
     public function navTitle(): string

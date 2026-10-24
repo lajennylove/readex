@@ -18,10 +18,11 @@ use Illuminate\Support\Carbon;
 
 /**
  * Spec §5.6: the missing pages of a chapter in reading order, in the quality it started with.
- * Resumes from what's on disk. Works in slices of job_budget_seconds: pages left → released at
- * once to continue, behind the other queued jobs. No slot → release until the controller's retry
- * time; offline → again in a minute; pages a FetchPages task is downloading are left to it. A
- * cache run ends by queueing EnforceCacheCap.
+ * Resumes from what's on disk. Works in time-boxed slices of job_budget_seconds: pages left →
+ * released at once to continue, behind the other queued jobs. Pages another fetcher is
+ * downloading are left to it; when only those are left, the job checks back in 5 s. No slot →
+ * release until the controller's retry time; offline → again in a minute. A cache run ends by
+ * queueing EnforceCacheCap.
  */
 class DownloadChapter implements ShouldBeUnique, ShouldQueue
 {
@@ -30,6 +31,9 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
     public const GIVE_UP_AFTER_SECONDS = 3600;
 
     public const OFFLINE_RETRY_SECONDS = 60;
+
+    /** Seconds before checking back when the only pages left are being downloaded by another fetcher. */
+    public const CLAIMED_RETRY_SECONDS = 5;
 
     /** Seconds to wait for a request slot before releasing (spec §5.1a). */
     public const MAX_WAIT_SECONDS = 2.0;
@@ -63,6 +67,8 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        $until = Carbon::now()->addSeconds(config('readex.pages.job_budget_seconds'));
+
         try {
             $fetcher->run(
                 $chapter,
@@ -70,7 +76,7 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
                 $this->priority,
                 self::MAX_WAIT_SECONDS,
                 $this->tier,
-                until: Carbon::now()->addSeconds(config('readex.pages.job_budget_seconds')),
+                $until,
             );
         } catch (RequestDeferred $e) {
             $fetcher->record($this->chapterId, LoadState::Busy);
@@ -94,7 +100,7 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
 
         if ($fetcher->remaining($this->chapterId) > 0) {
             $fetcher->record($this->chapterId, LoadState::Busy);
-            $this->release(0);
+            $this->release(Carbon::now()->greaterThanOrEqualTo($until) ? 0 : self::CLAIMED_RETRY_SECONDS);
 
             return;
         }

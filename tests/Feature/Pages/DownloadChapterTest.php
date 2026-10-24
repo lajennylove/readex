@@ -60,15 +60,16 @@ it('resumes from what is on disk, also after iOS purged a page', function () {
         ->and($this->store->has('c1'))->toBeTrue();
 });
 
-it('leaves a page another fetcher is downloading to it', function () {
+it('leaves a page another fetcher is downloading to it and checks back in 5 s', function () {
     Pages::fake(count: 3);
     Pages::chapter('c1');
     cache()->add('readex.pages.claim.c1.1', true, 60);
 
-    runChapter('c1');
+    runChapter('c1')->assertReleased(5);
 
     expect($this->store->missing('c1'))->toBe([1])
-        ->and(Pages::requested())->not->toContain('a.mangadex.network/data-saver/h1/p2.jpg');
+        ->and(Pages::requested())->not->toContain('a.mangadex.network/data-saver/h1/p2.jpg')
+        ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy);
 });
 
 it('stores into the tier it was given', function () {
@@ -111,6 +112,43 @@ it('queues the cache cap when a cache run stops early too, and nothing for a dow
 
     runChapter('c3', 'local');
     Queue::assertNotPushed(EnforceCacheCap::class);
+});
+
+it('stops taking pages after 40 s and releases itself to continue', function () {
+    $seconds = [39, 1, 1];
+    Pages::fake(count: 3, image: function () use (&$seconds) {
+        $this->travel(array_shift($seconds))->seconds();
+
+        return Http::response(Pages::image());
+    });
+    Pages::chapter('c1');
+
+    runChapter('c1')->assertReleased(0);
+
+    expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg'])
+        ->and($this->store->missing('c1'))->toBe([2])
+        ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy)
+        ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->toBe('partial');
+});
+
+it('continues the next slice from the first missing page and finishes it', function () {
+    Pages::fake(count: 5, image: function () {
+        $this->travel(20)->seconds();
+
+        return Http::response(Pages::image());
+    });
+    Pages::chapter('c1', ['pages' => 5]);
+    runChapter('c1')->assertReleased(0);
+    Http::swap(new Factory(app('events')));
+    Pages::fake(count: 5);
+
+    runChapter('c1')->assertNotReleased();
+
+    expect(Pages::requested())->toBe(array_map(fn ($i) => "a.mangadex.network/data-saver/h1/p{$i}.jpg", [3, 4, 5]))
+        ->and(Pages::lookups())->toBe(0)
+        ->and($this->store->missing('c1'))->toBe([])
+        ->and($this->fetcher->state('c1'))->toBe(LoadState::Done)
+        ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->toBe('done');
 });
 
 it('waits for the controller when MangaDex is limiting the phone', function () {
@@ -156,4 +194,11 @@ it('is unique per chapter, prefetch by default, and gives up after an hour', fun
         ->and($job->tier)->toBe('cache')
         ->and($job->priority)->toBe(Priority::Prefetch)
         ->and($job->retryUntil()->toDateTimeString())->toBe('2026-10-23 19:30:00');
+});
+
+it('is stopped by the worker after 80 s, before the database queue hands it out again', function () {
+    $job = new DownloadChapter('c1');
+
+    expect($job->timeout)->toBe(80)
+        ->and($job->timeout)->toBeLessThan(config('queue.connections.database.retry_after'));
 });

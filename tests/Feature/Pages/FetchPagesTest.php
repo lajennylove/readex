@@ -358,6 +358,7 @@ it('stops at once when the image cache drops the chapter mid-run: nothing marked
     expect(Pages::requested())->toHaveCount(2)
         ->and(Pages::lookups())->toBe(1)
         ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and($this->fetcher->state('c1'))->toBe(LoadState::Done)
         ->and($this->fetcher->isRunning('c1'))->toBeFalse()
         ->and(StoredChapter::query()->count())->toBe(0);
     Queue::assertNotPushed(DownloadChapter::class);

@@ -10,6 +10,8 @@ use App\MangaDex\RateLimit\ConnectionState;
 use App\MangaDex\RateLimit\ConnectionStatus;
 use App\MangaDex\RateLimit\RequestController;
 use App\NativeComponents\Concerns\ChoosesContentRatings;
+use App\NativeComponents\Concerns\ShowsResumeBar;
+use App\NativeLayouts\HasResumeBar;
 use App\Repositories\DataReset;
 use App\Repositories\SettingsRepository;
 use App\Storage\ImageCache;
@@ -29,9 +31,10 @@ use Native\Mobile\Facades\Network;
  * "Refresh MangaDex data" (§7.1), the MangaDex connection row (§5.1a) and credits.
  * Storage: the image cache and "Clear image cache" (§11.1); iCloud comes with downloads.
  */
-class Settings extends NativeComponent
+class Settings extends NativeComponent implements HasResumeBar
 {
     use ChoosesContentRatings;
+    use ShowsResumeBar;
 
     public const QUALITIES = [
         'data-saver' => 'Data saver (SD)',

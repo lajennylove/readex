@@ -28,7 +28,8 @@
         src="{{ $row['src'] }}"
         class="w-full aspect-[{{ $row['ratio'] }}]"
         alt="Page {{ $row['number'] }}"
-        @press="toggleBar" />
+        @press="toggleBar"
+        @doubleTap="openPage({{ $row['index'] }})" />
 @elseif ($row['failed'])
     <native:pressable native:key="page-{{ $row['number'] }}" class="w-full aspect-[{{ $row['ratio'] }}] items-center justify-center bg-black" @press="retryPage({{ $row['index'] }})" a11y-label="Page {{ $row['number'] }} didn't load, tap to retry">
         <native:text class="text-sm text-white">Page {{ $row['number'] }} didn't load · Tap to retry</native:text>

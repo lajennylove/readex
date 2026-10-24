@@ -114,6 +114,21 @@ class Reader extends NativeComponent
         $this->barShown = ! $this->barShown;
     }
 
+    /**
+     * Double-tap on a page (0-based): the page viewer, pushed so the reader stays as it is
+     * underneath. Only a stored page; the row may be stale by the time the tap arrives.
+     */
+    public function openPage(int $index): void
+    {
+        $this->forget();
+
+        if (($this->pages()[$index] ?? null) === null) {
+            return;
+        }
+
+        $this->navigate(PageViewer::uriFor(TabsLayout::tabOf($this->nativeRouter?->currentUri()), $this->chapterId, $index + 1));
+    }
+
     /** "Pages 1–N": the whole chapter from page 1. */
     public function fromStart(): void
     {

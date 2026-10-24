@@ -202,7 +202,7 @@ final class Downloads
             ->leftJoin('stored_chapters', 'stored_chapters.chapter_id', '=', 'chapters.id')
             ->leftJoin('downloads', fn ($join) => $join->on('downloads.chapter_id', '=', 'chapters.id')->whereNull('downloads.finished_at'))
             ->where(fn ($q) => $q->where('stored_chapters.tier', 'local')->orWhereNotNull('downloads.chapter_id'))
-            ->get(['chapters.id', 'chapters.pages', 'stored_chapters.tier', 'stored_chapters.status', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'downloads.chapter_id as queued', 'downloads.started_at'])
+            ->get(['chapters.id', 'stored_chapters.tier', 'stored_chapters.status', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'downloads.chapter_id as queued'])
             ->keyBy('id');
 
         $statuses = [];
@@ -220,14 +220,14 @@ final class Downloads
             return new DownloadStatus(DownloadState::None);
         }
 
-        $count = self::pageCount($row);
-        $percent = $count > 0 ? intdiv((int) $row->pages_done * 100, $count) : null;
+        // Downloading and Stopped are begun local chapters with a page stored or missing: never 0 pages.
+        $percent = fn () => intdiv((int) $row->pages_done * 100, (int) $row->page_count);
 
         return match (true) {
-            $row->queued !== null && $row->started_at === null => new DownloadStatus(DownloadState::Queued),
-            $row->queued !== null => new DownloadStatus(DownloadState::Downloading, $percent),
+            $row->queued !== null && $row->tier === 'local' && $row->pages_done > 0 => new DownloadStatus(DownloadState::Downloading, $percent()),
+            $row->queued !== null => new DownloadStatus(DownloadState::Queued),
             $row->status === 'done' => new DownloadStatus(DownloadState::Downloaded),
-            default => new DownloadStatus(DownloadState::Stopped, $percent),
+            default => new DownloadStatus(DownloadState::Stopped, $percent()),
         };
     }
 
@@ -275,14 +275,19 @@ final class Downloads
         }
     }
 
-    /** @return bool the chapter was all on the phone: moved, nothing to download */
+    /**
+     * A chapter the cap evicts between the check and the move gets its job like one never stored.
+     *
+     * @return bool the chapter was all on the phone: moved, nothing to download
+     */
     private function start(string $chapterId, Priority $priority): bool
     {
-        if ($this->pages->has($chapterId)) {
-            return $this->pages->promote($chapterId);
+        $complete = $this->pages->has($chapterId);
+
+        if ($this->pages->promote($chapterId) && $complete) {
+            return true;
         }
 
-        $this->pages->promote($chapterId);
         DownloadChapter::dispatch($chapterId, 'local', $priority);
 
         return false;

@@ -153,14 +153,17 @@ describe('chapter rows', function () {
         ]);
     });
 
-    it('uses the feed page count before the chapter has begun, and no percent without one', function () {
+    it('says Queued until a page is in the downloads, even once its job is dispatched', function () {
         t7dChapter('t7-d1', '1', ['pages' => 20]);
         t7dChapter('t7-d2', '2', ['pages' => 0]);
+        t7dChapter('t7-d3', '3');
         t7dEntry('t7-d1', 0, started: '2026-10-24 11:00:00');
         t7dEntry('t7-d2', 0, started: '2026-10-24 11:00:00', batch: null);
+        t7dEntry('t7-d3', 0, started: '2026-10-24 11:00:00', batch: null);
+        Stored::partial('t7-d3', 1, 20, tier: 'local');
 
         expect(array_column(t7dRows(Native::visit('/home/manga/'.T7_DETAIL)->tree()), 'caption'))
-            ->toBe(['Group A · Downloading 0%', 'Group A · Downloading']);
+            ->toBe(['Group A · Queued', 'Group A · Queued', 'Group A · Downloading 5%']);
     });
 
     it('looks up the download state of every row in one query, however long the list', function () {
@@ -205,23 +208,29 @@ describe('row choices', function () {
             ->assertNoNavigation();
 
         Queue::assertPushed(DownloadChapter::class, fn (DownloadChapter $j) => $j->chapterId === 't7-d1' && $j->tier === 'local' && $j->priority === Priority::Prefetch);
-        expect(t7dRows($screen->tree())[0]['caption'])->toBe('Group A · Downloading 0%');
+        expect(t7dRows($screen->tree())[0]['caption'])->toBe('Group A · Queued');
     });
 
-    it('asks Read or Stop download while queued or downloading; Stop takes it out of the queue', function (?string $started, string $caption) {
+    it('asks Read or Stop download while queued or downloading; Stop takes it out of the queue', function (int $stored, string $caption, string $stopped) {
         t7dChapter('t7-d1', '1');
-        t7dEntry('t7-d1', 0, started: $started, batch: null);
+        t7dEntry('t7-d1', 0, started: '2026-10-24 11:00:00', batch: null);
+        if ($stored > 0) {
+            Stored::partial('t7-d1', $stored, 20, tier: 'local');
+        }
 
-        $screen = Native::visit('/home/manga/'.T7_DETAIL)->tap('Ch. 1')
+        $screen = Native::visit('/home/manga/'.T7_DETAIL);
+        expect(t7dRows($screen->tree())[0]['caption'])->toBe($caption);
+
+        $screen->tap('Ch. 1')
             ->assertNativeCalled('Dialog.Alert', t7dAlert('Ch. 1', '', ['Read', 'Stop download']))
             ->emitNative(ButtonPressed::class, t7dPress('Stop download'))
             ->assertNoNavigation();
 
         expect(Download::query()->count())->toBe(0)
-            ->and(t7dRows($screen->tree())[0]['caption'])->toBe('Group A');
+            ->and(t7dRows($screen->tree())[0]['caption'])->toBe($stopped);
     })->with([
-        'queued' => [null, 'Queued'],
-        'downloading' => ['2026-10-24 11:00:00', 'Downloading 0%'],
+        'queued' => [0, 'Group A · Queued', 'Group A'],
+        'downloading' => [9, 'Group A · Downloading 45%', 'Group A · Download stopped · 45%'],
     ]);
 
     it('asks Read, Download or Remove download for a stopped download', function () {
@@ -315,7 +324,7 @@ describe('Download all', function () {
         Queue::assertPushed(DownloadChapter::class, 1);
         Queue::assertPushed(DownloadChapter::class, fn (DownloadChapter $j) => $j->chapterId === 't7-d1' && $j->tier === 'local' && $j->priority === Priority::Bulk);
         expect(t7dLabels($screen->tree()))->toContain('Downloading 0 / 3 · 0%')
-            ->and(array_column(t7dRows($screen->tree()), 'caption'))->toBe(['Group A · Downloading 0%', 'Group A · Queued', 'Group A · Queued'])
+            ->and(array_column(t7dRows($screen->tree()), 'caption'))->toBe(['Group A · Queued', 'Group A · Queued', 'Group A · Queued'])
             ->and(app(LibraryRepository::class)->preferredGroup(T7_DETAIL))->toBe('t7-dg');
     });
 

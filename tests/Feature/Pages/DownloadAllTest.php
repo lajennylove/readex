@@ -106,7 +106,8 @@ describe('Download all', function () {
             ->and(Download::query()->orderBy('position')->pluck('chapter_id')->all())->toBe(['t7-b0', 't7-a1', 't7-a2', 't7-a3'])
             ->and(Download::query()->distinct()->count('batch'))->toBe(1)
             ->and(LibraryEntry::query()->find(T7_ALL)?->preferred_group_id)->toBe('t7-gb')
-            ->and(array_map(fn ($s) => $s->caption(), $this->downloads->statuses(['t7-b0', 't7-a1'])))->toBe(['t7-b0' => 'Downloading 0%', 't7-a1' => 'Queued']);
+            ->and(array_map(fn ($s) => $s->caption(), $this->downloads->statuses(['t7-b0', 't7-a1'])))->toBe(['t7-b0' => 'Queued', 't7-a1' => 'Queued'])
+            ->and($this->downloads->running(T7_ALL))->toBe(['done' => 0, 'total' => 4, 'percent' => 0]);
     });
 
     it('starts the next chapter when one is done, one at a time', function () {

@@ -4,6 +4,7 @@ namespace App\Storage;
 
 use App\Models\Chapter;
 use App\Models\StoredChapter;
+use ErrorException;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
@@ -163,7 +164,12 @@ final class PageStore
                 File::ensureDirectoryExists(dirname($to));
 
                 if (! @rename($from, $to)) {
-                    File::copyDirectory($from, $to);
+                    if (! $this->copy($from, $to)) {
+                        File::deleteDirectory($to);
+
+                        return false;
+                    }
+
                     File::deleteDirectory($from);
                 }
             }
@@ -176,6 +182,16 @@ final class PageStore
 
             return true;
         });
+    }
+
+    /** False when the folder couldn't be copied whole (no space, no permission). */
+    private function copy(string $from, string $to): bool
+    {
+        try {
+            return File::copyDirectory($from, $to);
+        } catch (ErrorException) {
+            return false;
+        }
     }
 
     /** Spec §11.1: downloads are not in the iCloud backup (they can be downloaded again). */
@@ -254,22 +270,27 @@ final class PageStore
         return $stored === null ? null : $this->read($stored);
     }
 
-    /** Delete a chapter's folder and its stored_chapters row. */
-    public function evict(string $chapterId): void
+    /**
+     * Delete a cache chapter's folder and its stored_chapters row. A download is never evicted:
+     * the image cache works from a list read before another runtime may have promoted the chapter.
+     */
+    public function evict(string $chapterId): bool
     {
-        $stored = $this->stored($chapterId);
-
-        if ($stored === null) {
-            return;
+        if ($this->stored($chapterId) === null) {
+            return false;
         }
 
-        $this->locked($chapterId, function () use ($chapterId) {
+        return $this->locked($chapterId, function () use ($chapterId) {
             $stored = $this->stored($chapterId);
 
-            if ($stored !== null) {
-                File::deleteDirectory($this->folder($stored));
-                $stored->delete();
+            if ($stored === null || $stored->tier !== 'cache') {
+                return false;
             }
+
+            File::deleteDirectory($this->folder($stored));
+            $stored->delete();
+
+            return true;
         });
     }
 

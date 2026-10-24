@@ -8,10 +8,10 @@ enum DownloadState: string
     /** Not stored, or only in the cache tier. */
     case None = 'none';
 
-    /** In the queue behind the batch's current chapter. */
+    /** In the queue, no page in the downloads yet (its job may be waiting on the phone's queue). */
     case Queued = 'queued';
 
-    /** In the queue, its DownloadChapter dispatched. */
+    /** In the queue, pages arriving in the downloads. */
     case Downloading = 'downloading';
 
     /** In the local tier, partial, out of the queue: Download resumes it. */

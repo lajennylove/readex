@@ -4,7 +4,9 @@ namespace App\Storage;
 
 use App\Models\Chapter;
 use App\Models\StoredChapter;
+use ErrorException;
 use FilesystemIterator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use RecursiveDirectoryIterator;
@@ -22,6 +24,11 @@ final class PageStore
     public const TIERS = ['cache', 'local'];
 
     private const MANIFEST_VERSION = 1;
+
+    /** A move copies the folder when rename() fails, so the lock outlives a slow copy. */
+    private const LOCK_SECONDS = 60;
+
+    private const LOCK_WAIT_SECONDS = 10;
 
     public function __construct(private readonly StorageBridge $bridge) {}
 
@@ -43,14 +50,27 @@ final class PageStore
             throw new InvalidArgumentException("Chapter id [{$chapter->id}] is not a folder name.");
         }
 
-        $stored = StoredChapter::query()->firstOrCreate(['chapter_id' => $chapter->id], [
-            'tier' => $tier,
-            'quality' => $quality,
-            'status' => 'partial',
-            'page_count' => $pageCount,
-        ]);
+        return $this->locked($chapter->id, function () use ($chapter, $quality, $pageCount, $tier) {
+            $stored = StoredChapter::query()->firstOrCreate(['chapter_id' => $chapter->id], [
+                'tier' => $tier,
+                'quality' => $quality,
+                'status' => 'partial',
+                'page_count' => $pageCount,
+            ]);
 
-        $manifest = $this->read($stored) ?? [
+            if ($stored->wasRecentlyCreated && $stored->tier === 'local') {
+                $this->excludeDownloads();
+            }
+
+            $this->write($stored, $this->read($stored) ?? $this->newManifest($chapter, $stored));
+
+            return $stored;
+        });
+    }
+
+    private function newManifest(Chapter $chapter, StoredChapter $stored): array
+    {
+        return [
             'version' => self::MANIFEST_VERSION,
             'manga_id' => $chapter->manga_id,
             'chapter_id' => $chapter->id,
@@ -62,43 +82,137 @@ final class PageStore
             'quality' => $stored->quality,
             'pages' => array_fill(0, $stored->page_count, null),
         ];
-
-        $this->write($stored, $manifest);
-
-        return $stored;
     }
 
-    /** Store page `$index` (0-based). False when it isn't an image, is out of range or the chapter wasn't begun. */
+    /**
+     * Store page `$index` (0-based). False when it isn't an image, is out of range or the chapter
+     * wasn't begun. The folder is looked up under the chapter's lock, so a page never lands in
+     * the tier a promote() / demote() just moved the chapter out of.
+     */
     public function put(string $chapterId, int $index, string $bytes): bool
     {
-        $stored = $this->stored($chapterId);
-        $manifest = $stored === null ? null : $this->read($stored);
-
-        if ($manifest === null || $index < 0 || $index >= count($manifest['pages'])) {
-            return false;
-        }
-
         $size = @getimagesizefromstring($bytes);
         $extension = $size === false ? false : image_type_to_extension($size[2], false);
 
-        if ($extension === false) {
+        if ($extension === false || $this->stored($chapterId) === null) {
             return false;
         }
 
-        $folder = $this->folder($stored);
-        $name = sprintf('%03d', $index + 1);
-        $file = $name.'.'.($extension === 'jpeg' ? 'jpg' : $extension);
+        return $this->locked($chapterId, function () use ($chapterId, $index, $bytes, $size, $extension) {
+            $stored = $this->stored($chapterId);
+            $manifest = $stored === null ? null : $this->read($stored);
 
-        foreach (glob("{$folder}/{$name}.*") ?: [] as $old) {
-            @unlink($old);
+            if ($manifest === null || $index < 0 || $index >= count($manifest['pages'])) {
+                return false;
+            }
+
+            $folder = $this->folder($stored);
+            $name = sprintf('%03d', $index + 1);
+            $file = $name.'.'.($extension === 'jpeg' ? 'jpg' : $extension);
+
+            foreach (glob("{$folder}/{$name}.*") ?: [] as $old) {
+                @unlink($old);
+            }
+
+            $this->atomic("{$folder}/{$file}", $bytes);
+
+            $manifest['pages'][$index] = ['file' => $file, 'width' => $size[0], 'height' => $size[1], 'bytes' => strlen($bytes)];
+            $this->write($stored, $manifest);
+
+            return true;
+        });
+    }
+
+    /**
+     * Download (D34): move the chapter to the local tier, which iOS never purges and the cache
+     * cap never touches. Quality, counts and manifest stay. False when it isn't stored.
+     */
+    public function promote(string $chapterId): bool
+    {
+        return $this->move($chapterId, 'local');
+    }
+
+    /** Remove download (D35 11): back to the cache tier, still readable until the cache needs the space. */
+    public function demote(string $chapterId): bool
+    {
+        return $this->move($chapterId, 'cache');
+    }
+
+    private function move(string $chapterId, string $tier): bool
+    {
+        if ($this->stored($chapterId) === null) {
+            return false;
         }
 
-        $this->atomic("{$folder}/{$file}", $bytes);
+        return $this->locked($chapterId, function () use ($chapterId, $tier) {
+            $stored = $this->stored($chapterId);
 
-        $manifest['pages'][$index] = ['file' => $file, 'width' => $size[0], 'height' => $size[1], 'bytes' => strlen($bytes)];
-        $this->write($stored, $manifest);
+            if ($stored === null) {
+                return false;
+            }
 
-        return true;
+            if ($stored->tier === $tier) {
+                return true;
+            }
+
+            $from = $this->folder($stored);
+            $stored->tier = $tier;
+            $to = $this->folder($stored);
+
+            if (is_dir($from)) {
+                File::deleteDirectory($to);
+                File::ensureDirectoryExists(dirname($to));
+
+                if (! @rename($from, $to)) {
+                    if (! $this->copy($from, $to)) {
+                        File::deleteDirectory($to);
+
+                        return false;
+                    }
+
+                    File::deleteDirectory($from);
+                }
+            }
+
+            $stored->save();
+
+            if ($tier === 'local') {
+                $this->excludeDownloads();
+            }
+
+            return true;
+        });
+    }
+
+    /** False when the folder couldn't be copied whole (no space, no permission). */
+    private function copy(string $from, string $to): bool
+    {
+        try {
+            return File::copyDirectory($from, $to);
+        } catch (ErrorException) {
+            return false;
+        }
+    }
+
+    /** Spec §11.1: downloads are not in the iCloud backup (they can be downloaded again). */
+    private function excludeDownloads(): void
+    {
+        File::ensureDirectoryExists(self::downloadsPath());
+        $this->bridge->excludeFromBackup(self::downloadsPath());
+    }
+
+    /**
+     * Page writes and folder moves of one chapter, one at a time across the UI, the queue worker
+     * and the async lane (the cache store is the shared database).
+     *
+     * @template T
+     *
+     * @param  callable(): T  $work
+     * @return T
+     */
+    private function locked(string $chapterId, callable $work): mixed
+    {
+        return Cache::lock("readex.pages.store.{$chapterId}", self::LOCK_SECONDS)->block(self::LOCK_WAIT_SECONDS, $work);
     }
 
     /** Every page is on the phone. */
@@ -156,17 +270,28 @@ final class PageStore
         return $stored === null ? null : $this->read($stored);
     }
 
-    /** Delete a chapter's folder and its stored_chapters row. */
-    public function evict(string $chapterId): void
+    /**
+     * Delete a cache chapter's folder and its stored_chapters row. A download is never evicted:
+     * the image cache works from a list read before another runtime may have promoted the chapter.
+     */
+    public function evict(string $chapterId): bool
     {
-        $stored = $this->stored($chapterId);
-
-        if ($stored === null) {
-            return;
+        if ($this->stored($chapterId) === null) {
+            return false;
         }
 
-        File::deleteDirectory($this->folder($stored));
-        $stored->delete();
+        return $this->locked($chapterId, function () use ($chapterId) {
+            $stored = $this->stored($chapterId);
+
+            if ($stored === null || $stored->tier !== 'cache') {
+                return false;
+            }
+
+            File::deleteDirectory($this->folder($stored));
+            $stored->delete();
+
+            return true;
+        });
     }
 
     /** Bytes on disk in the cache tier: chapter folders and cover thumbnails. */
@@ -227,7 +352,7 @@ final class PageStore
     private function folder(StoredChapter $stored): string
     {
         return match ($stored->tier) {
-            'local' => storage_path("app/public/downloads/{$stored->chapter_id}"),
+            'local' => self::downloadsPath()."/{$stored->chapter_id}",
             default => $this->cachesPath()."/chapters/{$stored->chapter_id}",
         };
     }
@@ -239,6 +364,11 @@ final class PageStore
             'local' => "storage/downloads/{$stored->chapter_id}",
             default => "storage/cache/chapters/{$stored->chapter_id}",
         };
+    }
+
+    private static function downloadsPath(): string
+    {
+        return storage_path('app/public/downloads');
     }
 
     private function cachesPath(): string

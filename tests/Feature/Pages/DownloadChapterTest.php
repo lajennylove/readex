@@ -1,5 +1,6 @@
 <?php
 
+use App\Downloads\Downloads;
 use App\Jobs\DownloadChapter;
 use App\Jobs\EnforceCacheCap;
 use App\MangaDex\RateLimit\Priority;
@@ -10,11 +11,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
+use Tests\Support\Stored;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 18:30:00', 'UTC'));
@@ -72,9 +73,11 @@ it('leaves a page another fetcher is downloading to it and checks back in 5 s', 
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy);
 });
 
-it('stores into the tier it was given', function () {
+it('stores a download into the local tier', function () {
+    Stored::useTempStorage();
     Pages::fake(count: 1);
     Pages::chapter('c1', ['pages' => 1]);
+    app(Downloads::class)->download('c1');
 
     runChapter('c1', 'local');
 
@@ -103,14 +106,14 @@ it('queues the cache cap when a cache run stops early too, and nothing for a dow
     runChapter('gone');
     Queue::assertNotPushed(EnforceCacheCap::class);
 
-    $storage = sys_get_temp_dir().'/readex-storage-'.bin2hex(random_bytes(4));
-    app()->useStoragePath($storage);
-    register_shutdown_function(fn () => File::deleteDirectory($storage));
+    Stored::useTempStorage();
     Http::swap(new Factory(app('events')));
     Pages::fake(count: 3);
     Pages::chapter('c3');
+    app(Downloads::class)->download('c3');
 
     runChapter('c3', 'local');
+    expect($this->store->pathFor('c3', 2))->toBe('storage/downloads/c3/003.jpg');
     Queue::assertNotPushed(EnforceCacheCap::class);
 });
 

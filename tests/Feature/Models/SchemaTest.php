@@ -30,6 +30,7 @@ it('creates every spec §6 table plus chapter_feeds', function (string $table, a
     ['collections', ['manga_id', 'favorite', 'preferred_group_id', 'paused', 'created_at']],
     ['reading_progress', ['chapter_id', 'manga_id', 'page', 'page_count', 'finished_at', 'updated_at']],
     ['stored_chapters', ['chapter_id', 'tier', 'quality', 'status', 'pages_done', 'page_count', 'bytes', 'last_opened_at', 'error']],
+    ['downloads', ['chapter_id', 'manga_id', 'batch', 'position', 'priority', 'started_at', 'finished_at', 'created_at']],
 ]);
 
 it('round-trips JSON columns and immutable dates on manga', function () {

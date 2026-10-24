@@ -2,7 +2,9 @@
     <native:column class="w-full gap-6 pb-6">
         @include('native.partials.status-line', ['line' => $line])
 
-        @if ($nothingSaved)
+        @if ($nothingSaved && $retrying)
+            @include('native.partials.empty-state', ['title' => 'MangaDex is having trouble', 'body' => 'Retrying on its own.'])
+        @elseif ($nothingSaved)
             <native:column class="w-full items-center gap-3 p-6">
                 <native:text class="text-lg font-bold text-theme-on-background">Nothing saved yet</native:text>
                 <native:text class="text-sm text-center text-theme-on-surface-variant">Home fills in once MangaDex can be reached.</native:text>

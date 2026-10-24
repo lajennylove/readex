@@ -118,7 +118,7 @@ it('does not load tags again when Setup already got them', function () {
 it('keeps going when one row fails', function () {
     Loading::fake(fn (Request $request) => str_ends_with(host($request), '/chapter') ? Http::response(['result' => 'error'], 500) : null);
 
-    expect(load())->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'failed', 'covers' => 'ok'])
+    expect(load())->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'unavailable', 'covers' => 'ok'])
         ->and(app(HomeRepository::class)->popular()->isEmpty())->toBeFalse();
 });
 

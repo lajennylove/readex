@@ -101,6 +101,7 @@ class Home extends NativeComponent
             'rows' => $tiles,
             'line' => $this->statusLine(),
             'nothingSaved' => $nothingSaved,
+            'retrying' => $this->retryingOutage(),
         ]);
     }
 }

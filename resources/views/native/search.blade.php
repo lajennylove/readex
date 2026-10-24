@@ -53,6 +53,8 @@
                                 @endfor
                             </native:column>
                         @endfor
+                    @elseif ($retrying)
+                        @include('native.partials.empty-state', ['title' => 'MangaDex is having trouble', 'body' => 'Retrying on its own.'])
                     @else
                         <native:column class="w-full items-center gap-3 p-6">
                             <native:text class="text-lg font-bold text-theme-on-background">No tags saved yet</native:text>
@@ -89,6 +91,8 @@
                     </native:row>
                 @endfor
             </native:column>
+        @elseif ($retrying)
+            @include('native.partials.empty-state', ['title' => 'MangaDex is having trouble', 'body' => 'Retrying on its own.'])
         @elseif ($line !== null)
             <native:column class="w-full items-center gap-3 p-6">
                 <native:text class="text-lg font-bold text-theme-on-background">Nothing saved for this search</native:text>

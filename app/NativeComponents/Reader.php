@@ -2,12 +2,15 @@
 
 namespace App\NativeComponents;
 
+use App\Jobs\PrefetchNext;
 use App\Models\Chapter;
 use App\Models\StoredChapter;
+use App\NativeComponents\Concerns\OpensChapters;
 use App\NativeLayouts\TabsLayout;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;
 use App\Repositories\LibraryRepository;
+use App\Storage\OpenChapter;
 use App\Storage\PageStore;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\View as Views;
@@ -32,6 +35,7 @@ use Native\Mobile\Facades\Network;
 class Reader extends NativeComponent
 {
     use HasVirtualListWindow;
+    use OpensChapters;
 
     /** Rows the list keeps beyond the visible ones, each side. */
     public const OVERSCAN = 2;
@@ -41,8 +45,6 @@ class Reader extends NativeComponent
 
     public string $chapterId = '';
 
-    public string $tab = 'home';
-
     /** First page in the list (0-based): the saved page; 0 after "Pages 1–N". */
     public int $start = 0;
 
@@ -50,6 +52,9 @@ class Reader extends NativeComponent
     public int $page = 0;
 
     public bool $barShown = false;
+
+    /** PrefetchNext was queued for this chapter. */
+    public bool $prefetched = false;
 
     /** ms of the last time the reader asked for its pages (offline retry). */
     public int $askedAt = 0;
@@ -65,13 +70,13 @@ class Reader extends NativeComponent
     public function mount(string $chapterId): void
     {
         $this->chapterId = $chapterId;
-        $this->tab = TabsLayout::tabOf($this->nativeRouter?->currentUri());
 
         $progress = app(LibraryRepository::class)->progressFor($chapterId);
         $this->start = $progress !== null && $progress->finished_at === null ? $progress->page : 0;
         $this->page = $this->start;
         $this->setVirtualWindow(0, self::FIRST_WINDOW);
 
+        app(OpenChapter::class)->set($chapterId);
         $this->markOpened();
         $this->askForPages();
     }
@@ -149,13 +154,9 @@ class Reader extends NativeComponent
             app(LibraryRepository::class)->saveProgress($this->chapterId, $count - 1, $count);
         }
 
-        if ($next->external_url !== null) {
-            Browser::inApp($next->external_url);
-
-            return;
+        if ($this->showChapter($next, replace: true)) {
+            app(OpenChapter::class)->set($next->id);
         }
-
-        $this->replace(self::uriFor($this->tab, $next->id));
     }
 
     /** A licensed chapter reached directly (Continue on an external chapter): the publisher's page. */
@@ -172,6 +173,8 @@ class Reader extends NativeComponent
     #[Poll(1000)]
     public function checkPages(): void
     {
+        $this->prefetchNext();
+
         $fetcher = app(PageFetcher::class);
 
         if (! $fetcher->isRunning($this->chapterId) && $this->restartIfShorter()) {
@@ -202,6 +205,7 @@ class Reader extends NativeComponent
         $this->forget();
         $this->saveProgress();
         $this->markOpened();
+        app(OpenChapter::class)->clear($this->chapterId);
 
         parent::unmount();
     }
@@ -364,6 +368,21 @@ class Reader extends NativeComponent
         $this->setVirtualWindow(0, self::FIRST_WINDOW);
 
         return true;
+    }
+
+    /**
+     * Once, when the chapter is all on the phone and the connection allows it. Queued from here,
+     * not earlier: the open chapter's own downloads come first on the phone's queue.
+     */
+    private function prefetchNext(): void
+    {
+        if ($this->prefetched || ! app(PageStore::class)->has($this->chapterId)) {
+            return;
+        }
+
+        $chapter = $this->chapter();
+
+        $this->prefetched = $chapter !== null && PrefetchNext::dispatchIfUnmetered($chapter->manga_id, $chapter->id);
     }
 
     /** Only once the chapter's page list is known: a chapter never loaded keeps its progress. */

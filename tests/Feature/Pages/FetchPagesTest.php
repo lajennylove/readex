@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\DownloadChapter;
+use App\Jobs\EnforceCacheCap;
 use App\MangaDex\RateLimit\Priority;
 use App\Models\StoredChapter;
 use App\Pages\FetchPages;
@@ -53,7 +54,26 @@ it('queues nothing once the whole chapter is on the phone', function () {
     $this->fetcher->want('c1', [0, 1]);
 
     expect($this->store->has('c1'))->toBeTrue();
-    Queue::assertNothingPushed();
+    Queue::assertNotPushed(DownloadChapter::class);
+});
+
+it('queues the cache cap once after a run that stored pages, not per page', function () {
+    Pages::fake(count: 3);
+    Pages::chapter('c1', ['pages' => 3]);
+
+    $this->fetcher->want('c1', [0, 1, 2]);
+
+    Queue::assertPushed(EnforceCacheCap::class, 1);
+});
+
+it('queues no cache cap after a run that stored nothing', function () {
+    Http::fake(fn () => throw new ConnectionException('offline'));
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Offline);
+    Queue::assertNotPushed(EnforceCacheCap::class);
 });
 
 it('never touches the network for pages already stored (Airplane mode, read yesterday)', function () {
@@ -134,7 +154,7 @@ it('marks a page failed after the fresh lookup and one retry; one lookup per run
         ->and($this->store->missing('c1'))->toBe([1, 2])
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Done)
         ->and(collect(Pages::requested())->filter(fn ($url) => str_ends_with($url, '/p3.jpg'))->count())->toBe(1);
-    Queue::assertNothingPushed();
+    Queue::assertNotPushed(DownloadChapter::class);
 });
 
 it('does not ask for a failed page again until Tap to retry', function () {

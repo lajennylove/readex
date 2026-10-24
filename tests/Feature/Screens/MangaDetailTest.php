@@ -178,7 +178,8 @@ it('continues where the reader left off, on the saved page shown from 1', functi
     expect(detailButtons($screen->tree()))->toContain('Continue · Ch. 12, page 5');
 
     $screen->tap('Continue · Ch. 12, page 5')
-        ->assertNativeCalled('Dialog.Toast', fn (array $p) => $p['message'] === 'Reader comes in the next phase');
+        ->assertNavigatedTo('/library/read/c-12')
+        ->assertNativeNotCalled('Dialog.Toast');
 });
 
 it('continues with the next chapter once the last one read is finished', function () {
@@ -405,7 +406,7 @@ it('shows every upload until the reader has a group, then one per number with th
         ->toBe(['Group B', 'Group B']);
 });
 
-it('opens a licensed chapter in the in-app browser and a readable one with the reader-later toast', function () {
+it('opens a licensed chapter in the in-app browser and a readable one in the reader', function () {
     detailSeries(DETAIL_SEEDED, ['es-la']);
     seededChapter('ext-1', DETAIL_SEEDED, '1', ['group_name' => 'MangaPlus', 'external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1000']);
     seededChapter('own-2', DETAIL_SEEDED, '2');
@@ -417,8 +418,35 @@ it('opens a licensed chapter in the in-app browser and a readable one with the r
         ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1000')
         ->assertNativeNotCalled('Browser.Open');
     $screen->tap('Ch. 2')
-        ->assertNativeCalled('Dialog.Toast', fn (array $p) => $p['message'] === 'Reader comes in the next phase')
+        ->assertNavigatedTo('/home/read/own-2')
+        ->assertNativeNotCalled('Dialog.Toast')
         ->assertNativeCalledTimes('Browser.OpenInApp', 1);
+});
+
+it('opens chapters and Continue in the tab the series was opened from, a licensed one in the in-app browser', function () {
+    detailSeries(DETAIL_SEEDED, ['es-la']);
+    seededChapter('own-2', DETAIL_SEEDED, '2');
+    seededChapter('ext-3', DETAIL_SEEDED, '3', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/3']);
+
+    Native::visit('/search/manga/'.DETAIL_SEEDED)->tap('Ch. 2')->assertNavigatedTo('/search/read/own-2');
+    Native::visit('/library/manga/'.DETAIL_SEEDED)->tap('Ch. 2')->assertNavigatedTo('/library/read/own-2');
+
+    app(LibraryRepository::class)->saveProgress('own-2', 4, 20);
+    Native::visit('/search/manga/'.DETAIL_SEEDED)->tap('Continue · Ch. 2, page 5')->assertNavigatedTo('/search/read/own-2');
+
+    app(LibraryRepository::class)->saveProgress('own-2', 19, 20);
+    Native::visit('/home/manga/'.DETAIL_SEEDED)->tap('Continue · Ch. 3')
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/3')
+        ->assertNoNavigation();
+});
+
+it('does nothing on Continue for a series never read, or on a chapter that is gone', function () {
+    detailSeries(DETAIL_SEEDED, ['es-la']);
+
+    Native::visit('/library/manga/'.DETAIL_SEEDED)->call('resumeReading')->call('openChapter', 'gone')
+        ->assertNoNavigation()
+        ->assertNativeNotCalled('Dialog.Toast')
+        ->assertNativeNotCalled('Browser.OpenInApp');
 });
 
 /** Titles of the cover tiles (w-28 pressables) in screen order. */

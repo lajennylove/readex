@@ -268,6 +268,25 @@ it('opens a tile in the Home tab', function () {
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$first->id}");
 });
 
+it('opens a Continue reading tile in the reader, a licensed one in the in-app browser, every other tile on the series', function () {
+    fillHome();
+    $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
+    app(LibraryRepository::class)->saveProgress($chapter->id, 4, 10);
+    $caption = Home::chapterLabel($chapter).' · 50%';
+    $other = collect(rowMangas()['season'])->first(fn ($m) => $m->id !== $chapter->manga_id);
+    $title = app(SettingsRepository::class)->chain()->title($other->title, $other->alt_titles ?? []);
+
+    Native::test(Home::class)->tap($caption)->assertNavigatedTo("/home/read/{$chapter->id}");
+    Native::visit('/library')->tap($caption)->assertNavigatedTo("/library/read/{$chapter->id}");
+    Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$other->id}");
+
+    $chapter->update(['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1']);
+
+    Native::test(Home::class)->tap($caption)
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1')
+        ->assertNoNavigation();
+});
+
 it('fetches the first 12 covers right away and queues the rest, in screen order', function () {
     fillHome();
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;

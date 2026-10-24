@@ -13,6 +13,7 @@ use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
 use App\Storage\PageStore;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -94,13 +95,35 @@ it('queues a chapter not on the phone, which begins in the downloads folder', fu
 
     expect(t7Queued())->toBe(['t7-new local prefetch'])
         ->and(StoredChapter::query()->find('t7-new'))->toBeNull()
-        ->and($this->downloads->status('t7-new')->caption())->toBe('Downloading 0%');
+        ->and($this->downloads->status('t7-new')->caption())->toBe('Queued');
 
     t7Run(Queue::pushed(DownloadChapter::class)->first());
 
     expect($this->store->pathFor('t7-new', 1))->toBe('storage/downloads/t7-new/002.jpg')
         ->and(is_dir("{$this->caches}/chapters/t7-new"))->toBeFalse()
         ->and($this->downloads->status('t7-new')->state)->toBe(DownloadState::Downloaded);
+});
+
+it('queues the job when the image cache drops the chapter between the check and the move', function () {
+    Stored::chapter('t7-ev', 2);
+    $lock = Cache::lock('readex.pages.store.t7-ev', 30, 'other-runtime');
+    expect($lock->get())->toBeTrue();
+    $evicted = false;
+    Sleep::whenFakingSleep(function () use ($lock, &$evicted) {
+        if (! $evicted) {
+            $evicted = true;
+            $lock->release();
+            app(PageStore::class)->evict('t7-ev');
+        }
+    });
+
+    $this->downloads->download('t7-ev');
+
+    expect($evicted)->toBeTrue()
+        ->and(StoredChapter::query()->find('t7-ev'))->toBeNull()
+        ->and(t7Queued())->toBe(['t7-ev local prefetch'])
+        ->and($this->downloads->isQueued('t7-ev'))->toBeTrue()
+        ->and($this->downloads->status('t7-ev')->caption())->toBe('Queued');
 });
 
 it('puts the series in the Library with the chapter\'s group as the preferred one, on any connection', function () {
@@ -338,12 +361,19 @@ describe('status', function () {
         $this->downloads->download('t7-s-zero');
         Download::query()->create(['chapter_id' => 't7-s-wait', 'manga_id' => 't7-m', 'batch' => 'b', 'position' => 1, 'priority' => 'bulk', 'created_at' => now()]);
         t7Chapter('t7-s-wait');
+        t7Chapter('t7-s-begun');
+        $this->downloads->download('t7-s-begun');
+        Stored::partial('t7-s-begun', 0, 4, tier: 'local');
+        Stored::partial('t7-s-read', 2, 4);
+        t7Chapter('t7-s-feed10', ['pages' => 10]);
+        Stored::partial('t7-s-feed10', 3, 4, tier: 'local');
+        Download::query()->create(['chapter_id' => 't7-s-read', 'manga_id' => 't7-m', 'batch' => 'b', 'position' => 2, 'priority' => 'bulk', 'created_at' => now()]);
 
         $queries = 0;
         DB::listen(function () use (&$queries) {
             $queries++;
         });
-        $states = $this->downloads->statuses(['t7-s-none', 't7-s-cached', 't7-s-done', 't7-s-stop', 't7-s-run', 't7-s-feed', 't7-s-zero', 't7-s-wait']);
+        $states = $this->downloads->statuses(['t7-s-none', 't7-s-cached', 't7-s-done', 't7-s-stop', 't7-s-run', 't7-s-feed', 't7-s-zero', 't7-s-wait', 't7-s-begun', 't7-s-read', 't7-s-feed10']);
 
         expect($queries)->toBe(1)
             ->and(array_map(fn ($s) => $s->caption(), $states))->toBe([
@@ -352,9 +382,21 @@ describe('status', function () {
                 't7-s-done' => 'Downloaded',
                 't7-s-stop' => 'Download stopped · 33%',
                 't7-s-run' => 'Downloading 25%',
-                't7-s-feed' => 'Downloading 0%',
-                't7-s-zero' => 'Downloading',
+                't7-s-feed' => 'Queued',
+                't7-s-zero' => 'Queued',
                 't7-s-wait' => 'Queued',
+                't7-s-begun' => 'Queued',
+                't7-s-read' => 'Queued',
+                't7-s-feed10' => 'Download stopped · 75%',
             ]);
+    });
+
+    it('says Queued until the first page is in the downloads, Downloading after', function () {
+        t7Chapter('t7-s-one');
+        $this->downloads->download('t7-s-one');
+        expect($this->downloads->status('t7-s-one')->state)->toBe(DownloadState::Queued);
+
+        Stored::partial('t7-s-one', 1, 4, tier: 'local');
+        expect($this->downloads->status('t7-s-one')->caption())->toBe('Downloading 25%');
     });
 });

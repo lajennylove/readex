@@ -13,9 +13,11 @@ use App\Storage\PageStore;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Sleep;
 use Tests\Support\Covers;
 use Tests\Support\Stored;
 
@@ -258,4 +260,30 @@ describe('downloaded chapters (Review Focus 8)', function () {
         Http::assertNothingSent();
         Queue::assertNotPushed(DownloadChapter::class);
     });
+
+    it('keeps a chapter another runtime downloads while the cap or Clear image cache is going through the list', function (string $run) {
+        $storage = Stored::useTempStorage();
+        Stored::chapter('t7-ic-old', 2, openedAt: '2026-10-20 10:00:00');
+        Stored::chapter('t7-ic-moved', 2, openedAt: '2026-10-21 10:00:00');
+        capAt(0);
+        $lock = Cache::lock('readex.pages.store.t7-ic-moved', 30, 'other-runtime');
+        expect($lock->get())->toBeTrue();
+        Sleep::fake();
+        $promoted = false;
+        Sleep::whenFakingSleep(function () use ($lock, &$promoted) {
+            if (! $promoted) {
+                $promoted = true;
+                $lock->release();
+                app(PageStore::class)->promote('t7-ic-moved');
+            }
+        });
+
+        $run === 'cap' ? enforceCap() : app(ImageCache::class)->clear();
+
+        expect($promoted)->toBeTrue()
+            ->and(cachedIds())->toBe(['t7-ic-moved'])
+            ->and(StoredChapter::query()->find('t7-ic-moved')->tier)->toBe('local')
+            ->and(is_file("{$storage}/app/public/downloads/t7-ic-moved/002.jpg"))->toBeTrue()
+            ->and($this->store->has('t7-ic-moved'))->toBeTrue();
+    })->with(['cap', 'clear']);
 });

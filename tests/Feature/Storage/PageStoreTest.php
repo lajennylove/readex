@@ -343,6 +343,39 @@ describe('promote and demote', function () {
         expect($bridge->excluded)->toBe(["{$this->storage}/app/public/downloads", "{$this->storage}/app/public/downloads"]);
     });
 
+    it('never evicts a download: only a chapter still in the cache tier goes', function () {
+        Stored::chapter('t7-p7', 2, tier: 'local');
+        Stored::chapter('t7-p8', 2);
+
+        expect($this->pages->evict('t7-p7'))->toBeFalse()
+            ->and($this->pages->evict('t7-p8'))->toBeTrue()
+            ->and($this->pages->evict('t7-p8'))->toBeFalse()
+            ->and($this->pages->has('t7-p7'))->toBeTrue()
+            ->and(is_file("{$this->storage}/app/public/downloads/t7-p7/002.jpg"))->toBeTrue()
+            ->and(StoredChapter::query()->find('t7-p8'))->toBeNull();
+    });
+
+    it('keeps the chapter where it was when its folder can be neither renamed nor copied whole', function () {
+        Stored::chapter('t7-p9', 2);
+        $folder = "{$this->caches}/chapters/t7-p9";
+        chmod("{$folder}/002.jpg", 0000);
+        chmod($folder, 0555);
+
+        try {
+            $moved = $this->pages->promote('t7-p9');
+        } finally {
+            chmod($folder, 0755);
+            chmod("{$folder}/002.jpg", 0644);
+        }
+
+        expect($moved)->toBeFalse()
+            ->and(StoredChapter::query()->find('t7-p9')->tier)->toBe('cache')
+            ->and(is_file("{$folder}/001.jpg"))->toBeTrue()
+            ->and(is_file("{$folder}/002.jpg"))->toBeTrue()
+            ->and(is_dir("{$this->storage}/app/public/downloads/t7-p9"))->toBeFalse()
+            ->and($this->pages->has('t7-p9'))->toBeTrue();
+    });
+
     it('lands a page put during a promote in the downloads folder, with no folder left in the cache tier', function () {
         Stored::partial('t7-p1', 1, 3);
         $lock = Cache::lock('readex.pages.store.t7-p1', 30, 'other-runtime');

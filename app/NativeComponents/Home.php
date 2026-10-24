@@ -6,7 +6,6 @@ use App\Models\Manga;
 use App\NativeComponents\Concerns\RefreshesData;
 use App\NativeComponents\Concerns\ShowsTiles;
 use App\Refresh\Refresh;
-use App\Repositories\ContinueReading;
 use App\Repositories\HomeRepository;
 use App\Repositories\LatestUpdate;
 use App\Repositories\Result;
@@ -15,9 +14,9 @@ use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
 /**
- * Spec §5.7: Continue reading (local, only when something is started), then the three
- * MangaDex rows. Each row refreshes on its own when empty or stale; an empty row keeps its
- * place with placeholder tiles until it loads (Review Focus 2).
+ * Spec §5.7: the three MangaDex rows (D37: no Continue reading row; the resume bar is the shortcut).
+ * Each row refreshes on its own when empty or stale; an empty row keeps its place with
+ * placeholder tiles until it loads (Review Focus 2).
  */
 class Home extends NativeComponent
 {
@@ -49,7 +48,7 @@ class Home extends NativeComponent
 
     protected function load(): void
     {
-        $mangas = $this->continueReading()->map(fn (ContinueReading $c) => $c->manga)->all();
+        $mangas = [];
 
         foreach ($this->rows() as $key => $result) {
             $this->keepFresh($result, Refresh::of([HomeRepository::class, self::REFRESH[$key]]));
@@ -97,7 +96,6 @@ class Home extends NativeComponent
         $nothingSaved = $this->problems !== [] && $this->refreshing === [] && $this->waiting === [] && array_filter($tiles) === [];
 
         return view('native.home', [
-            'continue' => $this->continueReading()->map(fn (ContinueReading $c) => $this->continueTile($c, $chain))->all(),
             'rows' => $tiles,
             'line' => $this->statusLine(),
             'nothingSaved' => $nothingSaved,

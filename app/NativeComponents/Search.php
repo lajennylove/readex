@@ -5,7 +5,9 @@ namespace App\NativeComponents;
 use App\Models\Manga;
 use App\Models\Tag;
 use App\NativeComponents\Concerns\RefreshesData;
+use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeComponents\Concerns\ShowsTiles;
+use App\NativeLayouts\HasResumeBar;
 use App\Refresh\Refresh;
 use App\Repositories\MangaRepository;
 use App\Repositories\Result;
@@ -25,10 +27,11 @@ use Native\Mobile\Edge\NativeComponent;
  * include rated content (`readex.rated_content`), it comes after everything else, under a divider
  * and its own title row; otherwise the results stay one grid.
  */
-class Search extends NativeComponent
+class Search extends NativeComponent implements HasResumeBar
 {
     use HasVirtualListWindow;
     use RefreshesData;
+    use ShowsResumeBar;
     use ShowsTiles;
 
     public const COLUMNS = 3;

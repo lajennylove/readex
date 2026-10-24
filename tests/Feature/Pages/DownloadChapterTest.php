@@ -60,15 +60,16 @@ it('resumes from what is on disk, also after iOS purged a page', function () {
         ->and($this->store->has('c1'))->toBeTrue();
 });
 
-it('leaves a page another fetcher is downloading to it', function () {
+it('leaves a page another fetcher is downloading to it and checks back in 5 s', function () {
     Pages::fake(count: 3);
     Pages::chapter('c1');
     cache()->add('readex.pages.claim.c1.1', true, 60);
 
-    runChapter('c1');
+    runChapter('c1')->assertReleased(5);
 
     expect($this->store->missing('c1'))->toBe([1])
-        ->and(Pages::requested())->not->toContain('a.mangadex.network/data-saver/h1/p2.jpg');
+        ->and(Pages::requested())->not->toContain('a.mangadex.network/data-saver/h1/p2.jpg')
+        ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy);
 });
 
 it('stores into the tier it was given', function () {
@@ -127,7 +128,7 @@ it('stops taking pages after 40 s and releases itself to continue', function () 
     expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg'])
         ->and($this->store->missing('c1'))->toBe([2])
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy)
-        ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->not->toBe('done');
+        ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->toBe('partial');
 });
 
 it('continues the next slice from the first missing page and finishes it', function () {

@@ -96,6 +96,18 @@ function rowItems(array $node, string $label): ?array
     return null;
 }
 
+/** Row labels, in screen order. */
+function rowLabels(array $node): array
+{
+    $children = $node['children'] ?? [];
+
+    if (($children[0]['type'] ?? null) === 'text' && ($children[1]['type'] ?? null) === 'scroll_view') {
+        return [$children[0]['props']['text']];
+    }
+
+    return array_merge([], ...array_map('rowLabels', $children));
+}
+
 function rowMangas(): array
 {
     $home = app(HomeRepository::class);
@@ -121,24 +133,18 @@ it('fills every row on the first visit', function () {
     expect(homeNodes($screen->tree(), 'pressable'))->toHaveCount(array_sum(array_map('count', $rows)));
 });
 
-it('shows Continue reading first, then This season, Popular new and Latest updates', function () {
+it('starts with This season, then Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
     fillHome();
+    $rows = ['This season', 'Popular new titles', 'Latest updates'];
+    expect(rowLabels(Native::test(Home::class)->tree()))->toBe($rows);
+
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
     app(LibraryRepository::class)->saveProgress($chapter->id, 3, 10);
+    $tree = Native::test(Home::class)->tree();
 
-    $texts = homeTexts(Native::test(Home::class)->tree());
-    $at = fn (string $label) => array_search($label, $texts, true);
-
-    expect($at('Continue reading'))->toBeLessThan($at('This season'))
-        ->and($at('This season'))->toBeLessThan($at('Popular new titles'))
-        ->and($at('Popular new titles'))->toBeLessThan($at('Latest updates'))
-        ->and($texts)->toContain(Home::chapterLabel($chapter).' · 40%');
-});
-
-it('leaves Continue reading out when nothing is started', function () {
-    fillHome();
-
-    Native::test(Home::class)->assertSee('This season')->assertDontSee('Continue reading');
+    expect(rowLabels($tree))->toBe($rows)
+        ->and(homeTexts($tree))->not->toContain('Continue reading')
+        ->not->toContain(Home::chapterLabel($chapter).' · 40%');
 });
 
 it('badges the series that have the reading language (spec §10)', function () {
@@ -302,7 +308,7 @@ it('opens a tile in the Home tab', function () {
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$first->id}");
 });
 
-it('opens a Continue reading tile in the reader, a licensed one in the in-app browser, every other tile on the series', function () {
+it('opens every Home tile on the series; the Library placeholder opens a Continue reading tile in the reader, a licensed one in the in-app browser', function () {
     fillHome();
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
     app(LibraryRepository::class)->saveProgress($chapter->id, 4, 10);
@@ -310,33 +316,34 @@ it('opens a Continue reading tile in the reader, a licensed one in the in-app br
     $other = collect(rowMangas()['season'])->first(fn ($m) => $m->id !== $chapter->manga_id);
     $title = app(SettingsRepository::class)->chain()->title($other->title, $other->alt_titles ?? []);
 
-    Native::test(Home::class)->tap($caption)->assertNavigatedTo("/home/read/{$chapter->id}");
-    Native::visit('/library')->tap($caption)->assertNavigatedTo("/library/read/{$chapter->id}");
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$other->id}");
+    Native::visit('/library')->tap($caption)->assertNavigatedTo("/library/read/{$chapter->id}");
 
     $chapter->update(['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1']);
 
-    Native::test(Home::class)->tap($caption)
+    Native::visit('/library')->tap($caption)
         ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1')
         ->assertNoNavigation();
 });
 
-it('fetches the first 12 covers right away and queues the rest, in screen order', function () {
+it('fetches the first 12 covers right away and queues the rest, in screen order, without the started series in front', function () {
     fillHome();
-    $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
-    app(LibraryRepository::class)->saveProgress($chapter->id, 0, 10);
     $rows = rowMangas();
-    $order = array_map(fn ($m) => $m->id, [app(HomeRepository::class)->latest()->data->first()->manga, ...$rows['season'], ...$rows['popular'], ...$rows['latest']]);
+    $started = collect(app(HomeRepository::class)->latest()->data)->first(fn (LatestUpdate $u) => $u->manga->id !== $rows['season'][0]->id);
+    app(LibraryRepository::class)->saveProgress($started->chapter->id, 0, 10);
+    $order = array_map(fn ($m) => $m->id, [...$rows['season'], ...$rows['popular'], ...$rows['latest']]);
+    $continueFirst = [$started->manga->id, ...$order];
 
     Native::test(Home::class);
 
     $jobs = Queue::pushed(DownloadCovers::class)->values();
     expect(Covers::fetched($this->async))->toBe(array_values(array_unique(array_slice($order, 0, 12))))
+        ->not->toBe(array_values(array_unique(array_slice($continueFirst, 0, 12))))
         ->and($jobs)->toHaveCount(1)
         ->and($jobs[0]->priority)->toBe(Priority::Prefetch);
 });
 
-it('shows Continue reading on the Library placeholder too (choice 2)', function () {
+it('keeps Continue reading on the Library placeholder until the Phase 6 grid, never on Home (choice 2, D37)', function () {
     fillHome();
     Native::test(Library::class)->assertSee('Your series will show up here')->assertDontSee('Continue reading');
 
@@ -350,6 +357,7 @@ it('shows Continue reading on the Library placeholder too (choice 2)', function 
         ->assertSee('Your series will show up here');
 
     expect(Covers::fetched($this->async))->toContain($chapter->manga_id);
+    Native::test(Home::class)->assertSee('This season')->assertDontSee('Continue reading');
 });
 
 it('renders Home and Library without dropped Tailwind classes', function () {
@@ -368,7 +376,7 @@ it('renders Home and Library without dropped Tailwind classes', function () {
     Loading::fake();
     fillHome();
     app(LibraryRepository::class)->saveProgress(app(HomeRepository::class)->latest()->data->first()->chapter->id, 0, 10);
-    Native::test(Home::class)->assertSee('Continue reading');
+    Native::test(Home::class)->assertSee('This season');
     Native::test(Library::class)->assertSee('Continue reading');
 
     expect($dropped)->toBe([]);

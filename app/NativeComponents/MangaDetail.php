@@ -2,12 +2,16 @@
 
 namespace App\NativeComponents;
 
+use App\Downloads\Downloads;
+use App\Downloads\DownloadState;
+use App\Downloads\DownloadStatus;
 use App\Language\Languages;
 use App\Models\Chapter;
 use App\Models\Collection as LibraryEntry;
 use App\Models\Manga;
 use App\Models\ReadingProgress;
 use App\Models\Statistic;
+use App\NativeComponents\Concerns\ManagesDownloads;
 use App\NativeComponents\Concerns\RefreshesData;
 use App\NativeComponents\Concerns\ShowsTiles;
 use App\NativeLayouts\TabsLayout;
@@ -30,9 +34,11 @@ use Native\Mobile\Edge\NativeComponent;
  * reader left off (`LibraryRepository::resume()`), Favorite, description, More like this, then
  * the chapter list of one language in volume sections, the chapter Continue opens highlighted.
  * More like this sits above the chapters: under a 700-chapter list nobody would reach it.
+ * A readable row asks Read or a download action; Download all sits under Favorite (§11.3).
  */
 class MangaDetail extends NativeComponent
 {
+    use ManagesDownloads;
     use RefreshesData;
     use ShowsTiles;
 
@@ -109,13 +115,22 @@ class MangaDetail extends NativeComponent
         }
     }
 
-    /** Chapter row tap. */
+    /** Chapter row tap: a licensed chapter opens at the publisher, a readable one asks Read / Download first. */
     public function readChapter(string $chapterId): void
     {
         $chapter = Chapter::query()->find($chapterId);
 
-        if ($chapter !== null) {
-            $this->showChapter($chapter);
+        if ($chapter === null) {
+            return;
+        }
+
+        $chapter->external_url === null ? $this->askChapterAction($chapter) : $this->showChapter($chapter);
+    }
+
+    public function downloadAll(): void
+    {
+        if ($this->language !== '') {
+            $this->askDownloadAll($this->mangaId, $this->language);
         }
     }
 
@@ -159,6 +174,7 @@ class MangaDetail extends NativeComponent
                 ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $languages)
                 : [],
             'sections' => $this->language === '' ? [] : $this->chapterSections($current),
+            'downloadAll' => $this->language === '' ? null : $this->downloadAllButton($this->mangaId, $this->language),
             'loadingChapters' => $this->language !== '' && $this->inFlight(Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language)),
             'languageName' => $this->language === '' ? null : Languages::name($this->language),
         ]);
@@ -169,7 +185,7 @@ class MangaDetail extends NativeComponent
      * upload per number (theirs first, `LibraryRepository::sections()`); before that, every
      * upload, so the reader can see which groups translate it.
      *
-     * @return list<array{volume: string, chapters: list<array{id: string, label: string, caption: string, current: bool, read: bool}>}>
+     * @return list<array{volume: string, chapters: list<array{id: string, label: string, caption: string, a11y: string, current: bool, read: bool, downloaded: bool}>}>
      */
     private function chapterSections(?ContinueReading $current): array
     {
@@ -190,22 +206,29 @@ class MangaDetail extends NativeComponent
             ], $sections);
         }
 
+        $downloads = app(Downloads::class)->statuses(collect($sections)->flatMap(fn (array $s) => $s['chapters']->map(fn (array $pair) => $pair[0]->id))->all());
+
         return array_map(fn (array $s) => [
             'volume' => $s['volume'] === null ? 'No volume yet' : "Volume {$s['volume']}",
-            'chapters' => $s['chapters']->map(fn (array $pair) => self::chapterRow($pair[0], $pair[1], $current?->chapter->id === $pair[0]->id))->values()->all(),
+            'chapters' => $s['chapters']->map(fn (array $pair) => self::chapterRow($pair[0], $pair[1], $current?->chapter->id === $pair[0]->id, $downloads[$pair[0]->id]))->values()->all(),
         ], $sections);
     }
 
     /**
      * "Ch. 12 · Title" over "Group · Page 5 of 20" / "Group · Read" / "Group · Up next"; a
-     * licensed chapter says where it opens instead of its status.
+     * licensed chapter says where it opens instead of its status, a queued or downloaded one its
+     * download state ("Downloading 45%"). A finished chapter stays dimmed either way.
      *
-     * @return array{id: string, label: string, caption: string, current: bool, read: bool}
+     * @return array{id: string, label: string, caption: string, a11y: string, current: bool, read: bool, downloaded: bool}
      */
-    public static function chapterRow(Chapter $chapter, ?ReadingProgress $progress, bool $current): array
+    public static function chapterRow(Chapter $chapter, ?ReadingProgress $progress, bool $current, ?DownloadStatus $download = null): array
     {
+        $label = implode(' · ', array_filter([self::chapterLabel($chapter), $chapter->title]));
+        $downloadState = $download?->caption();
+
         $status = match (true) {
             $chapter->external_url !== null => 'Opens on '.(parse_url($chapter->external_url, PHP_URL_HOST) ?: 'the web'),
+            $downloadState !== null => $downloadState,
             $progress?->finished_at !== null => 'Read',
             $progress !== null => 'Page '.($progress->page + 1).' of '.$progress->page_count,
             $current => 'Up next',
@@ -214,10 +237,12 @@ class MangaDetail extends NativeComponent
 
         return [
             'id' => $chapter->id,
-            'label' => implode(' · ', array_filter([self::chapterLabel($chapter), $chapter->title])),
+            'label' => $label,
             'caption' => implode(' · ', array_filter([$chapter->group_name ?? 'No group', $status])),
+            'a11y' => $downloadState === null ? $label : "{$label}, {$downloadState}",
             'current' => $current,
             'read' => $progress?->finished_at !== null,
+            'downloaded' => $download?->state === DownloadState::Downloaded,
         ];
     }
 

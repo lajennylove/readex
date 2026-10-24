@@ -68,6 +68,8 @@ return [
     'reader' => [
         // Points. PHP gets no screen width; only used for the height of rows outside the list window (iPhone 17 Pro Max).
         'width' => 440,
+        // Points. The page viewer's height below the nav bar (same phone), for how far a zoomed page may pan.
+        'viewer_height' => 820,
         // Width / height of a page before any page of the chapter is stored (a typical manga page).
         'page_ratio' => [5, 7],
         // Pages past the list window the reader asks for, so the next ones are there before they scroll in.

@@ -112,6 +112,14 @@ describe('put', function () {
             ->and(is_dir("{$this->caches}/chapters/c1"))->toBeFalse();
     });
 
+    it('says the chapter is gone for a page of a chapter iOS purged meanwhile, and writes no folder back', function () {
+        $this->pages->begin(Pages::chapter('c1'), 'data-saver', 3);
+        File::deleteDirectory("{$this->caches}/chapters/c1");
+
+        expect(fn () => $this->pages->put('c1', 0, Pages::image()))->toThrow(ChapterGone::class)
+            ->and(is_dir("{$this->caches}/chapters/c1"))->toBeFalse();
+    });
+
     it('replaces a page stored again (no double count)', function () {
         $this->pages->begin(Pages::chapter(), 'data-saver', 3);
         $this->pages->put('c1', 0, Pages::image(4, 6, 'png'));

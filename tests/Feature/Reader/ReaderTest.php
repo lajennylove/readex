@@ -4,6 +4,7 @@ use App\Jobs\DownloadChapter;
 use App\Models\Collection as LibraryEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
+use App\NativeComponents\MangaDetail;
 use App\NativeComponents\Reader;
 use App\Pages\FetchPages;
 use App\Pages\LoadState;
@@ -18,9 +19,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use Native\Mobile\AsyncTask;
+use Native\Mobile\Edge\Element;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
+use Tests\Support\Skeletons;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-24 02:30:00', 'UTC'));
@@ -37,9 +40,9 @@ function readerRows(array $tree): array
 {
     $list = readerFind($tree, 'virtual_list');
 
-    return $list === null ? [] : array_map(fn (array $row) => match ($row['type']) {
-        'image' => $row['props']['alt'],
-        'stack' => 'skeleton',
+    return $list === null ? [] : array_map(fn (array $row) => match (true) {
+        $row['type'] === 'image' => $row['props']['alt'],
+        $row['type'] === 'stack', Skeletons::all($row) !== [] => 'skeleton',
         default => implode(' | ', readerTexts($row)),
     }, $list['children'] ?? []);
 }
@@ -286,13 +289,92 @@ it('opens from page 1 as soon as pages land shorter than the saved page, before 
     expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
 });
 
-it('hides the bar while reading; a tap on a page shows it', function () {
+it('opens with the bar shown; a tap on a page hides it, another shows it', function () {
     readerStored('c1', 3);
 
-    $screen = Native::visit('/home/read/c1')->assertNavBarHidden();
-
-    $screen->call('toggleBar')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
+    $screen = Native::visit('/home/read/c1')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
     expect(readerFind($screen->tree(), 'image'))->toHaveKey('on_press');
+
+    $screen->press('toggleBar')->assertNavBarHidden()
+        ->press('toggleBar')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
+});
+
+it('never hides the bar while loading, offline, unavailable, external or missing, so back is always there', function (Closure $arrange, Closure $shows) {
+    $arrange();
+
+    $screen = Native::visit('/home/read/c1')->assertNavBarVisible();
+    $shows($screen->tree());
+
+    $screen->call('toggleBar')->assertNavBarVisible()
+        ->call('toggleBar')->assertNavBarVisible()
+        ->call('toggleBar')->assertNavBarVisible();
+    $shows($screen->tree());
+    expect(readerFind($screen->tree(), 'virtual_list'))->toBeNull();
+})->with([
+    'loading' => [function () {
+        Pages::chapter('c1', ['pages' => 0]);
+        Cache::put('readex.pages.running.c1', true, 60);
+    }, fn (array $tree) => expect(array_column(Skeletons::pulsing($tree), 'id'))->toBe([Element::fnv1a32('/reader-loading-1'), Element::fnv1a32('/reader-loading-2')])],
+    'offline' => [function () {
+        Pages::chapter('c1', ['pages' => 3]);
+        readerOffline();
+    }, fn (array $tree) => expect(readerTexts($tree))->toContain('Needs internet')],
+    'unavailable' => [function () {
+        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
+        Pages::chapter('c1', ['pages' => 3]);
+    }, fn (array $tree) => expect(readerTexts($tree))->toContain('Not available')],
+    'external' => [function () {
+        Pages::fake();
+        Pages::chapter('c1', ['pages' => 0, 'external_url' => 'https://mangaplus.shueisha.co.jp/viewer/12']);
+    }, fn (array $tree) => expect(readerTexts($tree))->toContain('Opens on mangaplus.shueisha.co.jp')],
+    'missing' => [fn () => null, fn (array $tree) => expect(readerTexts($tree))->toContain('Chapter not found')],
+]);
+
+it('goes back to the series from a chapter that is not available', function () {
+    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
+    Pages::chapter('c1', ['pages' => 3]);
+
+    $reader = Native::visit('/home/manga/m1')->call('openChapter', 'c1')->assertNavigatedTo('/home/read/c1')
+        ->follow()->assertScreen(Reader::class)->assertSee('Not available')->assertNavBarVisible();
+
+    $reader->pressBack()->assertWentBack();
+    $reader->goBack()->assertScreen(MangaDetail::class);
+});
+
+it('shows the bar again when the pages go away while it was hidden', function (LoadState $state, string $text) {
+    readerStored('c1', 3);
+
+    $screen = Native::visit('/home/read/c1')->press('toggleBar')->assertNavBarHidden();
+
+    app(PageStore::class)->evict('c1');
+    app(PageFetcher::class)->record('c1', $state);
+
+    $screen->firePoll('checkPages')->assertSee($text)->assertNavBarVisible();
+})->with([
+    'offline' => [LoadState::Offline, 'Needs internet'],
+    'unavailable' => [LoadState::Unavailable, 'Not available'],
+]);
+
+it('toggles the bar from a page still on its way, its skeleton keys unchanged', function () {
+    $store = app(PageStore::class);
+    $store->begin(Pages::chapter('c1', ['pages' => 4]), 'data-saver', 4);
+    Cache::put('readex.pages.running.c1', true, 60);
+
+    $collisions = Skeletons::keyCollisions(fn () => $this->screen = Native::visit('/home/read/c1'));
+    $screen = $this->screen->assertNavBarVisible();
+    $rows = array_slice(readerFind($screen->tree(), 'virtual_list')['children'], 1);
+    $expressions = (fn () => $this->nativeCallbacks->expressions())->call($screen->instance());
+
+    expect($collisions)->toBe([])
+        ->and(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'skeleton', 'skeleton'])
+        ->and(array_map(fn (array $row) => array_search($row['on_press'] ?? null, $expressions, true), $rows))->toBe(['toggleBar', 'toggleBar'])
+        ->and(array_map(fn (array $row) => $row['props']['a11y_label'] ?? null, $rows))->toBe(['Page 1, loading', 'Page 2, loading'])
+        ->and(array_column($rows, 'id'))->toBe([Element::fnv1a32('/page-1-tap'), Element::fnv1a32('/page-2-tap')])
+        ->and(array_column(Skeletons::pulsing($screen->tree()), 'id'))->toBe([Element::fnv1a32('/page-1-tap/page-1'), Element::fnv1a32('/page-2-tap/page-2')])
+        ->and(Skeletons::pulsing($rows[0])[0]['layout']['aspect_ratio'])->toEqual(5 / 7);
+
+    $screen->press('toggleBar')->assertNavBarHidden()
+        ->press('toggleBar')->assertNavBarVisible();
 });
 
 it('ends with the credit and Next: Ch. 13, which marks this one read and opens the next in the same tab', function () {

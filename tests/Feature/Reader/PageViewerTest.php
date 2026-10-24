@@ -122,13 +122,13 @@ it('keeps single tap on a page for the bar, double-tap on stored pages only', fu
 
     expect($image)->toHaveKey('on_press')
         ->and($image['props'])->toHaveKey('on_double_tap');
-    $reader->call('toggleBar')->assertNavBarVisible()->assertNoNavigation();
+    $reader->call('toggleBar')->assertNavBarHidden()->assertNoNavigation();
 });
 
-it('shows the stored page full screen, black, bar hidden; a tap toggles the bar', function () {
+it('shows the stored page full screen, black, bar shown so back is there; a tap toggles the bar', function () {
     viewerStored('c1', 12);
 
-    $viewer = Native::visit('/home/read/c1/page/6')->assertScreen(PageViewer::class)->assertNavBarHidden();
+    $viewer = Native::visit('/home/read/c1/page/6')->assertScreen(PageViewer::class)->assertNavBarVisible();
     $image = viewerNode($viewer->tree(), 'image');
 
     expect($image['props']['src'])->toBe(app(PageStore::class)->pages('c1')[5]['src'])
@@ -139,8 +139,8 @@ it('shows the stored page full screen, black, bar hidden; a tap toggles the bar'
         ->and(json_encode($viewer->tree()))->toContain('#000000');
 
     $viewer->assertNavTitle('Ch. 12 · 6 / 12')
-        ->press('toggleBar')->assertNavBarVisible()
-        ->press('toggleBar')->assertNavBarHidden();
+        ->press('toggleBar')->assertNavBarHidden()
+        ->press('toggleBar')->assertNavBarVisible();
     $this->async->assertNotDispatched();
     Queue::assertNothingPushed();
     expect(Http::recorded())->toHaveCount(0);
@@ -195,7 +195,7 @@ it('never opens the viewer for a failed page or a skeleton', function () {
     $reader->call('openPage', 0)->assertNoNavigation();
 });
 
-it('comes back to the reader where it was: same page, window, bar, progress, open time, open chapter and prefetch (Review Focus 1)', function () {
+it('comes back to the reader where it was: same page, window, hidden bar, progress, open time, open chapter and prefetch (Review Focus 1)', function () {
     viewerStored('c1', 12);
     app(LibraryRepository::class)->saveProgress('c1', 4, 12);
     Stored::network(Stored::wifi());
@@ -220,14 +220,14 @@ it('comes back to the reader where it was: same page, window, bar, progress, ope
         ->and($reader->get('page'))->toBe(7)
         ->and($reader->get('virtualWindowFrom'))->toBe(2)
         ->and($reader->get('virtualWindowTo'))->toBe(6)
-        ->and($reader->get('barShown'))->toBeTrue()
+        ->and($reader->get('barShown'))->toBeFalse()
         ->and(ReadingProgress::query()->find('c1'))->page->toBe(7)
         ->and(ReadingProgress::query()->find('c1')->updated_at->toDateTimeString())->toBe($savedAt)
         ->and(StoredChapter::query()->find('c1')->last_opened_at->toDateTimeString())->toBe(VIEWER_OPENED_AT)
         ->and(viewerRowImage($reader->tree(), 'Page 8'))->not->toBeNull()
         ->and(app(OpenChapter::class)->id())->toBe('c1')
         ->and($reader->get('prefetched'))->toBeTrue();
-    $reader->assertNavBarVisible()->assertNavTitle('Ch. 12 · 8 / 12');
+    $reader->assertNavBarHidden()->assertNavTitle('Ch. 12 · 8 / 12');
 
     $reader->firePoll('checkPages');
     Queue::assertPushed(PrefetchNext::class, 1);

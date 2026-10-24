@@ -17,12 +17,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Sleep;
 use Native\Mobile\AsyncTask;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 18:30:00', 'UTC'));
+    Sleep::fake(syncWithCarbon: true);
     Covers::useTempCaches();
     $this->async = AsyncTask::fake();
     Queue::fake();
@@ -290,6 +292,54 @@ it('is unavailable when MangaDex no longer serves the chapter', function () {
 
     expect($this->fetcher->state('c1'))->toBe(LoadState::Unavailable);
     Queue::assertNothingPushed();
+});
+
+it('is unavailable for any other 4xx answer to the lookup', function (int $status) {
+    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error', 'errors' => [['status' => $status]]], $status)]);
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Unavailable);
+    Queue::assertNothingPushed();
+})->with([400, 410]);
+
+it('is retrying, not unavailable, when the lookup meets a MangaDex outage, limit or ban, and queues the chapter', function (int $status, array|string $body) {
+    Http::fake(['api.mangadex.org/at-home/server/*' => Http::response($body, $status)]);
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Retrying)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and(StoredChapter::query()->count())->toBe(0);
+    Queue::assertPushed(DownloadChapter::class, fn (DownloadChapter $job) => $job->chapterId === 'c1' && $job->priority === Priority::Interactive);
+})->with([
+    '503' => [503, ['result' => 'error', 'errors' => [['status' => 503, 'title' => 'Service Unavailable']]]],
+    '500' => [500, ''],
+    '429' => [429, ['result' => 'error', 'errors' => [['status' => 429]]]],
+    '403 ban' => [403, '<html>Forbidden</html>'],
+    '403 error' => [403, ['result' => 'error', 'errors' => [['status' => 403]]]],
+]);
+
+it('is retrying, without marking the page failed, when the fresh lookup after a dead node meets a 503', function () {
+    $lookups = 0;
+    Http::fake(function (Request $request) use (&$lookups) {
+        if (str_contains($request->url(), '/at-home/server/')) {
+            return $lookups++ === 0 ? Http::response(Pages::atHome('https://dead.mangadex.network')) : Http::response('', 503);
+        }
+
+        return str_contains($request->url(), 'dead.') ? Http::response('', 502) : Http::response(['result' => 'ok']);
+    });
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0, 1]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Retrying)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and($this->store->missing('c1'))->toBe([0, 1, 2])
+        ->and($lookups)->toBe(2);
+    Queue::assertPushed(DownloadChapter::class, 1);
 });
 
 it('is unavailable when the @Home lookup lists no pages, and saves nothing', function () {

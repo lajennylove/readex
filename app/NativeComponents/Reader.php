@@ -231,7 +231,7 @@ class Reader extends NativeComponent
         }
     }
 
-    /** Offline: ask again every `offline_retry_seconds` unless the phone says it has no connection. */
+    /** Offline or MangaDex trouble: ask again every `offline_retry_seconds` unless the phone says it has no connection. */
     #[Poll(1000)]
     public function checkPages(): void
     {
@@ -245,7 +245,7 @@ class Reader extends NativeComponent
             return;
         }
 
-        if ($fetcher->state($this->chapterId) !== LoadState::Offline || $fetcher->isRunning($this->chapterId)) {
+        if (! in_array($fetcher->state($this->chapterId), [LoadState::Offline, LoadState::Retrying], true) || $fetcher->isRunning($this->chapterId)) {
             return;
         }
 
@@ -298,8 +298,8 @@ class Reader extends NativeComponent
     }
 
     /**
-     * missing / external / unavailable / offline (never stored, no connection) / loading (no
-     * page count yet) / pages.
+     * missing / external / unavailable / offline (never stored, no connection) / retrying (never
+     * stored, MangaDex trouble) / loading (no page count yet) / pages.
      */
     private function screen(?Chapter $chapter): string
     {
@@ -318,6 +318,7 @@ class Reader extends NativeComponent
         return match (true) {
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Unavailable => 'unavailable',
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Offline => 'offline',
+            ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Retrying => 'retrying',
             $this->pageCount() === 0 => 'loading',
             default => 'pages',
         };
@@ -334,7 +335,7 @@ class Reader extends NativeComponent
     {
         $fetcher = app(PageFetcher::class);
         $failed = $fetcher->failed($this->chapterId);
-        $waiting = $fetcher->state($this->chapterId) === LoadState::Offline && ! $fetcher->isRunning($this->chapterId);
+        $state = $fetcher->isRunning($this->chapterId) ? null : $fetcher->state($this->chapterId);
         $count = $this->pageCount();
         $label = MangaDetail::chapterLabel($chapter);
         $credit = 'Scanlation: '.($chapter->group_name ?? 'No group');
@@ -363,7 +364,8 @@ class Reader extends NativeComponent
                     'src' => $pages[$index]['src'] ?? null,
                     'ratio' => isset($pages[$index]) ? "{$pages[$index]['width']}/{$pages[$index]['height']}" : "{$ratio[0]}/{$ratio[1]}",
                     'failed' => in_array($index, $failed, true),
-                    'waiting' => $waiting,
+                    'waiting' => $state === LoadState::Offline,
+                    'trouble' => $state === LoadState::Retrying,
                 ],
             };
         }

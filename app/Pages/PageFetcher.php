@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\Cache;
  *
  * An image that fails gets one fresh @Home lookup per run and one retry; after that the page is
  * marked failed ("Tap to retry"), the rest keep loading. A connection error is never a failed
- * page: the run stops as offline and the page waits.
+ * page: the run stops as offline and the page waits. A lookup MangaDex answers with 5xx, 429 or
+ * 403 is never "removed" either: the run stops and the chapter is retried.
  */
 final class PageFetcher
 {
@@ -158,6 +159,7 @@ final class PageFetcher
      * @throws RequestDeferred no request slot
      * @throws ConnectionException offline
      * @throws ApiError the @Home lookup failed (chapter removed)
+     * @throws MangaDexTrouble the @Home lookup got 5xx / 429 / 403
      * @throws ChapterUnavailable the lookup lists no pages
      */
     public function run(Chapter $chapter, Closure $next, Priority $priority, float $maxWait, string $tier = 'cache', ?CarbonInterface $until = null): int
@@ -198,7 +200,7 @@ final class PageFetcher
     /**
      * @param  array{server: AtHome, quality: string, urls: list<string>, relooked: bool}  $session
      *
-     * @throws RequestDeferred|ConnectionException|ApiError
+     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble
      */
     private function fetchPage(string $chapterId, int $index, array &$session, Priority $priority, float $maxWait): bool
     {
@@ -216,7 +218,7 @@ final class PageFetcher
         if (! $session['relooked']) {
             $session['relooked'] = true;
             $this->atHome->forget($chapterId);
-            $session['server'] = $this->atHome->server($chapterId, $priority);
+            $session['server'] = $this->server($chapterId, $priority);
             $session['urls'] = AtHomeRepository::pageUrls($session['server'], $session['quality']);
 
             try {
@@ -243,12 +245,12 @@ final class PageFetcher
      *
      * @return array{server: AtHome, quality: string, urls: list<string>, relooked: bool}
      *
-     * @throws RequestDeferred|ConnectionException|ApiError|ChapterUnavailable
+     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble|ChapterUnavailable
      */
     private function open(Chapter $chapter, Priority $priority, string $tier): array
     {
         $quality = StoredChapter::query()->find($chapter->id)?->quality ?? $this->settings->imageQuality();
-        $server = $this->atHome->server($chapter->id, $priority);
+        $server = $this->server($chapter->id, $priority);
         $urls = AtHomeRepository::pageUrls($server, $quality);
 
         if ($urls === []) {
@@ -258,6 +260,24 @@ final class PageFetcher
         $this->pages->begin($chapter, $quality, count($urls), $tier);
 
         return ['server' => $server, 'quality' => $quality, 'urls' => $urls, 'relooked' => false];
+    }
+
+    /**
+     * The @Home server; 5xx, 429 and 403 are MangaDex's trouble, any other error means the chapter is gone.
+     *
+     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble
+     */
+    private function server(string $chapterId, Priority $priority): AtHome
+    {
+        try {
+            return $this->atHome->server($chapterId, $priority);
+        } catch (ApiError $e) {
+            if ($e->status >= 500 || in_array($e->status, [403, 429], true)) {
+                throw new MangaDexTrouble($e->getMessage(), $e->status, $e);
+            }
+
+            throw $e;
+        }
     }
 
     private function markFailed(string $chapterId, int $index): void

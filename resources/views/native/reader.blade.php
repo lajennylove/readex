@@ -23,6 +23,11 @@
         <native:text class="text-sm text-center text-theme-on-surface-variant">This chapter isn't on your phone yet. It loads once you're online.</native:text>
         <native:button label="Retry" variant="secondary" @press="retry" />
     </native:column>
+@elseif ($screen === 'retrying')
+    <native:column class="w-full h-full items-center justify-center gap-3 p-6 bg-black">
+        <native:text class="text-lg font-bold text-white">MangaDex is having trouble</native:text>
+        <native:text class="text-sm text-center text-theme-on-surface-variant">Retrying on its own.</native:text>
+    </native:column>
 @elseif ($screen === 'external')
     <native:column class="w-full h-full items-center justify-center gap-3 p-6 bg-black">
         <native:text class="text-lg font-bold text-white">Opens on {{ $host ?: 'the web' }}</native:text>

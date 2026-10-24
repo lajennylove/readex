@@ -9,6 +9,7 @@ use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Pages\ChapterUnavailable;
 use App\Pages\LoadState;
+use App\Pages\MangaDexTrouble;
 use App\Pages\PageFetcher;
 use App\Storage\PageStore;
 use Carbon\CarbonInterface;
@@ -17,6 +18,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Throwable;
 
 /**
@@ -24,8 +26,9 @@ use Throwable;
  * Resumes from what's on disk. Works in time-boxed slices of job_budget_seconds: pages left →
  * released at once to continue, behind the other queued jobs. Pages another fetcher is
  * downloading are left to it; when only those are left, the job checks back in 5 s. No slot →
- * release until the controller's retry time; offline → again in a minute. A cache run ends by
- * queueing EnforceCacheCap.
+ * release until the controller's retry time; offline → again in a minute; MangaDex answering the
+ * lookup with 5xx / 429 / 403 → again after 1 s, 4 s, 15 s, then every minute. A cache run ends
+ * by queueing EnforceCacheCap.
  *
  * Download work (spec §11.3): a `local` job, or any job for a chapter in the download queue
  * (the unique lock drops a download's dispatch while the reader's own job runs). It writes into
@@ -42,6 +45,9 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
 
     /** Seconds before checking back when the only pages left are being downloaded by another fetcher. */
     public const CLAIMED_RETRY_SECONDS = 5;
+
+    /** Spec §13 backoff while MangaDex has trouble with the lookup; the last one repeats. */
+    public const TROUBLE_RETRY_SECONDS = [1, 4, 15, 60];
 
     /** Seconds to wait for a request slot before releasing (spec §5.1a). */
     public const MAX_WAIT_SECONDS = 2.0;
@@ -110,6 +116,11 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             $this->release(self::OFFLINE_RETRY_SECONDS);
 
             return;
+        } catch (MangaDexTrouble) {
+            $fetcher->record($this->chapterId, LoadState::Retrying);
+            $this->release($this->troubleRetrySeconds());
+
+            return;
         } catch (ApiError|ChapterUnavailable) {
             $fetcher->record($this->chapterId, LoadState::Unavailable);
             $downloads->ended($this->chapterId);
@@ -120,6 +131,8 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
                 EnforceCacheCap::dispatch();
             }
         }
+
+        Cache::forget($this->troubleKey());
 
         if ($stopped()) {
             return;
@@ -140,6 +153,20 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
     public function failed(?Throwable $e = null): void
     {
         app(Downloads::class)->ended($this->chapterId);
+    }
+
+    /** Counted per chapter: slices and offline waits release the job too, so attempts() can't tell. */
+    private function troubleRetrySeconds(): int
+    {
+        $tries = (int) Cache::get($this->troubleKey(), 0);
+        Cache::put($this->troubleKey(), $tries + 1, self::GIVE_UP_AFTER_SECONDS);
+
+        return self::TROUBLE_RETRY_SECONDS[min($tries, count(self::TROUBLE_RETRY_SECONDS) - 1)];
+    }
+
+    private function troubleKey(): string
+    {
+        return "readex.pages.trouble.{$this->chapterId}";
     }
 
     private function secondsUntil(float $retryAt): int

@@ -17,6 +17,9 @@ enum LoadState: string
     /** MangaDex has no @Home pages for this chapter (removed, external). */
     case Unavailable = 'unavailable';
 
+    /** MangaDex answered the @Home lookup with 5xx / 429 / 403: a DownloadChapter job is queued and it's asked again on its own. */
+    case Retrying = 'retrying';
+
     /** Unexpected error (reported). */
     case Failed = 'failed';
 }

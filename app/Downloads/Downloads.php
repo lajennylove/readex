@@ -202,7 +202,7 @@ final class Downloads
             ->leftJoin('stored_chapters', 'stored_chapters.chapter_id', '=', 'chapters.id')
             ->leftJoin('downloads', fn ($join) => $join->on('downloads.chapter_id', '=', 'chapters.id')->whereNull('downloads.finished_at'))
             ->where(fn ($q) => $q->where('stored_chapters.tier', 'local')->orWhereNotNull('downloads.chapter_id'))
-            ->get(['chapters.id', 'stored_chapters.tier', 'stored_chapters.status', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'downloads.chapter_id as queued'])
+            ->get(['chapters.id', 'stored_chapters.tier', 'stored_chapters.status', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'downloads.chapter_id as queued', 'downloads.started_at'])
             ->keyBy('id');
 
         $statuses = [];
@@ -224,7 +224,7 @@ final class Downloads
         $percent = fn () => intdiv((int) $row->pages_done * 100, (int) $row->page_count);
 
         return match (true) {
-            $row->queued !== null && $row->tier === 'local' && $row->pages_done > 0 => new DownloadStatus(DownloadState::Downloading, $percent()),
+            $row->queued !== null && $row->started_at !== null && $row->tier === 'local' && $row->pages_done > 0 => new DownloadStatus(DownloadState::Downloading, $percent()),
             $row->queued !== null => new DownloadStatus(DownloadState::Queued),
             $row->status === 'done' => new DownloadStatus(DownloadState::Downloaded),
             default => new DownloadStatus(DownloadState::Stopped, $percent()),

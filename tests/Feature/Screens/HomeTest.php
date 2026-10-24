@@ -6,12 +6,16 @@ use App\MangaDex\Exceptions\RequestDeferred;
 use App\MangaDex\RateLimit\Busy;
 use App\MangaDex\RateLimit\BusyReason;
 use App\MangaDex\RateLimit\Priority;
+use App\Models\Manga;
 use App\NativeComponents\Home;
 use App\NativeComponents\Library;
+use App\NativeComponents\MangaDetail;
+use App\NativeComponents\Reader;
 use App\Repositories\HomeRepository;
 use App\Repositories\LatestUpdate;
 use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
+use Carbon\CarbonInterval;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Log\Events\MessageLogged;
@@ -308,7 +312,7 @@ it('opens a tile in the Home tab', function () {
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$first->id}");
 });
 
-it('opens every Home tile on the series; the Library placeholder opens a Continue reading tile in the reader, a licensed one in the in-app browser', function () {
+it('opens every Home tile on the series; the Library placeholder opens a Continue reading tile on its series, which opens the chapter in the reader, a licensed one in the in-app browser, a gone one nowhere', function () {
     fillHome();
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
     app(LibraryRepository::class)->saveProgress($chapter->id, 4, 10);
@@ -317,13 +321,45 @@ it('opens every Home tile on the series; the Library placeholder opens a Continu
     $title = app(SettingsRepository::class)->chain()->title($other->title, $other->alt_titles ?? []);
 
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$other->id}");
-    Native::visit('/library')->tap($caption)->assertNavigatedTo("/library/read/{$chapter->id}");
+    Native::visit('/library')->tap($caption)->assertNavigatedTo("/library/manga/{$chapter->manga_id}")
+        ->follow()->assertScreen(MangaDetail::class)->assertNavigatedTo("/library/read/{$chapter->id}");
 
     $chapter->update(['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1']);
 
-    Native::visit('/library')->tap($caption)
+    $library = Native::visit('/library')->tap($caption)
+        ->assertNavigatedTo("/library/manga/{$chapter->manga_id}")
+        ->assertNativeNotCalled('Browser.OpenInApp');
+    expect($library->navigationIntent()->data)->toBe(['read' => $chapter->id]);
+
+    $library->follow()->assertScreen(MangaDetail::class)
         ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/1')
         ->assertNoNavigation();
+
+    Native::visit('/library')->call('openChapter', 'gone')->assertNoNavigation();
+});
+
+it('opens a Continue reading tile on top of its series after the settle pause, so back goes to the series, then the Library', function () {
+    fillHome();
+    config(['readex.reader.via_detail_settle_ms' => 357]);
+    $settled = fn (CarbonInterval $d) => (int) $d->totalMilliseconds === 357;
+    $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
+    app(LibraryRepository::class)->saveProgress($chapter->id, 4, 10);
+    $manga = Manga::query()->find($chapter->manga_id);
+    $title = app(SettingsRepository::class)->chain()->title($manga->title, $manga->alt_titles ?? []);
+
+    $library = Native::visit('/library')->tap(Home::chapterLabel($chapter).' · 50%')->assertNavigatedTo("/library/manga/{$chapter->manga_id}");
+    expect($library->navigationIntent()->data)->toBe(['read' => $chapter->id]);
+    Sleep::assertSlept($settled, 0);
+
+    $detail = $library->follow()->assertScreen(MangaDetail::class)->assertNavigatedTo("/library/read/{$chapter->id}");
+    Sleep::assertSlept($settled, 1);
+
+    $detail = $detail->follow()->assertScreen(Reader::class)->assertSet('chapterId', $chapter->id)
+        ->goBack()->assertScreen(MangaDetail::class)->assertSet('mangaId', $chapter->manga_id)->assertNoNavigation();
+    expect($detail->instance()->navTitle())->toBe($title);
+    Sleep::assertSlept($settled, 1);
+
+    $detail->goBack()->assertScreen(Library::class)->assertNoNavigation();
 });
 
 it('fetches the first 12 covers right away and queues the rest, in screen order, without the started series in front', function () {

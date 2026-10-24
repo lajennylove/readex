@@ -334,7 +334,7 @@ it('goes back to the series from a chapter that is not available', function () {
     Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
     Pages::chapter('c1', ['pages' => 3]);
 
-    $reader = Native::visit('/home/manga/m1')->call('openChapter', 'c1')->assertNavigatedTo('/home/read/c1')
+    $reader = Native::visit('/home/manga/m1')->call('readChapter', 'c1')->assertNavigatedTo('/home/read/c1')
         ->follow()->assertScreen(Reader::class)->assertSee('Not available')->assertNavBarVisible();
 
     $reader->pressBack()->assertWentBack();

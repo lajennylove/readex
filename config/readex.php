@@ -78,6 +78,8 @@ return [
         'lookahead' => 3,
         // While offline, the reader asks for its missing pages again this often.
         'offline_retry_seconds' => 15,
+        // Milliseconds Detail pauses after opening the chapter a tile sent: iOS drops a frame followed at once by the next one, so Detail would be missing under the Reader.
+        'via_detail_settle_ms' => 350,
     ],
 
     'cache' => [

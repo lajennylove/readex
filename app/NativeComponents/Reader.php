@@ -193,7 +193,7 @@ class Reader extends NativeComponent
         $this->askedAt = Carbon::now()->getTimestampMs();
     }
 
-    /** "Needs internet" → Retry. */
+    /** Retry on "Needs internet", "Not available" and "Something went wrong". */
     public function retry(): void
     {
         $this->forget();
@@ -299,7 +299,8 @@ class Reader extends NativeComponent
 
     /**
      * missing / external / unavailable / offline (never stored, no connection) / retrying (never
-     * stored, MangaDex trouble) / loading (no page count yet) / pages.
+     * stored, MangaDex trouble) / failed (never stored, unexpected error) / loading (no page count
+     * yet) / pages.
      */
     private function screen(?Chapter $chapter): string
     {
@@ -319,6 +320,7 @@ class Reader extends NativeComponent
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Unavailable => 'unavailable',
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Offline => 'offline',
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Retrying => 'retrying',
+            ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Failed => 'failed',
             $this->pageCount() === 0 => 'loading',
             default => 'pages',
         };

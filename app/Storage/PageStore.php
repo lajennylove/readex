@@ -34,7 +34,10 @@ final class PageStore
 
     /**
      * Start storing a chapter, or pick up where it stopped. A chapter keeps the quality, tier and
-     * page count it started with (§12.1); a purged folder gets a fresh manifest.
+     * page count it started with (§12.1); a purged folder gets a fresh manifest. A chapter the
+     * image cache dropped isn't begun in the cache tier again until forgetEvicted().
+     *
+     * @throws ChapterGone
      */
     public function begin(Chapter $chapter, string $quality, int $pageCount, string $tier = 'cache'): StoredChapter
     {
@@ -51,6 +54,10 @@ final class PageStore
         }
 
         return $this->locked($chapter->id, function () use ($chapter, $quality, $pageCount, $tier) {
+            if ($tier === 'cache' && $this->wasEvicted($chapter->id)) {
+                throw new ChapterGone("Chapter [{$chapter->id}] was dropped from the image cache.");
+            }
+
             $stored = StoredChapter::query()->firstOrCreate(['chapter_id' => $chapter->id], [
                 'tier' => $tier,
                 'quality' => $quality,
@@ -85,16 +92,22 @@ final class PageStore
     }
 
     /**
-     * Store page `$index` (0-based). False when it isn't an image, is out of range or the chapter
-     * wasn't begun. The folder is looked up under the chapter's lock, so a page never lands in
-     * the tier a promote() / demote() just moved the chapter out of.
+     * Store page `$index` (0-based). False when it isn't an image or is out of range. The folder is
+     * looked up under the chapter's lock, so a page never lands in the tier a promote() / demote()
+     * just moved the chapter out of.
+     *
+     * @throws ChapterGone the chapter wasn't begun, or was dropped meanwhile
      */
     public function put(string $chapterId, int $index, string $bytes): bool
     {
+        if ($this->stored($chapterId) === null) {
+            throw new ChapterGone("Chapter [{$chapterId}] is not stored.");
+        }
+
         $size = @getimagesizefromstring($bytes);
         $extension = $size === false ? false : image_type_to_extension($size[2], false);
 
-        if ($extension === false || $this->stored($chapterId) === null) {
+        if ($extension === false) {
             return false;
         }
 
@@ -102,7 +115,11 @@ final class PageStore
             $stored = $this->stored($chapterId);
             $manifest = $stored === null ? null : $this->read($stored);
 
-            if ($manifest === null || $index < 0 || $index >= count($manifest['pages'])) {
+            if ($manifest === null) {
+                throw new ChapterGone("Chapter [{$chapterId}] is not stored.");
+            }
+
+            if ($index < 0 || $index >= count($manifest['pages'])) {
                 return false;
             }
 
@@ -273,6 +290,7 @@ final class PageStore
     /**
      * Delete a cache chapter's folder and its stored_chapters row. A download is never evicted:
      * the image cache works from a list read before another runtime may have promoted the chapter.
+     * The chapter stays out of the cache tier for `evicted_seconds` unless forgetEvicted().
      */
     public function evict(string $chapterId): bool
     {
@@ -289,9 +307,27 @@ final class PageStore
 
             File::deleteDirectory($this->folder($stored));
             $stored->delete();
+            Cache::put($this->evictedKey($chapterId), true, config('readex.pages.evicted_seconds'));
 
             return true;
         });
+    }
+
+    /** Dropped by Clear image cache or the cap lately: background cache jobs leave it alone. */
+    public function wasEvicted(string $chapterId): bool
+    {
+        return Cache::has($this->evictedKey($chapterId));
+    }
+
+    /** The reader asks for the chapter again: it may be begun in the cache tier again. */
+    public function forgetEvicted(string $chapterId): void
+    {
+        Cache::forget($this->evictedKey($chapterId));
+    }
+
+    private function evictedKey(string $chapterId): string
+    {
+        return "readex.pages.evicted.{$chapterId}";
     }
 
     /** Bytes on disk in the cache tier: chapter folders and cover thumbnails. */
@@ -345,8 +381,15 @@ final class PageStore
     {
         File::ensureDirectoryExists(dirname($path));
         $part = $path.'.'.bin2hex(random_bytes(4)).'.part';
-        file_put_contents($part, $contents);
-        rename($part, $path);
+
+        try {
+            file_put_contents($part, $contents);
+            rename($part, $path);
+        } finally {
+            if (is_file($part)) {
+                @unlink($part);
+            }
+        }
     }
 
     private function folder(StoredChapter $stored): string

@@ -8,6 +8,7 @@ use App\Pages\FetchPages;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;
 use App\Repositories\SettingsRepository;
+use App\Storage\ImageCache;
 use App\Storage\PageStore;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
@@ -17,12 +18,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Sleep;
 use Native\Mobile\AsyncTask;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 18:30:00', 'UTC'));
+    Sleep::fake(syncWithCarbon: true);
     Covers::useTempCaches();
     $this->async = AsyncTask::fake();
     Queue::fake();
@@ -290,6 +293,88 @@ it('is unavailable when MangaDex no longer serves the chapter', function () {
 
     expect($this->fetcher->state('c1'))->toBe(LoadState::Unavailable);
     Queue::assertNothingPushed();
+});
+
+it('is unavailable for any other 4xx answer to the lookup', function (int $status) {
+    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error', 'errors' => [['status' => $status]]], $status)]);
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Unavailable);
+    Queue::assertNothingPushed();
+})->with([400, 410]);
+
+it('is retrying, not unavailable, when the lookup meets a MangaDex outage, limit or ban, and queues the chapter', function (int $status, array|string $body) {
+    Http::fake(['api.mangadex.org/at-home/server/*' => Http::response($body, $status)]);
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Retrying)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and(StoredChapter::query()->count())->toBe(0);
+    Queue::assertPushed(DownloadChapter::class, fn (DownloadChapter $job) => $job->chapterId === 'c1' && $job->priority === Priority::Interactive);
+})->with([
+    '503' => [503, ['result' => 'error', 'errors' => [['status' => 503, 'title' => 'Service Unavailable']]]],
+    '500' => [500, ''],
+    '429' => [429, ['result' => 'error', 'errors' => [['status' => 429]]]],
+    '403 ban' => [403, '<html>Forbidden</html>'],
+    '403 error' => [403, ['result' => 'error', 'errors' => [['status' => 403]]]],
+]);
+
+it('is retrying, without marking the page failed, when the fresh lookup after a dead node meets a 503', function () {
+    $lookups = 0;
+    Http::fake(function (Request $request) use (&$lookups) {
+        if (str_contains($request->url(), '/at-home/server/')) {
+            return $lookups++ === 0 ? Http::response(Pages::atHome('https://dead.mangadex.network')) : Http::response('', 503);
+        }
+
+        return str_contains($request->url(), 'dead.') ? Http::response('', 502) : Http::response(['result' => 'ok']);
+    });
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0, 1]);
+
+    expect($this->fetcher->state('c1'))->toBe(LoadState::Retrying)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and($this->store->missing('c1'))->toBe([0, 1, 2])
+        ->and($lookups)->toBe(2);
+    Queue::assertPushed(DownloadChapter::class, 1);
+});
+
+it('stops at once when the image cache drops the chapter mid-run: nothing marked failed, no second lookup, nothing queued', function () {
+    Pages::fake(count: 3, image: function (Request $request) {
+        if (str_ends_with($request->url(), '/p2.jpg')) {
+            app(ImageCache::class)->clear();
+        }
+
+        return Http::response(Pages::image());
+    });
+    Pages::chapter('c1');
+
+    $this->fetcher->want('c1', [0, 1, 2]);
+
+    expect(Pages::requested())->toHaveCount(2)
+        ->and(Pages::lookups())->toBe(1)
+        ->and($this->fetcher->failed('c1'))->toBe([])
+        ->and($this->fetcher->state('c1'))->toBe(LoadState::Done)
+        ->and($this->fetcher->isRunning('c1'))->toBeFalse()
+        ->and(StoredChapter::query()->count())->toBe(0);
+    Queue::assertNotPushed(DownloadChapter::class);
+});
+
+it('begins a chapter the image cache dropped again when the reader asks for it, and its cache job carries on', function () {
+    Pages::fake(count: 3);
+    Pages::chapter('c1');
+    $this->fetcher->want('c1', [0]);
+    app(ImageCache::class)->clear();
+
+    $this->fetcher->want('c1', [0]);
+    (new DownloadChapter('c1', 'cache', Priority::Interactive))->withFakeQueueInteractions()->handle($this->fetcher);
+
+    expect($this->store->has('c1'))->toBeTrue()
+        ->and(Pages::requested())->toHaveCount(4);
 });
 
 it('is unavailable when the @Home lookup lists no pages, and saves nothing', function () {

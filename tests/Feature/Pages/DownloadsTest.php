@@ -320,6 +320,27 @@ describe('Stop download', function () {
         expect(Pages::requested())->toHaveCount(2)
             ->and($this->downloads->status('t7-again')->state)->toBe(DownloadState::Downloaded);
     });
+
+    it('asks again for a page that failed: Download is a retry, and the chapter ends Downloaded', function () {
+        $broken = true;
+        Pages::fake(count: 4, image: function () use (&$broken) {
+            return $broken ? Http::response('', 500) : Http::response(Pages::image());
+        });
+        Stored::partial('t7-flaky', 3, 4);
+        $this->downloads->download('t7-flaky');
+        t7Run(Queue::pushed(DownloadChapter::class)->first());
+
+        expect(app(PageFetcher::class)->failed('t7-flaky'))->toBe([3])
+            ->and($this->downloads->status('t7-flaky')->caption())->toBe('Download stopped · 75%');
+
+        $broken = false;
+        $this->downloads->download('t7-flaky');
+        t7Run(Queue::pushed(DownloadChapter::class)->last());
+
+        expect(collect(Pages::requested())->filter(fn (string $url) => str_ends_with($url, '/p4.jpg')))->toHaveCount(3)
+            ->and(app(PageFetcher::class)->failed('t7-flaky'))->toBe([])
+            ->and($this->downloads->status('t7-flaky')->state)->toBe(DownloadState::Downloaded);
+    });
 });
 
 describe('Remove download', function () {

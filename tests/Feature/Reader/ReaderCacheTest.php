@@ -106,7 +106,7 @@ describe('prefetch', function () {
         Queue::assertPushed(PrefetchNext::class, 1);
     });
 
-    it('prefetches nothing on cellular, then once the phone is back on Wi-Fi', function () {
+    it('prefetches nothing on cellular, then once the phone is back on Wi-Fi, asked again after 15 s', function () {
         readerSeries();
         Stored::chapter('t6-r1');
         Stored::network(Stored::cellular());
@@ -115,9 +115,30 @@ describe('prefetch', function () {
         Queue::assertNotPushed(PrefetchNext::class);
 
         Stored::network(Stored::wifi());
+        $this->travel(15)->seconds();
         $screen->firePoll('checkPages');
 
         Queue::assertPushed(PrefetchNext::class, 1);
+    });
+
+    it('asks the phone about its connection at most once every 15 s while it is metered, not on every 1 s poll', function () {
+        readerSeries();
+        Stored::chapter('t6-r1');
+        $bridge = Native::fakeBridge()->respondTo('Network.Status', Stored::cellular());
+
+        $screen = Native::visit('/home/read/t6-r1')->firePoll('checkPages');
+        foreach (range(1, 14) as $second) {
+            $this->travel(1)->seconds();
+            $screen->firePoll('checkPages');
+        }
+
+        expect($bridge->callsTo('Network.Status'))->toHaveCount(1);
+
+        $this->travel(1)->seconds();
+        $screen->firePoll('checkPages');
+
+        expect($bridge->callsTo('Network.Status'))->toHaveCount(2);
+        Queue::assertNotPushed(PrefetchNext::class);
     });
 
     it('never prefetches for a licensed chapter', function () {

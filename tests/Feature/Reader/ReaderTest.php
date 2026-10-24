@@ -15,6 +15,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
@@ -206,6 +207,49 @@ it('keeps a missing page waiting while offline and asks again every 15 s unless 
     expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
 });
 
+it('says MangaDex is having trouble, not Not available, when the lookup meets a 503, and asks again every 15 s unless the phone has no connection', function () {
+    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
+    Pages::chapter('c1', ['pages' => 3]);
+
+    $screen = Native::visit('/home/read/c1')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
+
+    expect(readerTexts($screen->tree()))->toContain('MangaDex is having trouble')->toContain('Retrying on its own.')
+        ->not->toContain('Not available')->not->toContain('Needs internet')->not->toContain('[Retry]')
+        ->and(app(PageFetcher::class)->state('c1'))->toBe(LoadState::Retrying);
+
+    $this->travel(10)->seconds();
+    $screen->firePoll('checkPages');
+    $this->async->assertDispatchedTimes(1);
+
+    Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
+    $this->travel(6)->seconds();
+    $screen->firePoll('checkPages');
+    $this->async->assertDispatchedTimes(1);
+
+    Native::fakeBridge()->respondTo('Network.Status', ['connected' => true]);
+    Http::swap(new Factory(app('events')));
+    Pages::fake(count: 3);
+    $this->travel(16)->seconds();
+    $screen->firePoll('checkPages');
+
+    $this->async->assertDispatchedTimes(2);
+    expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
+});
+
+it('keeps a missing page saying MangaDex is having trouble while the lookup meets a 503', function () {
+    $store = app(PageStore::class);
+    $store->begin(Pages::chapter('c1', ['pages' => 4]), 'data-saver', 4);
+    $store->put('c1', 0, Pages::image());
+    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response('', 503)]);
+
+    $screen = Native::visit('/home/read/c1');
+    $placeholder = readerFind($screen->tree(), 'virtual_list')['children'][2];
+
+    expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2 · MangaDex is having trouble, retrying'])
+        ->and($placeholder['id'])->toBe(Element::fnv1a32('/page-2'))
+        ->and(app(PageFetcher::class)->failed('c1'))->toBe([]);
+});
+
 it('pulses a skeleton for a page on its way', function () {
     $store = app(PageStore::class);
     $store->begin(Pages::chapter('c1', ['pages' => 4]), 'data-saver', 4);
@@ -300,7 +344,7 @@ it('opens with the bar shown; a tap on a page hides it, another shows it', funct
         ->press('toggleBar')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
 });
 
-it('never hides the bar while loading, offline, unavailable, external or missing, so back is always there', function (Closure $arrange, Closure $shows) {
+it('never hides the bar while loading, offline, unavailable, retrying, failed, external or missing, so back is always there', function (Closure $arrange, Closure $shows) {
     $arrange();
 
     $screen = Native::visit('/home/read/c1')->assertNavBarVisible();
@@ -324,6 +368,15 @@ it('never hides the bar while loading, offline, unavailable, external or missing
         Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
         Pages::chapter('c1', ['pages' => 3]);
     }, fn (array $tree) => expect(readerTexts($tree))->toContain('Not available')],
+    'retrying' => [function () {
+        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response('', 503)]);
+        Pages::chapter('c1', ['pages' => 3]);
+    }, fn (array $tree) => expect(readerTexts($tree))->toContain('MangaDex is having trouble')],
+    'failed' => [function () {
+        Exceptions::fake();
+        Http::fake(fn () => throw new RuntimeException('boom'));
+        Pages::chapter('c1', ['pages' => 3]);
+    }, fn (array $tree) => expect(readerTexts($tree))->toContain('Something went wrong')],
     'external' => [function () {
         Pages::fake();
         Pages::chapter('c1', ['pages' => 0, 'external_url' => 'https://mangaplus.shueisha.co.jp/viewer/12']);
@@ -354,6 +407,8 @@ it('shows the bar again when the pages go away while it was hidden', function (L
 })->with([
     'offline' => [LoadState::Offline, 'Needs internet'],
     'unavailable' => [LoadState::Unavailable, 'Not available'],
+    'retrying' => [LoadState::Retrying, 'MangaDex is having trouble'],
+    'failed' => [LoadState::Failed, 'Something went wrong'],
 ]);
 
 it('toggles the bar from a page still on its way, its skeleton keys unchanged', function () {
@@ -426,6 +481,39 @@ it('sends a licensed chapter to the publisher and never asks @Home', function ()
         ->and(Pages::lookups())->toBe(0);
     $this->async->assertNotDispatched(FetchPages::class);
     $screen->tap('Open')->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/12');
+});
+
+it('says Something went wrong with a Retry when the fetch fails unexpectedly, and Retry asks again', function () {
+    Exceptions::fake();
+    Http::fake(fn () => throw new RuntimeException('boom'));
+    Pages::chapter('c1', ['pages' => 3]);
+
+    $screen = Native::visit('/home/read/c1')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
+
+    expect(readerTexts($screen->tree()))->toContain('Something went wrong')->toContain('[Retry]')
+        ->and(Skeletons::pulsing($screen->tree()))->toBe([]);
+    Exceptions::assertReported(RuntimeException::class);
+
+    Http::swap(new Factory(app('events')));
+    Pages::fake(count: 3);
+    $screen->tap('Retry');
+
+    expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
+});
+
+it('has a Retry on Not available, which asks MangaDex again', function () {
+    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error', 'errors' => [['status' => 404]]], 404)]);
+    Pages::chapter('c1', ['pages' => 3]);
+
+    $screen = Native::visit('/home/read/c1');
+
+    expect(readerTexts($screen->tree()))->toContain('Not available')->toContain('[Retry]');
+
+    Http::swap(new Factory(app('events')));
+    Pages::fake(count: 3);
+    $screen->tap('Retry');
+
+    expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
 });
 
 it('says Not available when @Home has no pages', function () {

@@ -35,7 +35,16 @@
         <native:button label="Open" variant="secondary" @press="openExternal" />
     </native:column>
 @elseif ($screen === 'unavailable')
-    @include('native.partials.empty-state', ['title' => 'Not available', 'body' => 'MangaDex has no pages for this chapter. It may have been removed.'])
+    <native:column class="w-full h-full items-center justify-center gap-3 p-6 bg-black">
+        <native:text class="text-lg font-bold text-white">Not available</native:text>
+        <native:text class="text-sm text-center text-theme-on-surface-variant">MangaDex has no pages for this chapter. It may have been removed.</native:text>
+        <native:button label="Retry" variant="secondary" @press="retry" />
+    </native:column>
+@elseif ($screen === 'failed')
+    <native:column class="w-full h-full items-center justify-center gap-3 p-6 bg-black">
+        <native:text class="text-lg font-bold text-white">Something went wrong</native:text>
+        <native:button label="Retry" variant="secondary" @press="retry" />
+    </native:column>
 @else
     @include('native.partials.empty-state', ['title' => 'Chapter not found'])
 @endif

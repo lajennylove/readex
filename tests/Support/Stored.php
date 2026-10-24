@@ -5,6 +5,7 @@ namespace Tests\Support;
 use App\Models\Chapter;
 use App\Models\StoredChapter;
 use App\Storage\PageStore;
+use Native\Mobile\Facades\Network;
 use Native\Mobile\Testing\Native;
 
 final class Stored
@@ -25,12 +26,16 @@ final class Stored
         return $chapter;
     }
 
-    /** The phone's connection as `Network::status()` reports it; null: no native bridge answer. */
+    /** The phone's connection as `Network::status()` reports it; null: exactly null, as without a native bridge. */
     public static function network(?array $status): void
     {
-        if ($status !== null) {
-            Native::fakeBridge()->respondTo('Network.Status', $status);
+        if ($status === null) {
+            Network::shouldReceive('status')->andReturn(null);
+
+            return;
         }
+
+        Native::fakeBridge()->respondTo('Network.Status', $status);
     }
 
     public static function wifi(): array

@@ -345,8 +345,15 @@ final class PageStore
     {
         File::ensureDirectoryExists(dirname($path));
         $part = $path.'.'.bin2hex(random_bytes(4)).'.part';
-        file_put_contents($part, $contents);
-        rename($part, $path);
+
+        try {
+            file_put_contents($part, $contents);
+            rename($part, $path);
+        } finally {
+            if (is_file($part)) {
+                @unlink($part);
+            }
+        }
     }
 
     private function folder(StoredChapter $stored): string

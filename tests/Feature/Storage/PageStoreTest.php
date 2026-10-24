@@ -111,6 +111,16 @@ describe('put', function () {
         expect(glob("{$this->caches}/chapters/c1/001.*"))->toBe(["{$this->caches}/chapters/c1/001.jpg"])
             ->and(StoredChapter::query()->find('c1')->only(['pages_done', 'bytes']))->toBe(['pages_done' => 1, 'bytes' => strlen($second)]);
     });
+
+    it('leaves no .part file behind when a write fails, and the error still reaches the caller', function () {
+        $this->pages->begin(Pages::chapter(), 'data-saver', 3);
+        File::ensureDirectoryExists("{$this->caches}/chapters/c1/001.jpg");
+
+        expect(fn () => $this->pages->put('c1', 0, Pages::image()))->toThrow(ErrorException::class);
+
+        expect(glob("{$this->caches}/chapters/c1/*.part"))->toBe([])
+            ->and(StoredChapter::query()->find('c1')->pages_done)->toBe(0);
+    });
 });
 
 describe('reading back', function () {

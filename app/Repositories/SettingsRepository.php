@@ -95,6 +95,17 @@ final class SettingsRepository
         $this->write('setup_done', true);
     }
 
+    /** Plan-08 Task 5 (D45 §5.6/§6a): the draft Terms/EULA screen is shown once, before Setup. */
+    public function eulaAcknowledged(): bool
+    {
+        return $this->read('eula_acknowledged') === true;
+    }
+
+    public function acknowledgeEula(): void
+    {
+        $this->write('eula_acknowledged', true);
+    }
+
     public function lastDataRefreshAt(): ?CarbonImmutable
     {
         $value = $this->read('last_data_refresh_at');

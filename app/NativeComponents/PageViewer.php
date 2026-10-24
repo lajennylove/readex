@@ -12,7 +12,8 @@ use Native\Mobile\Edge\SharedValue;
 /**
  * D33 choice 2: one stored page full screen, pushed from a double-tap in the Reader (which stays
  * on the stack underneath, so back returns to the same spot). Pinch to zoom, pan while zoomed,
- * double-tap 1× / 2.5×. Only pages on the phone: a page that isn't says so, never fetched here.
+ * double-tap 1× / 2.5×. Opens with the bar, a tap hides / shows it. Only pages on the phone: a page
+ * that isn't says so, never fetched here.
  */
 class PageViewer extends NativeComponent
 {
@@ -27,7 +28,7 @@ class PageViewer extends NativeComponent
     /** Page shown (1-based). */
     public int $number = 1;
 
-    public bool $barShown = false;
+    public bool $barShown = true;
 
     public float $zoom = 1.0;
 
@@ -70,7 +71,7 @@ class PageViewer extends NativeComponent
         return MangaDetail::chapterLabel($chapter).($this->number >= 1 && $this->number <= $count ? " · {$this->number} / {$count}" : '');
     }
 
-    /** Shown for a page that isn't on the phone, so back is there. */
+    /** Opens shown, a tap hides it; always shown for a page that isn't on the phone, so back is there. */
     public function shouldHideNavBar(): bool
     {
         return ! $this->barShown && $this->page() !== null;

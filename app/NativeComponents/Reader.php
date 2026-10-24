@@ -24,8 +24,9 @@ use Native\Mobile\Facades\Network;
 /**
  * Spec §12, D33 choices 1, 3, 5: a black edge-to-edge strip, one virtual_list row per page.
  * Opens on the saved page; above it one row "Pages 1–N" (iOS can't scroll a list to a row) that
- * reloads the chapter from page 1. Tap a page → bar with "Ch. 12 · 5 / 43". Group credit at the
- * top and in the last row, which also has "Next: Ch. 13" or "You're caught up".
+ * reloads the chapter from page 1. Opens with the bar ("Ch. 12 · 5 / 43"); a tap on a page hides /
+ * shows it. Group credit at the top and in the last row, which also has "Next: Ch. 13" or "You're
+ * caught up".
  *
  * Rows: 0 = header (credit, or "Pages 1–N"), then pages `$start` … last, then the end row.
  * The list only reports its window when the visible rows near its edge, so the page is the
@@ -51,7 +52,7 @@ class Reader extends NativeComponent
     /** Page the reader is on (0-based). */
     public int $page = 0;
 
-    public bool $barShown = false;
+    public bool $barShown = true;
 
     /** PrefetchNext was queued for this chapter. */
     public bool $prefetched = false;
@@ -95,9 +96,10 @@ class Reader extends NativeComponent
         return MangaDetail::chapterLabel($chapter).($count > 0 ? ' · '.(min($this->page, $count - 1) + 1)." / {$count}" : '');
     }
 
+    /** Only pages have a tap target for the bar: every other screen keeps it, so back is there. */
     public function shouldHideNavBar(): bool
     {
-        return ! $this->barShown;
+        return ! $this->barShown && $this->screen($this->chapter()) === 'pages';
     }
 
     public function windowChanged(int $from, int $to): void

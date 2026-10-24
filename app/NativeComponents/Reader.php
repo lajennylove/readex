@@ -69,6 +69,9 @@ class Reader extends NativeComponent
     /** ms of the last time the reader asked for its pages (offline retry). */
     public int $askedAt = 0;
 
+    /** ms of the last time prefetch asked the phone about its connection (a native bridge round trip). */
+    public int $networkAskedAt = 0;
+
     /** @var array{pages?: list<array{src: string, width: int, height: int}|null>, chapter?: Chapter} */
     private array $seen = [];
 
@@ -438,15 +441,20 @@ class Reader extends NativeComponent
 
     /**
      * Once, when the chapter is all on the phone and the connection allows it. Queued from here,
-     * not earlier: the open chapter's own downloads come first on the phone's queue.
+     * not earlier: the open chapter's own downloads come first on the phone's queue. A metered
+     * connection is asked about again every `offline_retry_seconds`, not on every poll.
      */
     private function prefetchNext(): void
     {
-        if ($this->prefetched || ! app(PageStore::class)->has($this->chapterId)) {
+        $now = Carbon::now()->getTimestampMs();
+
+        if ($this->prefetched || $now - $this->networkAskedAt < config('readex.reader.offline_retry_seconds') * 1000
+            || ! app(PageStore::class)->has($this->chapterId)) {
             return;
         }
 
         $chapter = $this->chapter();
+        $this->networkAskedAt = $now;
 
         $this->prefetched = $chapter !== null && PrefetchNext::dispatchIfUnmetered($chapter->manga_id, $chapter->id);
     }

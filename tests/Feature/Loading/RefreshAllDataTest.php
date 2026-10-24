@@ -58,7 +58,7 @@ it('keeps the old refresh time when no Home row loaded', function () {
     app()->call([new RefreshAllData('r1'), 'handle']);
 
     expect(app(SettingsRepository::class)->lastDataRefreshAt())->toBeNull()
-        ->and(LoadProgress::read('r1')['season'])->toBe('failed')
+        ->and(LoadProgress::read('r1')['season'])->toBe('unavailable')
         ->and(RefreshAllData::running())->toBeNull();
 });
 

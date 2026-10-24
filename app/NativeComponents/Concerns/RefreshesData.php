@@ -34,11 +34,14 @@ trait RefreshesData
     /** Key => ms of the last successful refresh, so empty-but-fresh data can't loop. */
     public array $refreshedAt = [];
 
-    /** Key => ms of the last Offline outcome; the poll retries it after OFFLINE_RETRY_MS. */
-    public array $offlineAt = [];
+    /** Key => ms when the poll retries an Offline or Unavailable refresh. */
+    public array $retryDueAt = [];
 
     /** A dropped connection (cellular hand-off, Wi-Fi to 5G) comes back on its own. */
     public const OFFLINE_RETRY_MS = 15_000;
+
+    /** A MangaDex outage that outlasts the first retry is asked about once a minute. */
+    public const UNAVAILABLE_RETRY_MS = 60_000;
 
     private bool $forceRefresh = false;
 
@@ -49,7 +52,7 @@ trait RefreshesData
     public function pullToRefresh(): void
     {
         $this->problems = [];
-        $this->offlineAt = [];
+        $this->retryDueAt = [];
         $this->forceRefresh = true;
 
         try {
@@ -78,14 +81,14 @@ trait RefreshesData
             }
         }
 
-        $this->retryOffline();
+        $this->retryDue();
     }
 
-    /** Offline refreshes are retried while the phone isn't known to be disconnected. */
-    private function retryOffline(): void
+    /** Offline and Unavailable refreshes are retried while the phone isn't known to be disconnected. */
+    private function retryDue(): void
     {
         $now = Carbon::now()->getTimestampMs();
-        $due = array_filter($this->offlineAt, fn (int $at) => $now - $at >= self::OFFLINE_RETRY_MS);
+        $due = array_filter($this->retryDueAt, fn (int $at) => $now >= $at);
 
         if ($due === []) {
             return;
@@ -93,7 +96,7 @@ trait RefreshesData
 
         if (Network::status()?->connected === false) {
             foreach (array_keys($due) as $key) {
-                $this->offlineAt[$key] = $now;
+                $this->retryDueAt[$key] = $now + self::OFFLINE_RETRY_MS;
             }
 
             return;
@@ -102,22 +105,32 @@ trait RefreshesData
         $this->load();
     }
 
-    private function offlineRetryDue(string $key): bool
+    private function retryIsDue(string $key): bool
     {
-        return isset($this->offlineAt[$key])
-            && Carbon::now()->getTimestampMs() - $this->offlineAt[$key] >= self::OFFLINE_RETRY_MS;
+        return isset($this->retryDueAt[$key]) && Carbon::now()->getTimestampMs() >= $this->retryDueAt[$key];
     }
 
     /** The most important line among this screen's refreshes (§13), or null. */
     public function statusLine(): ?string
     {
-        $order = [RefreshStatus::Offline, RefreshStatus::Limited, RefreshStatus::Busy, RefreshStatus::Failed];
+        return $this->topProblem()?->statusLine();
+    }
+
+    /** MangaDex's outage is what the status line is about: the poll retries it, so there's nothing to offer. */
+    protected function retryingOutage(): bool
+    {
+        return $this->topProblem()?->status === RefreshStatus::Unavailable;
+    }
+
+    private function topProblem(): ?Outcome
+    {
+        $order = [RefreshStatus::Offline, RefreshStatus::Limited, RefreshStatus::Busy, RefreshStatus::Unavailable, RefreshStatus::Failed];
         $outcomes = array_map(Outcome::fromArray(...), $this->problems);
 
         foreach ($order as $status) {
             foreach ($outcomes as $outcome) {
                 if ($outcome->status === $status) {
-                    return $outcome->statusLine();
+                    return $outcome;
                 }
             }
         }
@@ -151,7 +164,7 @@ trait RefreshesData
                 return;
             }
 
-            if ($this->refreshedRecently($key) || (isset($this->problems[$key]) && ! $this->offlineRetryDue($key))) {
+            if ($this->refreshedRecently($key) || (isset($this->problems[$key]) && ! $this->retryIsDue($key))) {
                 return;
             }
         }
@@ -172,7 +185,7 @@ trait RefreshesData
     private function refreshFinished(Refresh $refresh, Outcome $outcome): void
     {
         $key = $refresh->key();
-        unset($this->refreshing[$key], $this->offlineAt[$key]);
+        unset($this->refreshing[$key], $this->retryDueAt[$key]);
 
         if ($outcome->status->retriesLater()) {
             $this->problems[$key] = $outcome->toArray();
@@ -188,10 +201,17 @@ trait RefreshesData
     private function settle(string $key, Outcome $outcome): void
     {
         if ($outcome->status !== RefreshStatus::Ok) {
+            $outage = ($this->problems[$key]['status'] ?? null) === RefreshStatus::Unavailable->value;
             $this->problems[$key] = $outcome->toArray();
 
-            if ($outcome->status === RefreshStatus::Offline) {
-                $this->offlineAt[$key] = Carbon::now()->getTimestampMs();
+            $retryIn = match ($outcome->status) {
+                RefreshStatus::Offline => self::OFFLINE_RETRY_MS,
+                RefreshStatus::Unavailable => $outage ? self::UNAVAILABLE_RETRY_MS : self::OFFLINE_RETRY_MS,
+                default => null,
+            };
+
+            if ($retryIn !== null) {
+                $this->retryDueAt[$key] = Carbon::now()->getTimestampMs() + $retryIn;
             }
 
             return;

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\MangaDex\RateLimit\LimitsTable;
+use App\Sources\SourceRegistry;
 use App\Storage\CacheLink;
 use App\Storage\LocalStorageBridge;
 use App\Storage\NativeStorageBridge;
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(StorageBridge::class, fn () => new NativeStorageBridge(
             new LocalStorageBridge(storage_path('app/local-bridge'))
         ));
+
+        $this->app->singleton(SourceRegistry::class);
     }
 
     /**

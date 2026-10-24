@@ -18,9 +18,10 @@ use Illuminate\Support\Carbon;
 
 /**
  * Spec §5.6: the missing pages of a chapter in reading order, in the quality it started with.
- * Resumes from what's on disk. No slot → release until the controller's retry time; offline →
- * again in a minute; pages a FetchPages task is downloading are left to it. A cache run ends by
- * queueing EnforceCacheCap.
+ * Resumes from what's on disk. Works in slices of job_budget_seconds: pages left → released at
+ * once to continue, behind the other queued jobs. No slot → release until the controller's retry
+ * time; offline → again in a minute; pages a FetchPages task is downloading are left to it. A
+ * cache run ends by queueing EnforceCacheCap.
  */
 class DownloadChapter implements ShouldBeUnique, ShouldQueue
 {
@@ -34,6 +35,9 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
     public const MAX_WAIT_SECONDS = 2.0;
 
     public int $uniqueFor = self::GIVE_UP_AFTER_SECONDS;
+
+    /** Under the database queue's retry_after (90 s), so a running slice is never handed out twice. */
+    public int $timeout = 80;
 
     public function __construct(
         public readonly string $chapterId,
@@ -66,6 +70,7 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
                 $this->priority,
                 self::MAX_WAIT_SECONDS,
                 $this->tier,
+                until: Carbon::now()->addSeconds(config('readex.pages.job_budget_seconds')),
             );
         } catch (RequestDeferred $e) {
             $fetcher->record($this->chapterId, LoadState::Busy);
@@ -85,6 +90,13 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             if ($this->tier === 'cache') {
                 EnforceCacheCap::dispatch();
             }
+        }
+
+        if ($fetcher->remaining($this->chapterId) > 0) {
+            $fetcher->record($this->chapterId, LoadState::Busy);
+            $this->release(0);
+
+            return;
         }
 
         $fetcher->record($this->chapterId, LoadState::Done);

@@ -31,6 +31,9 @@
                 <native:button label="{{ $continue }}" variant="primary" ios-icon="play.fill" @press="resumeReading" />
             @endif
             <native:button label="{{ $favorite ? 'Favorited' : 'Favorite' }}" variant="secondary" ios-icon="{{ $favorite ? 'heart.fill' : 'heart' }}" @press="toggleFavorite" />
+            @if ($downloadAll)
+                <native:button label="{{ $downloadAll['label'] }}" variant="secondary" ios-icon="{{ $downloadAll['icon'] }}" @press="downloadAll" />
+            @endif
         </native:column>
 
         @if ($languages !== '')

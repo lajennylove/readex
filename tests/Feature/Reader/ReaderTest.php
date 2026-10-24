@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 use Tests\Support\Pages;
@@ -334,7 +335,7 @@ it('goes back to the series from a chapter that is not available', function () {
     Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
     Pages::chapter('c1', ['pages' => 3]);
 
-    $reader = Native::visit('/home/manga/m1')->call('readChapter', 'c1')->assertNavigatedTo('/home/read/c1')
+    $reader = Native::visit('/home/manga/m1')->call('readChapter', 'c1')->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Read'])->assertNavigatedTo('/home/read/c1')
         ->follow()->assertScreen(Reader::class)->assertSee('Not available')->assertNavBarVisible();
 
     $reader->pressBack()->assertWentBack();

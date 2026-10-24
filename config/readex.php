@@ -65,6 +65,8 @@ return [
         'claim_seconds' => 60,
         // A page that failed twice shows "Tap to retry" for this long.
         'failed_seconds' => 86400,
+        // A chapter Clear image cache or the cap dropped isn't begun again by a background cache job for this long (a DownloadChapter gives up after an hour).
+        'evicted_seconds' => 3600,
     ],
 
     'reader' => [

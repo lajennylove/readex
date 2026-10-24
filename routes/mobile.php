@@ -1,5 +1,6 @@
 <?php
 
+use App\NativeComponents\Eula;
 use App\NativeComponents\Home;
 use App\NativeComponents\Library;
 use App\NativeComponents\MangaDetail;
@@ -14,6 +15,7 @@ use App\NativeLayouts\TabsLayout;
 use Illuminate\Support\Facades\Route;
 
 Route::native('/', StartGate::class);
+Route::native('/eula', Eula::class);
 Route::native('/setup', Setup::class);
 
 Route::nativeGroup(TabsLayout::class, function () {

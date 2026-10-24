@@ -10,7 +10,11 @@ class StartGate extends NativeComponent
 {
     public function mount(SettingsRepository $settings): void
     {
-        $this->replace($settings->setupDone() ? '/home' : '/setup');
+        $this->replace(match (true) {
+            ! $settings->eulaAcknowledged() => '/eula',
+            ! $settings->setupDone() => '/setup',
+            default => '/home',
+        });
     }
 
     public function render(): View

@@ -15,6 +15,7 @@ use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
@@ -473,6 +474,66 @@ it('says nothing is saved for this search and offers Retry when offline (spec §
     ($this->fake)();
     $screen->tap('Retry')->assertDontSee('Nothing saved for this search')->assertDontSee('Offline');
     expect(tileTitles($screen->tree()))->toHaveCount(10);
+});
+
+it('says MangaDex is having trouble, without Retry, while a search that met a 503 retries on its own', function () {
+    Exceptions::fake();
+    ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=') ? Http::response('No server is available to handle this request', 503) : null);
+
+    $screen = Native::test(Search::class)
+        ->call('searchFor', 'one punch')
+        ->assertSee('MangaDex is having trouble, retrying')
+        ->assertSee('Retrying on its own.')
+        ->assertDontSee('Nothing saved for this search');
+    expect(searchNodes($screen->tree(), 'button'))->toBe([]);
+    Exceptions::assertNothingReported();
+
+    ($this->fake)();
+    Carbon::setTestNow(Carbon::now()->addSeconds(15));
+    $screen->call('checkWaitingRefreshes')->assertDontSee('MangaDex is having trouble');
+    expect(tileTitles($screen->tree()))->toHaveCount(10);
+});
+
+it('still says nothing is saved for this search and offers Retry when MangaDex rejects it', function () {
+    Exceptions::fake();
+    ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=')
+        ? Http::response(['result' => 'error', 'errors' => [['status' => 400, 'title' => 'Bad Request', 'detail' => 'bad']]], 400)
+        : null);
+
+    $screen = Native::test(Search::class)
+        ->call('searchFor', 'one punch')
+        ->assertSee('Something went wrong')
+        ->assertSee('Nothing saved for this search')
+        ->assertDontSee('Retrying on its own.');
+    expect(searchNodes($screen->tree(), 'button'))->toHaveCount(1);
+});
+
+it('says MangaDex is having trouble, without Retry, while a tag list that met a 503 retries on its own', function () {
+    ($this->fake)(fn (Request $request) => str_contains($request->url(), '/manga/tag') ? Http::response('No server is available to handle this request', 503) : null);
+
+    $screen = Native::test(Search::class)
+        ->assertSee('Retrying on its own.')
+        ->assertDontSee('No tags saved yet');
+    expect(searchNodes($screen->tree(), 'button'))->toBe([]);
+});
+
+it('still says no tags are saved and offers Retry when MangaDex rejects the tag list', function () {
+    Exceptions::fake();
+    ($this->fake)(fn (Request $request) => str_contains($request->url(), '/manga/tag') ? Http::response(['result' => 'error', 'errors' => []], 400) : null);
+
+    $screen = Native::test(Search::class)
+        ->assertSee('No tags saved yet')
+        ->assertDontSee('Retrying on its own.');
+    expect(searchNodes($screen->tree(), 'button'))->toHaveCount(1);
+});
+
+it("forgets the old search's retry when the search changes", function () {
+    ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=') ? Http::response('No server is available to handle this request', 503) : null);
+
+    $screen = Native::test(Search::class)->call('searchFor', 'one punch');
+    expect($screen->get('retryDueAt'))->toHaveCount(1);
+
+    $screen->call('searchFor', '')->assertSet('retryDueAt', []);
 });
 
 it('says so when MangaDex finds nothing', function () {

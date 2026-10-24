@@ -2,6 +2,7 @@
 
 namespace App\Refresh;
 
+use App\MangaDex\Exceptions\ApiError;
 use App\MangaDex\Exceptions\RequestDeferred;
 use App\MangaDex\RateLimit\BusyReason;
 use App\Storage\StorageBridge;
@@ -34,6 +35,10 @@ final readonly class Outcome
         } catch (ConnectionException) {
             return new self(RefreshStatus::Offline);
         } catch (Throwable $e) {
+            if ($e instanceof ApiError && $e->status >= 500 && $e->status <= 599) {
+                return new self(RefreshStatus::Unavailable);
+            }
+
             report($e);
 
             return new self(RefreshStatus::Failed);
@@ -68,6 +73,7 @@ final readonly class Outcome
             RefreshStatus::Offline => 'Offline, showing saved data',
             RefreshStatus::Busy => 'MangaDex is busy, will update shortly',
             RefreshStatus::Limited => 'MangaDex is limiting this phone, try after '.$this->localTime(),
+            RefreshStatus::Unavailable => 'MangaDex is having trouble, retrying',
             RefreshStatus::Failed => 'Something went wrong',
         };
     }

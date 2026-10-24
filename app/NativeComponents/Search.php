@@ -160,12 +160,14 @@ class Search extends NativeComponent
     {
         $line = $this->statusLine();
         $busy = $this->refreshing !== [] || $this->waiting !== [];
+        $retrying = $this->retryingOutage();
 
         if ($this->browsingTags()) {
             return view('native.search', [
                 'text' => $this->text,
                 'line' => $line,
                 'busy' => $busy,
+                'retrying' => $retrying,
                 'groups' => $this->tagGroups(app(TagRepository::class)->get()->data ?? collect()),
             ]);
         }
@@ -185,6 +187,7 @@ class Search extends NativeComponent
             'text' => $this->text,
             'line' => $line,
             'busy' => $busy,
+            'retrying' => $retrying,
             'tag' => $this->tagId === null ? null : (Tag::query()->find($this->tagId)?->name['en'] ?? null),
             'query' => $this->query,
             'rowCount' => $this->rowCount($result),
@@ -198,6 +201,7 @@ class Search extends NativeComponent
         app(SettingsRepository::class)->rememberSearch($this->query, $this->tagId);
         $this->more = null;
         $this->problems = [];
+        $this->retryDueAt = [];
         $this->setVirtualWindow(0, self::FIRST_WINDOW_ROWS - 1);
         $this->load();
     }

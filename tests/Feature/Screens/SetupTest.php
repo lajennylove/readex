@@ -208,7 +208,7 @@ it('opens Home when rows load but one keeps failing', function () {
 
     $screen = Native::test(Setup::class)->tap('Continue')->assertReplacedWith('/home');
 
-    expect($screen->get('steps')['season'])->toBe('failed');
+    expect($screen->get('steps')['season'])->toBe('unavailable');
 });
 
 it('shows progress per step while loading', function () {

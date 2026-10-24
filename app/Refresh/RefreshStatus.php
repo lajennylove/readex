@@ -13,6 +13,9 @@ enum RefreshStatus: string
     /** MangaDex answered 429 or the temporary 403 ban. */
     case Limited = 'limited';
 
+    /** MangaDex answered 5xx: an outage on their side, retried from the screen's poll. */
+    case Unavailable = 'unavailable';
+
     case Failed = 'failed';
 
     /** Busy and Limited go to the RefreshRepository job; the others are final. */

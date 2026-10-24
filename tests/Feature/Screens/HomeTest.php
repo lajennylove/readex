@@ -16,6 +16,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
@@ -188,7 +189,7 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
 it('keeps an empty row in place with placeholders while the others load (Review Focus 2)', function () {
     Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
 
-    $screen = Native::test(Home::class)->assertSee('This season')->assertSee('Something went wrong');
+    $screen = Native::test(Home::class)->assertSee('This season')->assertSee('MangaDex is having trouble, retrying');
 
     expect(rowItems($screen->tree(), 'This season'))->toBe(array_fill(0, 4, 'column'))
         ->and(rowItems($screen->tree(), 'Popular new titles'))->each->toBe('pressable')
@@ -207,6 +208,39 @@ it('says nothing is saved and offers Retry when the first visit is offline (spec
     Loading::fake();
     $screen->tap('Retry')->assertDontSee('Nothing saved yet')->assertSee('This season');
     expect(rowMangas()['season'])->not->toBeEmpty();
+});
+
+it('says MangaDex is having trouble, without Retry, when the first visit meets a MangaDex outage', function () {
+    Exceptions::fake();
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
+        ? Http::response('No server is available to handle this request', 503)
+        : null);
+
+    $screen = Native::test(Home::class)
+        ->assertSee('MangaDex is having trouble, retrying')
+        ->assertSee('Retrying on its own.')
+        ->assertDontSee('Nothing saved yet')
+        ->assertDontSee('This season');
+    expect(homeNodes($screen->tree(), 'button'))->toBe([]);
+    Exceptions::assertNothingReported();
+
+    Loading::fake();
+    Carbon::setTestNow(Carbon::now()->addSeconds(15));
+    $screen->call('checkWaitingRefreshes')->assertDontSee('MangaDex is having trouble')->assertSee('This season');
+    expect(rowMangas()['season'])->not->toBeEmpty();
+});
+
+it('still says nothing is saved and offers Retry when MangaDex rejects the first visit', function () {
+    Exceptions::fake();
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
+        ? Http::response(['result' => 'error', 'errors' => [['status' => 400, 'title' => 'Bad Request', 'detail' => 'bad']]], 400)
+        : null);
+
+    $screen = Native::test(Home::class)
+        ->assertSee('Something went wrong')
+        ->assertSee('Nothing saved yet')
+        ->assertDontSee('Retrying on its own.');
+    expect(homeNodes($screen->tree(), 'button'))->toHaveCount(1);
 });
 
 it('waits for the background retry instead of offering Retry when MangaDex is busy', function () {

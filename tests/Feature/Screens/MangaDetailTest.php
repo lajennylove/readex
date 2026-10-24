@@ -10,9 +10,11 @@ use App\Models\Collection as LibraryEntry;
 use App\Models\Manga;
 use App\Models\Statistic;
 use App\NativeComponents\MangaDetail;
+use App\NativeComponents\Reader;
 use App\Repositories\LibraryRepository;
 use App\Repositories\RecommendationRepository;
 use App\Repositories\SettingsRepository;
+use Carbon\CarbonInterval;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -443,11 +445,66 @@ it('opens chapters and Continue in the tab the series was opened from, a license
 it('does nothing on Continue for a series never read, or on a chapter that is gone', function () {
     detailSeries(DETAIL_SEEDED, ['es-la']);
 
-    Native::visit('/library/manga/'.DETAIL_SEEDED)->call('resumeReading')->call('openChapter', 'gone')
+    Native::visit('/library/manga/'.DETAIL_SEEDED)->call('resumeReading')->call('readChapter', 'gone')
         ->assertNoNavigation()
         ->assertNativeNotCalled('Dialog.Toast')
         ->assertNativeNotCalled('Browser.OpenInApp');
 });
+
+/** Matches the settle pause after opening the chapter a tile sent (set to 357 ms, a length no other sleep has). */
+function detailSettle(): Closure
+{
+    config(['readex.reader.via_detail_settle_ms' => 357]);
+
+    return fn (CarbonInterval $d) => (int) $d->totalMilliseconds === 357;
+}
+
+it('opens the chapter a tile sent on top of itself, in its tab, after the settle pause, and not again when the reader closes', function () {
+    detailSeries(DETAIL_SEEDED, ['es-la']);
+    seededChapter('own-2', DETAIL_SEEDED, '2');
+
+    Native::visit('/library/manga/'.DETAIL_SEEDED, ['read' => 'own-2'])->assertNavigatedTo('/library/read/own-2');
+    Sleep::assertSlept(fn (CarbonInterval $d) => (int) $d->totalMilliseconds === 350, 1);
+
+    $settle = detailSettle();
+    Native::visit('/search/manga/'.DETAIL_SEEDED, ['read' => 'own-2'])->assertNavigatedTo('/search/read/own-2')
+        ->follow()->assertScreen(Reader::class)
+        ->goBack()->assertScreen(MangaDetail::class)->assertNoNavigation()->assertSee('Seeded');
+    Sleep::assertSlept($settle, 1);
+});
+
+it('opens a licensed chapter a tile sent in the in-app browser and stays, without the pause', function () {
+    detailSeries(DETAIL_SEEDED, ['es-la']);
+    seededChapter('ext-3', DETAIL_SEEDED, '3', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/3']);
+    $settle = detailSettle();
+
+    Native::visit('/home/manga/'.DETAIL_SEEDED, ['read' => 'ext-3'])
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangaplus.shueisha.co.jp/viewer/3')
+        ->assertNoNavigation()
+        ->assertSee('Seeded');
+    Sleep::assertSlept($settle, 0);
+});
+
+it('opens normally without a chapter, with one that is gone or with one of another series', function (array $data) {
+    detailSeries(DETAIL_SEEDED, ['es-la']);
+    seededChapter('own-2', DETAIL_SEEDED, '2');
+    detailSeries(DETAIL_NOVA, ['es-la']);
+    seededChapter('nova-1', DETAIL_NOVA, '1');
+    seededChapter('nova-ext', DETAIL_NOVA, '2', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/9']);
+    $settle = detailSettle();
+
+    Native::visit('/library/manga/'.DETAIL_SEEDED, $data)
+        ->assertNoNavigation()
+        ->assertNativeNotCalled('Browser.OpenInApp')
+        ->assertSee('Seeded');
+    Sleep::assertSlept($settle, 0);
+})->with([
+    'no data' => [[]],
+    'gone' => [['read' => 'gone']],
+    'another series' => [['read' => 'nova-1']],
+    'another series, licensed' => [['read' => 'nova-ext']],
+    'another key' => [['chapter' => 'own-2']],
+]);
 
 /** Titles of the cover tiles (w-28 pressables) in screen order. */
 function detailTileTitles(array $node): array

@@ -20,6 +20,7 @@ use App\Repositories\MangaRepository;
 use App\Repositories\RecommendationRepository;
 use App\Repositories\SettingsRepository;
 use App\Repositories\StatisticsRepository;
+use Illuminate\Support\Sleep;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
@@ -35,6 +36,9 @@ class MangaDetail extends NativeComponent
     use RefreshesData;
     use ShowsTiles;
 
+    /** Navigation data: the chapter to open on top of this screen (`OpensChapters::showChapterViaDetail()`). */
+    public const READ = 'read';
+
     public string $mangaId = '';
 
     public string $tab = 'home';
@@ -47,6 +51,12 @@ class MangaDetail extends NativeComponent
         $this->mangaId = $id;
         $this->tab = TabsLayout::tabOf($this->nativeRouter?->currentUri());
         $this->load();
+
+        $chapter = Chapter::query()->find($this->data(self::READ));
+
+        if ($chapter?->manga_id === $this->mangaId && $this->showChapter($chapter)) {
+            Sleep::for(config('readex.reader.via_detail_settle_ms'))->milliseconds();
+        }
     }
 
     /** Never empty: iOS tabs drop the NavigationStack for an untitled screen and show the tab root instead. */
@@ -96,6 +106,16 @@ class MangaDetail extends NativeComponent
 
         if ($current !== null) {
             $this->showChapter($current->chapter);
+        }
+    }
+
+    /** Chapter row tap. */
+    public function readChapter(string $chapterId): void
+    {
+        $chapter = Chapter::query()->find($chapterId);
+
+        if ($chapter !== null) {
+            $this->showChapter($chapter);
         }
     }
 

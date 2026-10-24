@@ -26,13 +26,13 @@ trait ShowsTiles
         $this->navigate(TabsLayout::mangaUri(TabsLayout::tabOf($this->nativeRouter?->currentUri()), $mangaId));
     }
 
-    /** Chapter row or Continue reading tile tap. */
+    /** Continue reading tile tap: the series' Detail, which opens the chapter. */
     public function openChapter(string $chapterId): void
     {
         $chapter = Chapter::query()->find($chapterId);
 
         if ($chapter !== null) {
-            $this->showChapter($chapter);
+            $this->showChapterViaDetail($chapter);
         }
     }
 

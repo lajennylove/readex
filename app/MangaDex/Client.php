@@ -24,6 +24,8 @@ use Throwable;
  */
 final class Client
 {
+    private const REPORT_SKIP_KEY = 'mangadex:report:skip';
+
     public function __construct(private readonly RequestController $controller) {}
 
     /**
@@ -161,9 +163,17 @@ final class Client
         return 'mangadex:get:'.sha1($url);
     }
 
-    /** Fire and forget: dropped when the report bucket is busy, never throws. */
+    /**
+     * Sent inline with short timeouts, so a slow report endpoint barely delays the page. Skipped
+     * for report_skip_seconds after a failed report, dropped when the report bucket is busy,
+     * never throws.
+     */
     private function report(string $url, bool $success, int $bytes, int $startedNs, bool $cached): void
     {
+        if (Cache::has(self::REPORT_SKIP_KEY)) {
+            return;
+        }
+
         $call = new Call('POST', config('mangadex.report_url'));
         $slot = $this->controller->acquire($call, Priority::Bulk, 0);
 
@@ -172,18 +182,26 @@ final class Client
         }
 
         try {
-            $response = $this->http()->asJson()->post($call->url, [
-                'url' => $url,
-                'success' => $success,
-                'cached' => $cached,
-                'bytes' => $bytes,
-                'duration' => intdiv(hrtime(true) - $startedNs, 1_000_000),
-            ]);
+            $response = $this->http()
+                ->connectTimeout(config('mangadex.report_connect_timeout'))
+                ->timeout(config('mangadex.report_timeout'))
+                ->asJson()
+                ->post($call->url, [
+                    'url' => $url,
+                    'success' => $success,
+                    'cached' => $cached,
+                    'bytes' => $bytes,
+                    'duration' => intdiv(hrtime(true) - $startedNs, 1_000_000),
+                ]);
         } catch (Throwable) {
             $response = null;
         }
 
         $this->controller->record($slot, $response);
+
+        if ($response?->successful() !== true) {
+            Cache::put(self::REPORT_SKIP_KEY, true, config('mangadex.report_skip_seconds'));
+        }
     }
 
     private function http(): PendingRequest

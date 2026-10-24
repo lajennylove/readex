@@ -237,4 +237,78 @@ describe('downloads and @Home reports', function () {
 
         expect($this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg'))->toBe('JPEG');
     });
+
+    it('sends the report with 2 s / 3 s timeouts and the page with the usual 5 s / 20 s', function () {
+        $timeouts = [];
+        Http::fake(function (Request $request, array $options) use (&$timeouts) {
+            $timeouts[parse_url($request->url(), PHP_URL_HOST)] = [$options['connect_timeout'], $options['timeout']];
+
+            return str_contains($request->url(), '/report') ? Http::response(['result' => 'ok']) : Http::response('JPEG');
+        });
+
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg');
+
+        expect($timeouts)->toBe([
+            'cdn.example.mangadex.network' => [5, 20],
+            'api.mangadex.network' => [2, 3],
+        ]);
+    });
+
+    it('still returns the page when the report fails', function (Closure $report) {
+        Http::fake([
+            'cdn.example.mangadex.network/*' => Http::response('JPEG'),
+            'api.mangadex.network/report' => $report,
+        ]);
+
+        expect($this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg'))->toBe('JPEG');
+    })->with([
+        'with a 522' => fn () => fn () => Http::response('', 522),
+        'with a timeout' => fn () => fn () => throw new ConnectionException('cURL error 28: Operation timed out after 3001 milliseconds'),
+    ]);
+
+    it('sends no report for a minute after a failed one, then reports again', function (Closure $failure) {
+        $reports = 0;
+        Http::fake(function (Request $request) use (&$reports, $failure) {
+            if (! str_contains($request->url(), '/report')) {
+                return Http::response('JPEG');
+            }
+
+            return ++$reports === 1 ? $failure() : Http::response(['result' => 'ok']);
+        });
+
+        $reportTokens = fn () => DB::table('rate_buckets')->where('key', 'report')->value('tokens');
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg');
+        $tokens = $reportTokens();
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/2.jpg');
+
+        expect($reportTokens())->toBe($tokens);
+
+        Carbon::setTestNow(Carbon::now()->addSeconds(59));
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/3.jpg');
+
+        expect($reports)->toBe(1)
+            ->and(usage('report'))->toBe(1);
+
+        Carbon::setTestNow(Carbon::now()->addSecond());
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/4.jpg');
+
+        expect($reports)->toBe(2)
+            ->and(usage('report'))->toBe(2);
+    })->with([
+        'a 522' => fn () => fn () => Http::response('', 522),
+        'a timeout' => fn () => fn () => throw new ConnectionException('cURL error 28: Operation timed out after 3001 milliseconds'),
+    ]);
+
+    it('keeps reporting while reports succeed', function () {
+        Http::fake([
+            'cdn.example.mangadex.network/*' => Http::response('JPEG'),
+            'api.mangadex.network/report' => Http::response(['result' => 'ok']),
+        ]);
+
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg');
+        $this->client->download('https://cdn.example.mangadex.network/data/hash/2.jpg');
+
+        expect(usage('report'))->toBe(2);
+        Http::assertSentCount(4);
+    });
 });

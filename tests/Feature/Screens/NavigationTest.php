@@ -25,11 +25,18 @@ beforeEach(function () {
 
 afterEach(fn () => AsyncTask::clearFake());
 
-it('sends a first launch to Setup', function () {
+it('sends a first launch to the EULA, then Setup', function () {
+    Native::visit('/')->assertReplacedWith('/eula');
+});
+
+it('sends an acknowledged, not-yet-set-up phone to Setup', function () {
+    app(SettingsRepository::class)->acknowledgeEula();
+
     Native::visit('/')->assertReplacedWith('/setup');
 });
 
 it('sends a set-up phone to Home', function () {
+    app(SettingsRepository::class)->acknowledgeEula();
     app(SettingsRepository::class)->markSetupDone();
 
     Native::visit('/')->assertReplacedWith('/home');

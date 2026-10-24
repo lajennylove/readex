@@ -351,7 +351,8 @@ it('shows the image cache under Storage, counted when Settings opens and not on 
     $screen = Native::test(Settings::class)
         ->assertSee('Storage')
         ->assertSee('Image cache 312 MB of 1 GB')
-        ->assertSee('Clear image cache');
+        ->assertSee('Clear image cache')
+        ->assertSee('Chapters you opened longest ago go first when the cache is full.');
 
     unlink($file);
     settingsCacheFile($this->caches, 700_000_000);

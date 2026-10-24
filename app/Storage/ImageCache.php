@@ -48,7 +48,7 @@ final class ImageCache
         $this->covers->clear();
     }
 
-    /** @return Collection<int, string> cache-tier chapter ids, last opened first, never opened last */
+    /** @return Collection<int, string> cache-tier chapter ids, opened longest ago first, never opened last */
     private function cached(): Collection
     {
         return StoredChapter::query()->where('tier', 'cache')

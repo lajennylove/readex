@@ -13,7 +13,9 @@ use App\Models\ReadingProgress;
 use App\Models\Statistic;
 use App\NativeComponents\Concerns\ManagesDownloads;
 use App\NativeComponents\Concerns\RefreshesData;
+use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeComponents\Concerns\ShowsTiles;
+use App\NativeLayouts\HasResumeBar;
 use App\NativeLayouts\TabsLayout;
 use App\Refresh\Refresh;
 use App\Repositories\ChapterRepository;
@@ -36,10 +38,11 @@ use Native\Mobile\Edge\NativeComponent;
  * More like this sits above the chapters: under a 700-chapter list nobody would reach it.
  * A readable row asks Read or a download action; Download all sits under Favorite (§11.3).
  */
-class MangaDetail extends NativeComponent
+class MangaDetail extends NativeComponent implements HasResumeBar
 {
     use ManagesDownloads;
     use RefreshesData;
+    use ShowsResumeBar;
     use ShowsTiles;
 
     /** Navigation data: the chapter to open on top of this screen (`OpensChapters::showChapterViaDetail()`). */

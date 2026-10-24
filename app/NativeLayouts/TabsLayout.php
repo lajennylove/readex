@@ -2,6 +2,7 @@
 
 namespace App\NativeLayouts;
 
+use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBar;
 use Native\Mobile\Edge\Layouts\Builders\Tab;
 use Native\Mobile\Edge\Layouts\Builders\TabBar;
@@ -38,6 +39,12 @@ class TabsLayout extends NativeLayout
             ->add(Tab::link('Settings', '/settings', icon: 'settings', ios: 'gearshape'))
             ->dark()
             ->minimizeOnScroll();
+    }
+
+    /** D31: the resume bar on the screens that show it; the Reader and the page viewer don't. iOS draws it on 26+ only. */
+    public function tabBarAccessory(NativeComponent $screen): ?Element
+    {
+        return $screen instanceof HasResumeBar ? $screen->resumeBar() : null;
     }
 
     public static function mangaUri(string $tab, string $mangaId): string

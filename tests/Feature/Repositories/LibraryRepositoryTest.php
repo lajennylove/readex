@@ -9,6 +9,7 @@ use App\Repositories\ContinueReading;
 use App\Repositories\LibraryChapter;
 use App\Repositories\LibraryRepository;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 const LIB_GROUP_A = 'aaaaaaaa-0000-4000-8000-000000000000';
 const LIB_GROUP_B = 'bbbbbbbb-0000-4000-8000-000000000000';
@@ -232,6 +233,105 @@ it('resumes a series on the last chapter read, at its saved page, or on the next
     libChapter(3, 1, '3');                                 // a new chapter in the feed
     $resume = $this->library->resume(libId('m', 1));
     expect($resume->chapter->id)->toBe(libId('c', 3))->and($resume->progress)->toBeNull();
+});
+
+it('opens the resume bar on the chapter read last, across series, at its saved page', function () {
+    libManga(1);
+    libManga(2);
+    libChapter(11, 1, '1');
+    libChapter(21, 2, '1');
+
+    expect($this->library->lastOpened())->toBeNull();
+
+    $this->library->saveProgress(libId('c', 21), 8, 20);   // 12:00 series 2
+    Carbon::setTestNow('2026-10-24 13:00:00');
+    $this->library->saveProgress(libId('c', 11), 4, 20);   // 13:00 series 1, read last
+
+    $last = $this->library->lastOpened();
+    expect($last->manga->id)->toBe(libId('m', 1))
+        ->and($last->chapter->id)->toBe(libId('c', 11))
+        ->and($last->progress->page)->toBe(4);
+
+    Carbon::setTestNow('2026-10-24 14:00:00');
+    $this->library->saveProgress(libId('c', 21), 9, 20);   // back to series 2
+
+    expect($this->library->lastOpened())->chapter->id->toBe(libId('c', 21))->progress->page->toBe(9);
+});
+
+it('breaks a tie on the time read by chapter id, as resume() does', function () {
+    libManga(1);
+    libManga(2);
+    libChapter(22, 2, '1');
+    libChapter(11, 1, '1');
+
+    // Same second; the larger id is saved first so the table's own order isn't the answer.
+    $this->library->saveProgress(libId('c', 22), 3, 20);
+    $this->library->saveProgress(libId('c', 11), 5, 20);
+    ReadingProgress::query()->update(['updated_at' => Carbon::now()]);
+
+    expect($this->library->lastOpened()->chapter->id)->toBe(libId('c', 11));
+});
+
+it('moves the resume bar to the next chapter once the last one read is finished, on its own saved page if it has one', function () {
+    libManga(1);
+    libChapter(1, 1, '1');
+    libChapter(2, 1, '2');
+    libChapter(3, 1, '2', ['language' => 'en']);          // same number, other language
+    libChapter(4, 1, '3');
+
+    $this->library->saveProgress(libId('c', 1), 19, 20);  // finished, chapter 2 never opened
+
+    $last = $this->library->lastOpened();
+    expect($last->chapter->id)->toBe(libId('c', 2))->and($last->progress)->toBeNull();
+
+    $this->library->saveProgress(libId('c', 4), 6, 20);   // looked at chapter 3 …
+    Carbon::setTestNow('2026-10-24 13:00:00');
+    $this->library->saveProgress(libId('c', 2), 19, 20);  // … then finished chapter 2
+
+    $last = $this->library->lastOpened();
+    expect($last->chapter->id)->toBe(libId('c', 4))->and($last->progress->page)->toBe(6);
+});
+
+it('hides the resume bar when the series read last is caught up, even with another series mid-read', function () {
+    libManga(1);
+    libManga(2);
+    libChapter(11, 1, '1');
+    libChapter(21, 2, '1');
+    libChapter(22, 2, '2');
+
+    $this->library->saveProgress(libId('c', 21), 5, 20);   // 12:00 series 2 mid-read
+    Carbon::setTestNow('2026-10-24 13:00:00');
+    $this->library->saveProgress(libId('c', 11), 19, 20);  // 13:00 series 1 finished, nothing after
+
+    expect($this->library->lastOpened())->toBeNull()
+        ->and(libTiles($this->library->continueReading()))->toBe(['Series 2: 1']);
+});
+
+it('hides the resume bar when the chapter or series read last is gone', function (string $gone) {
+    libManga(1);
+    libChapter(1, 1, '1');
+    $this->library->saveProgress(libId('c', 1), 0, 20);
+
+    $gone === 'chapter'
+        ? Chapter::query()->whereKey(libId('c', 1))->delete()
+        : Manga::query()->whereKey(libId('m', 1))->delete();
+
+    expect($this->library->lastOpened())->toBeNull();
+})->with(['chapter', 'manga']);
+
+it('looks up an unfinished last chapter in a few queries (it runs on every tab render)', function () {
+    libManga(1);
+    foreach (range(1, 30) as $n) {
+        libChapter($n, 1, (string) $n);
+    }
+    $this->library->saveProgress(libId('c', 7), 3, 20);
+
+    DB::enableQueryLog();
+    $last = $this->library->lastOpened();
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($last->chapter->id)->toBe(libId('c', 7))->and($queries)->toBeLessThanOrEqual(4);
 });
 
 it('leaves a tile out when its chapter or manga row is missing', function () {

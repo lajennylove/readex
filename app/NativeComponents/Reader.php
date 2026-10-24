@@ -69,6 +69,9 @@ class Reader extends NativeComponent
     /** ms of the last time the reader asked for its pages (offline retry). */
     public int $askedAt = 0;
 
+    /** ms of the last time prefetch asked the phone about its connection (a native bridge round trip). */
+    public int $networkAskedAt = 0;
+
     /** @var array{pages?: list<array{src: string, width: int, height: int}|null>, chapter?: Chapter} */
     private array $seen = [];
 
@@ -193,7 +196,7 @@ class Reader extends NativeComponent
         $this->askedAt = Carbon::now()->getTimestampMs();
     }
 
-    /** "Needs internet" → Retry. */
+    /** Retry on "Needs internet", "Not available" and "Something went wrong". */
     public function retry(): void
     {
         $this->forget();
@@ -231,7 +234,7 @@ class Reader extends NativeComponent
         }
     }
 
-    /** Offline: ask again every `offline_retry_seconds` unless the phone says it has no connection. */
+    /** Offline or MangaDex trouble: ask again every `offline_retry_seconds` unless the phone says it has no connection. */
     #[Poll(1000)]
     public function checkPages(): void
     {
@@ -245,7 +248,7 @@ class Reader extends NativeComponent
             return;
         }
 
-        if ($fetcher->state($this->chapterId) !== LoadState::Offline || $fetcher->isRunning($this->chapterId)) {
+        if (! in_array($fetcher->state($this->chapterId), [LoadState::Offline, LoadState::Retrying], true) || $fetcher->isRunning($this->chapterId)) {
             return;
         }
 
@@ -298,8 +301,9 @@ class Reader extends NativeComponent
     }
 
     /**
-     * missing / external / unavailable / offline (never stored, no connection) / loading (no
-     * page count yet) / pages.
+     * missing / external / unavailable / offline (never stored, no connection) / retrying (never
+     * stored, MangaDex trouble) / failed (never stored, unexpected error) / loading (no page count
+     * yet) / pages.
      */
     private function screen(?Chapter $chapter): string
     {
@@ -318,6 +322,8 @@ class Reader extends NativeComponent
         return match (true) {
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Unavailable => 'unavailable',
             ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Offline => 'offline',
+            ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Retrying => 'retrying',
+            ! $stored && $idle && $fetcher->state($this->chapterId) === LoadState::Failed => 'failed',
             $this->pageCount() === 0 => 'loading',
             default => 'pages',
         };
@@ -334,7 +340,7 @@ class Reader extends NativeComponent
     {
         $fetcher = app(PageFetcher::class);
         $failed = $fetcher->failed($this->chapterId);
-        $waiting = $fetcher->state($this->chapterId) === LoadState::Offline && ! $fetcher->isRunning($this->chapterId);
+        $state = $fetcher->isRunning($this->chapterId) ? null : $fetcher->state($this->chapterId);
         $count = $this->pageCount();
         $label = MangaDetail::chapterLabel($chapter);
         $credit = 'Scanlation: '.($chapter->group_name ?? 'No group');
@@ -363,7 +369,8 @@ class Reader extends NativeComponent
                     'src' => $pages[$index]['src'] ?? null,
                     'ratio' => isset($pages[$index]) ? "{$pages[$index]['width']}/{$pages[$index]['height']}" : "{$ratio[0]}/{$ratio[1]}",
                     'failed' => in_array($index, $failed, true),
-                    'waiting' => $waiting,
+                    'waiting' => $state === LoadState::Offline,
+                    'trouble' => $state === LoadState::Retrying,
                 ],
             };
         }
@@ -434,15 +441,20 @@ class Reader extends NativeComponent
 
     /**
      * Once, when the chapter is all on the phone and the connection allows it. Queued from here,
-     * not earlier: the open chapter's own downloads come first on the phone's queue.
+     * not earlier: the open chapter's own downloads come first on the phone's queue. A metered
+     * connection is asked about again every `offline_retry_seconds`, not on every poll.
      */
     private function prefetchNext(): void
     {
-        if ($this->prefetched || ! app(PageStore::class)->has($this->chapterId)) {
+        $now = Carbon::now()->getTimestampMs();
+
+        if ($this->prefetched || $now - $this->networkAskedAt < config('readex.reader.offline_retry_seconds') * 1000
+            || ! app(PageStore::class)->has($this->chapterId)) {
             return;
         }
 
         $chapter = $this->chapter();
+        $this->networkAskedAt = $now;
 
         $this->prefetched = $chapter !== null && PrefetchNext::dispatchIfUnmetered($chapter->manga_id, $chapter->id);
     }

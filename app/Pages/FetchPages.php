@@ -8,6 +8,7 @@ use App\MangaDex\Exceptions\ApiError;
 use App\MangaDex\Exceptions\RequestDeferred;
 use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
+use App\Storage\ChapterGone;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Native\Mobile\AsyncTask;
@@ -17,8 +18,8 @@ use Throwable;
  * The pages the reader shows, downloaded at once on the async lane (the phone's queue worker
  * pauses after every job and stops in the background). Follows the reader's wanted list while
  * it runs, so a fast scroll moves it to the new window. One per chapter (PageFetcher::want()).
- * When it stops, the rest of the chapter goes to a DownloadChapter job, and pages stored queue
- * EnforceCacheCap. Never throws.
+ * When it stops, the rest of the chapter goes to a DownloadChapter job (not for a chapter the
+ * image cache dropped meanwhile), and pages stored queue EnforceCacheCap. Never throws.
  */
 class FetchPages extends AsyncTask
 {
@@ -30,6 +31,7 @@ class FetchPages extends AsyncTask
     {
         $fetcher = app(PageFetcher::class);
         $fetched = 0;
+        $gone = false;
 
         try {
             $chapter = Chapter::query()->find($chapterId);
@@ -50,6 +52,12 @@ class FetchPages extends AsyncTask
             $state = LoadState::Busy;
         } catch (ConnectionException) {
             $state = LoadState::Offline;
+        } catch (ChapterGone) {
+            // The image cache dropped a chapter no longer open: nothing left to fetch for it.
+            $state = LoadState::Done;
+            $gone = true;
+        } catch (MangaDexTrouble) {
+            $state = LoadState::Retrying;
         } catch (ApiError|ChapterUnavailable) {
             $state = LoadState::Unavailable;
         } catch (Throwable $e) {
@@ -63,7 +71,7 @@ class FetchPages extends AsyncTask
             EnforceCacheCap::dispatch();
         }
 
-        $queued = in_array($state, [LoadState::Done, LoadState::Busy, LoadState::Offline], true)
+        $queued = ! $gone && in_array($state, [LoadState::Done, LoadState::Busy, LoadState::Offline, LoadState::Retrying], true)
             && $fetcher->remaining($chapterId) > 0;
 
         if ($queued) {

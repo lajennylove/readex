@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\StoredChapter;
+use App\Storage\ChapterGone;
 use App\Storage\PageStore;
 use App\Storage\StorageBridge;
 use Illuminate\Support\Facades\Cache;
@@ -88,7 +89,7 @@ describe('put', function () {
             ->and($this->pages->has('c1'))->toBeTrue();
     });
 
-    it('stores nothing that is not an image, is out of range or belongs to no started chapter', function (string $id, int $index, bool $image) {
+    it('stores nothing that is not an image or is out of range', function (string $id, int $index, bool $image) {
         $this->pages->begin(Pages::chapter(), 'data-saver', 3);
 
         expect($this->pages->put($id, $index, $image ? Pages::image() : '<html>captive portal</html>'))->toBeFalse()
@@ -98,8 +99,26 @@ describe('put', function () {
         'not an image' => ['c1', 0, false],
         'index 3 of 3' => ['c1', 3, true],
         'negative index' => ['c1', -1, true],
-        'not started' => ['c2', 0, true],
     ]);
+
+    it('says the chapter is gone for a page of a chapter not stored: never begun, or dropped by the image cache meanwhile', function () {
+        $this->pages->begin(Pages::chapter('c1'), 'data-saver', 3);
+        $this->pages->put('c1', 0, Pages::image());
+        $this->pages->evict('c1');
+
+        expect(fn () => $this->pages->put('c2', 0, Pages::image()))->toThrow(ChapterGone::class)
+            ->and(fn () => $this->pages->put('c1', 1, Pages::image()))->toThrow(ChapterGone::class)
+            ->and(StoredChapter::query()->count())->toBe(0)
+            ->and(is_dir("{$this->caches}/chapters/c1"))->toBeFalse();
+    });
+
+    it('says the chapter is gone for a page of a chapter iOS purged meanwhile, and writes no folder back', function () {
+        $this->pages->begin(Pages::chapter('c1'), 'data-saver', 3);
+        File::deleteDirectory("{$this->caches}/chapters/c1");
+
+        expect(fn () => $this->pages->put('c1', 0, Pages::image()))->toThrow(ChapterGone::class)
+            ->and(is_dir("{$this->caches}/chapters/c1"))->toBeFalse();
+    });
 
     it('replaces a page stored again (no double count)', function () {
         $this->pages->begin(Pages::chapter(), 'data-saver', 3);
@@ -110,6 +129,16 @@ describe('put', function () {
 
         expect(glob("{$this->caches}/chapters/c1/001.*"))->toBe(["{$this->caches}/chapters/c1/001.jpg"])
             ->and(StoredChapter::query()->find('c1')->only(['pages_done', 'bytes']))->toBe(['pages_done' => 1, 'bytes' => strlen($second)]);
+    });
+
+    it('leaves no .part file behind when a write fails, and the error still reaches the caller', function () {
+        $this->pages->begin(Pages::chapter(), 'data-saver', 3);
+        File::ensureDirectoryExists("{$this->caches}/chapters/c1/001.jpg");
+
+        expect(fn () => $this->pages->put('c1', 0, Pages::image()))->toThrow(ErrorException::class);
+
+        expect(glob("{$this->caches}/chapters/c1/*.part"))->toBe([])
+            ->and(StoredChapter::query()->find('c1')->pages_done)->toBe(0);
     });
 });
 
@@ -218,7 +247,42 @@ describe('evict', function () {
         expect(is_file($cover))->toBeTrue()
             ->and(is_dir("{$this->caches}/chapters"))->toBeTrue()
             ->and($this->pages->manifest('..'))->toBeNull()
-            ->and($this->pages->put('..', 0, Pages::image()))->toBeFalse();
+            ->and(fn () => $this->pages->put('..', 0, Pages::image()))->toThrow(ChapterGone::class);
+    });
+
+    it('keeps a dropped chapter out of the cache tier until the reader or a download asks for it (forgetEvicted)', function () {
+        Stored::useTempStorage();
+        $chapter = Pages::chapter('c1');
+        $this->pages->begin($chapter, 'data-saver', 3);
+        $this->pages->evict('c1');
+
+        expect($this->pages->wasEvicted('c1'))->toBeTrue()
+            ->and(fn () => $this->pages->begin($chapter, 'data-saver', 3))->toThrow(ChapterGone::class)
+            ->and(StoredChapter::query()->count())->toBe(0);
+
+        $this->travel(config('readex.pages.evicted_seconds') - 1)->seconds();
+        expect($this->pages->wasEvicted('c1'))->toBeTrue();
+        $this->travel(1)->seconds();
+        expect($this->pages->wasEvicted('c1'))->toBeFalse();
+
+        $this->pages->begin($chapter, 'data-saver', 3);
+        $this->pages->evict('c1');
+        $this->pages->forgetEvicted('c1');
+        expect($this->pages->begin($chapter, 'data-saver', 3)->tier)->toBe('cache');
+
+        $this->pages->evict('c1');
+        expect($this->pages->begin($chapter, 'data-saver', 3, 'local')->tier)->toBe('local');
+    });
+
+    it('marks nothing dropped when it evicts nothing (a download, an unknown chapter)', function () {
+        Stored::useTempStorage();
+        $this->pages->begin(Pages::chapter('c1'), 'data-saver', 3, 'local');
+
+        $this->pages->evict('c1');
+        $this->pages->evict('c2');
+
+        expect($this->pages->wasEvicted('c1'))->toBeFalse()
+            ->and($this->pages->wasEvicted('c2'))->toBeFalse();
     });
 });
 

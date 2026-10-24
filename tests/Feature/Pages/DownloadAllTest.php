@@ -126,6 +126,28 @@ describe('Download all', function () {
             ->and($this->downloads->running(T7_ALL))->toBeNull();
     });
 
+    it('asks again for the pages that failed in each chapter, when that chapter\'s turn starts', function () {
+        Pages::fake(count: 4);
+        t7aBatch(2);
+        Stored::partial('t7-a1', 2, 4);
+        Stored::partial('t7-a2', 3, 4);
+        cache()->put('readex.pages.failed.t7-a1', [2, 3], 86400);
+        cache()->put('readex.pages.failed.t7-a2', [3], 86400);
+        $fetcher = app(PageFetcher::class);
+
+        $this->downloads->downloadAll(T7_ALL, 'es-la');
+
+        expect($fetcher->failed('t7-a1'))->toBe([])
+            ->and($fetcher->failed('t7-a2'))->toBe([3]);
+
+        t7aRun('t7-a1');
+        expect($fetcher->failed('t7-a2'))->toBe([]);
+        t7aRun('t7-a2');
+
+        expect(array_map(fn ($s) => $s->state, $this->downloads->statuses(['t7-a1', 't7-a2'])))->each->toBe(DownloadState::Downloaded)
+            ->and($this->downloads->running(T7_ALL))->toBeNull();
+    });
+
     it('moves on when a chapter is not available', function () {
         Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
         t7aBatch(2);
@@ -167,6 +189,19 @@ describe('Download all', function () {
 
         expect(t7aQueued())->toBe(['t7-a1 local bulk'])
             ->and($this->downloads->isQueued('t7-a1'))->toBeTrue();
+    });
+
+    it('waits while MangaDex is having trouble: the job is released and nothing else starts', function () {
+        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
+        t7aBatch(3);
+        $this->downloads->downloadAll(T7_ALL, 'es-la');
+
+        t7aRun('t7-a1')->assertReleased(1);
+        t7aRun('t7-a1')->assertReleased(4);
+
+        expect(t7aQueued())->toBe(['t7-a1 local bulk'])
+            ->and($this->downloads->isQueued('t7-a1'))->toBeTrue()
+            ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 0, 'total' => 3]);
     });
 
     it('moves a chapter all in the cache on its turn without a job and goes on to the next', function () {

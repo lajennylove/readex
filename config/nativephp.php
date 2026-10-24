@@ -284,6 +284,8 @@ return [
         'storage/logs/laravel.log',
         'storage/app/public/cache',
         'storage/app/local-bridge',
+        'storage/app/public/downloads',
+        'public/spike',
     ],
 
     /*

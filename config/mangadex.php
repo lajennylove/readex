@@ -16,6 +16,14 @@ return [
 
     'timeout' => 20,
 
+    // @Home reports are sent inline after each image, so they get short timeouts of their own.
+    'report_connect_timeout' => 2,
+
+    'report_timeout' => 3,
+
+    // After a failed @Home report, none are sent for this many seconds.
+    'report_skip_seconds' => 60,
+
     // Identical GETs within this many seconds share one response (UI thread, async tasks, queue worker).
     'share_seconds' => 5,
 

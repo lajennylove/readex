@@ -59,6 +59,8 @@ return [
         'running_seconds' => 60,
         // FetchPages stops taking new pages after this long; the rest goes to DownloadChapter.
         'task_budget_seconds' => 30,
+        // A DownloadChapter slice stops taking new pages after this long and releases itself to continue.
+        'job_budget_seconds' => 40,
         // A page one fetcher is downloading is skipped by the others for this long.
         'claim_seconds' => 60,
         // A page that failed twice shows "Tap to retry" for this long.

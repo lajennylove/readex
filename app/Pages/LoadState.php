@@ -11,7 +11,7 @@ enum LoadState: string
     /** No connection: missing pages wait, nothing is marked failed. */
     case Offline = 'offline';
 
-    /** No request slot: a DownloadChapter job waits for the controller. */
+    /** A DownloadChapter job is queued to continue: there was no request slot or its time budget ran out. */
     case Busy = 'busy';
 
     /** MangaDex has no @Home pages for this chapter (removed, external). */

@@ -65,6 +65,17 @@ return [
         'failed_seconds' => 86400,
     ],
 
+    'reader' => [
+        // Points. PHP gets no screen width; only used for the height of rows outside the list window (iPhone 17 Pro Max).
+        'width' => 440,
+        // Width / height of a page before any page of the chapter is stored (a typical manga page).
+        'page_ratio' => [5, 7],
+        // Pages past the list window the reader asks for, so the next ones are there before they scroll in.
+        'lookahead' => 3,
+        // While offline, the reader asks for its missing pages again this often.
+        'offline_retry_seconds' => 15,
+    ],
+
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 

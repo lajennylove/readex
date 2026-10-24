@@ -3,6 +3,7 @@
 use App\NativeComponents\Home;
 use App\NativeComponents\Library;
 use App\NativeComponents\MangaDetail;
+use App\NativeComponents\Reader;
 use App\NativeComponents\Search;
 use App\NativeComponents\Settings;
 use App\NativeComponents\Setup;
@@ -21,5 +22,6 @@ Route::nativeGroup(TabsLayout::class, function () {
 
     foreach (TabsLayout::DETAIL_TABS as $tab) {
         Route::native("/{$tab}/manga/{id}", MangaDetail::class);
+        Route::native("/{$tab}/read/{chapterId}", Reader::class);
     }
 });

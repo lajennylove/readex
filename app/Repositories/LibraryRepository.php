@@ -210,13 +210,28 @@ final class LibraryRepository
             : $this->next($manga, $chapter);
     }
 
+    /**
+     * The chapter after this one in Library order (same language, one upload per number, the
+     * preferred group's first); null at the end. Reader's "Next" button.
+     */
+    public function after(Chapter $chapter): ?Chapter
+    {
+        return $this->following($chapter)?->chapter;
+    }
+
     private function next(Manga $manga, Chapter $chapter): ?ContinueReading
     {
-        $order = collect($this->sections($manga->id, $chapter->language))->flatMap(fn (array $s) => $s['chapters'])->values();
-        $key = $chapter->number ?? $chapter->id;
-        $at = $order->search(fn (LibraryChapter $c) => ($c->chapter->number ?? $c->chapter->id) === $key);
-        $next = $at === false ? null : $order->get($at + 1);
+        $next = $this->following($chapter);
 
         return $next === null ? null : new ContinueReading($manga, $next->chapter, $next->progress);
+    }
+
+    private function following(Chapter $chapter): ?LibraryChapter
+    {
+        $order = collect($this->sections($chapter->manga_id, $chapter->language))->flatMap(fn (array $s) => $s['chapters'])->values();
+        $key = $chapter->number ?? $chapter->id;
+        $at = $order->search(fn (LibraryChapter $c) => ($c->chapter->number ?? $c->chapter->id) === $key);
+
+        return $at === false ? null : $order->get($at + 1);
     }
 }

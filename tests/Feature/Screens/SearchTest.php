@@ -322,14 +322,14 @@ it('asks for one batch while it waits for a busy MangaDex, then picks up the job
     $screen = Native::test(Search::class)->call('searchFor', 'one punch');
 
     $screen->call('windowChanged', 0, 3)->call('windowChanged', 0, 4)->call('windowChanged', 0, 5)
-        ->assertSee('MangaDex is busy, will update shortly');
+        ->assertSee('The provider is busy, will update shortly');
 
     expect(asked($this->asked, 'offset=10'))->toBe(1);
     Queue::assertPushed(RefreshRepository::class, 1);
 
     ($this->fake)();
     Queue::pushed(RefreshRepository::class)->first()->handle();
-    $screen->firePolls()->assertDontSee('MangaDex is busy');
+    $screen->firePolls()->assertDontSee('The provider is busy');
 
     expect($screen->get('more'))->toBeFalse()
         ->and(tileTitles($screen->tree()))->toHaveCount(18);
@@ -448,12 +448,12 @@ it("drops the old search's status line when the search changes", function () {
         ->call('searchFor', '')->assertDontSee('Offline')->assertSee('Genre');
 });
 
-it('keeps searching, not "Nothing saved", while MangaDex is busy', function () {
+it('keeps searching, not "Nothing saved", while The provider is busy', function () {
     ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=') ? throw busy() : null);
 
     $screen = Native::test(Search::class);
     $collisions = Skeletons::keyCollisions(fn () => $screen->call('searchFor', 'one punch'));
-    $screen->assertSee('MangaDex is busy, will update shortly')
+    $screen->assertSee('The provider is busy, will update shortly')
         ->assertDontSee('Nothing saved for this search');
 
     expect($collisions)->toBe([])
@@ -482,7 +482,7 @@ it('says MangaDex is having trouble, without Retry, while a search that met a 50
 
     $screen = Native::test(Search::class)
         ->call('searchFor', 'one punch')
-        ->assertSee('MangaDex is having trouble, retrying')
+        ->assertSee('The provider is having trouble, retrying')
         ->assertSee('Retrying on its own.')
         ->assertDontSee('Nothing saved for this search');
     expect(searchNodes($screen->tree(), 'button'))->toBe([]);
@@ -490,7 +490,7 @@ it('says MangaDex is having trouble, without Retry, while a search that met a 50
 
     ($this->fake)();
     Carbon::setTestNow(Carbon::now()->addSeconds(15));
-    $screen->call('checkWaitingRefreshes')->assertDontSee('MangaDex is having trouble');
+    $screen->call('checkWaitingRefreshes')->assertDontSee('The provider is having trouble');
     expect(tileTitles($screen->tree()))->toHaveCount(10);
 });
 

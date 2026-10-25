@@ -213,7 +213,7 @@ it('says MangaDex is having trouble, not Not available, when the lookup meets a 
 
     $screen = Native::visit('/home/read/c1')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
 
-    expect(readerTexts($screen->tree()))->toContain('MangaDex is having trouble')->toContain('Retrying on its own.')
+    expect(readerTexts($screen->tree()))->toContain('The provider is having trouble')->toContain('Retrying on its own.')
         ->not->toContain('Not available')->not->toContain('Needs internet')->not->toContain('[Retry]')
         ->and(app(PageFetcher::class)->state('c1'))->toBe(LoadState::Retrying);
 
@@ -245,7 +245,7 @@ it('keeps a missing page saying MangaDex is having trouble while the lookup meet
     $screen = Native::visit('/home/read/c1');
     $placeholder = readerFind($screen->tree(), 'virtual_list')['children'][2];
 
-    expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2 · MangaDex is having trouble, retrying'])
+    expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2 · The provider is having trouble, retrying'])
         ->and($placeholder['id'])->toBe(Element::fnv1a32('/page-2'))
         ->and(app(PageFetcher::class)->failed('c1'))->toBe([]);
 });
@@ -371,7 +371,7 @@ it('never hides the bar while loading, offline, unavailable, retrying, failed, e
     'retrying' => [function () {
         Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response('', 503)]);
         Pages::chapter('c1', ['pages' => 3]);
-    }, fn (array $tree) => expect(readerTexts($tree))->toContain('MangaDex is having trouble')],
+    }, fn (array $tree) => expect(readerTexts($tree))->toContain('The provider is having trouble')],
     'failed' => [function () {
         Exceptions::fake();
         Http::fake(fn () => throw new RuntimeException('boom'));
@@ -407,7 +407,7 @@ it('shows the bar again when the pages go away while it was hidden', function (L
 })->with([
     'offline' => [LoadState::Offline, 'Needs internet'],
     'unavailable' => [LoadState::Unavailable, 'Not available'],
-    'retrying' => [LoadState::Retrying, 'MangaDex is having trouble'],
+    'retrying' => [LoadState::Retrying, 'The provider is having trouble'],
     'failed' => [LoadState::Failed, 'Something went wrong'],
 ]);
 

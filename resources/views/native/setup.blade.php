@@ -7,7 +7,7 @@
             @if ($phase === $setup::SETTINGS)
                 <native:column class="w-full gap-2">
                     <native:text class="text-base font-bold text-theme-on-background">Content source</native:text>
-                    <native:text class="text-sm text-theme-on-surface-variant">ReaDex has no content of its own. Add the URL or API endpoint of the source you want to read from — MangaDex's public API is one example (your URL is checked before it's saved).</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">ReaDex has no content of its own. Add the URL or API endpoint of the source you want to read from. The URL is checked before it's saved.</native:text>
                     <native:outlined_text_input placeholder="https://" value="{{ $sourceUrl }}" @change="changeSourceUrl" />
                     @if ($sourceError)
                         <native:text class="text-sm text-theme-destructive">{{ $sourceError }}</native:text>
@@ -26,7 +26,7 @@
                 <native:text class="text-sm text-theme-on-surface-variant">Connect to Wi-Fi or mobile data, then try again.</native:text>
                 <native:button label="Retry" variant="primary" @press="continueSetup" />
             @else
-                <native:text class="text-sm text-theme-on-surface-variant">Getting your source ready…</native:text>
+                <native:text class="text-sm text-theme-on-surface-variant">Getting your provider ready…</native:text>
                 <native:column class="w-full gap-2">
                     @foreach (\App\Loading\DataLoader::STEPS as $step => $label)
                         <native:row class="w-full justify-between">

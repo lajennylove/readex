@@ -25,7 +25,7 @@
     </native:column>
 @elseif ($screen === 'retrying')
     <native:column class="w-full h-full items-center justify-center gap-3 p-6 bg-black">
-        <native:text class="text-lg font-bold text-white">MangaDex is having trouble</native:text>
+        <native:text class="text-lg font-bold text-white">The provider is having trouble</native:text>
         <native:text class="text-sm text-center text-theme-on-surface-variant">Retrying on its own.</native:text>
     </native:column>
 @elseif ($screen === 'external')
@@ -37,7 +37,7 @@
 @elseif ($screen === 'unavailable')
     <native:column class="w-full h-full items-center justify-center gap-3 p-6 bg-black">
         <native:text class="text-lg font-bold text-white">Not available</native:text>
-        <native:text class="text-sm text-center text-theme-on-surface-variant">MangaDex has no pages for this chapter. It may have been removed.</native:text>
+        <native:text class="text-sm text-center text-theme-on-surface-variant">The provider has no pages for this chapter. It may have been removed.</native:text>
         <native:button label="Retry" variant="secondary" @press="retry" />
     </native:column>
 @elseif ($screen === 'failed')

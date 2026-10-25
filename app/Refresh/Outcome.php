@@ -71,9 +71,9 @@ final readonly class Outcome
         return match ($this->status) {
             RefreshStatus::Ok => null,
             RefreshStatus::Offline => 'Offline, showing saved data',
-            RefreshStatus::Busy => 'MangaDex is busy, will update shortly',
-            RefreshStatus::Limited => 'MangaDex is limiting this phone, try after '.$this->localTime(),
-            RefreshStatus::Unavailable => 'MangaDex is having trouble, retrying',
+            RefreshStatus::Busy => 'The provider is busy, will update shortly',
+            RefreshStatus::Limited => 'The provider is limiting this phone, try after '.$this->localTime(),
+            RefreshStatus::Unavailable => 'The provider is having trouble, retrying',
             RefreshStatus::Failed => 'Something went wrong',
         };
     }

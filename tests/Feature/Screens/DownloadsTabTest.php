@@ -184,7 +184,47 @@ it('renders a cover image in the group header when the file is on disk', functio
 
     $visit = Native::visit('/downloads')->assertSee('Covered Series');
 
-    expect(json_encode($visit->tree()))->toContain("storage\/cache\/covers\/{$mangaId}\/cover.jpg.256.jpg");
+    // Same relative-src format resume-bar + tile + manga-detail use: `storage/cache/covers/<id>/...`.
+    $tree = json_encode($visit->tree());
+    expect($tree)->toContain("storage\/cache\/covers\/{$mangaId}\/cover.jpg.256.jpg");
+    // Skeleton overlay is present with loaded=true (matches tile/manga-detail pattern); the
+    // raw placeholder icon from the previous grouping pass must no longer be in the tree.
+    expect($tree)->not->toContain('book.closed');
+});
+
+it('renders N-1 dividers between N groups and none after the last', function () {
+    $mangaA = dtId('m', 40);
+    $mangaB = dtId('m', 41);
+    $mangaC = dtId('m', 42);
+    Covers::manga($mangaA, title: 'Group A');
+    Covers::manga($mangaB, title: 'Group B');
+    Covers::manga($mangaC, title: 'Group C');
+    dtChapter(40, $mangaA, '1');
+    dtChapter(41, $mangaB, '1');
+    dtChapter(42, $mangaC, '1');
+    dtInsertRow(dtId('c', 40), $mangaA, QueueState::Queued, position: 1);
+    dtInsertRow(dtId('c', 41), $mangaB, QueueState::Queued, position: 2);
+    dtInsertRow(dtId('c', 42), $mangaC, QueueState::Queued, position: 3);
+
+    $visit = Native::visit('/downloads')
+        ->assertSee('Group A')
+        ->assertSee('Group B')
+        ->assertSee('Group C');
+
+    $tree = json_encode($visit->tree());
+    // 3 groups → exactly 2 dividers (between A|B and B|C, none after C). The engine
+    // strips native:key off `<native:divider />`, so we count the rendered type instead.
+    expect(substr_count($tree, '"type":"divider"'))->toBe(2);
+});
+
+it('renders no divider when there is a single group', function () {
+    Covers::manga(dtId('m', 50), title: 'Only Series');
+    dtChapter(50, dtId('m', 50), '1');
+    dtInsertRow(dtId('c', 50), dtId('m', 50), QueueState::Queued);
+
+    $visit = Native::visit('/downloads')->assertSee('Only Series');
+
+    expect(json_encode($visit->tree()))->not->toContain('"type":"divider"');
 });
 
 it('never renders the comodin chapter (read_now_lane)', function () {

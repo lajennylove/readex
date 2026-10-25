@@ -146,6 +146,47 @@ it('cancelling a Queued row deletes it outright and it no longer renders', funct
         ->assertDontSee('Gone');
 });
 
+it('groups chapters by series in queue order and renders the chapter count under each header', function () {
+    $mangaA = dtId('m', 20);
+    $mangaB = dtId('m', 21);
+    Covers::manga($mangaA, title: 'Alpha Series');
+    Covers::manga($mangaB, title: 'Beta Series');
+
+    // Interleaved on purpose: A/B/A. Group order should follow earliest position = A first.
+    dtChapter(20, $mangaA, '1');
+    dtChapter(21, $mangaB, '7');
+    dtChapter(22, $mangaA, '2');
+    dtInsertRow(dtId('c', 20), $mangaA, QueueState::Queued, position: 1);
+    dtInsertRow(dtId('c', 21), $mangaB, QueueState::Queued, position: 2);
+    dtInsertRow(dtId('c', 22), $mangaA, QueueState::Queued, position: 3);
+
+    $visit = Native::visit('/downloads')
+        ->assertSee('Alpha Series')
+        ->assertSee('Beta Series')
+        ->assertSee('2 chapters')
+        ->assertSee('1 chapter')
+        ->assertSee('Ch. 1')
+        ->assertSee('Ch. 2')
+        ->assertSee('Ch. 7');
+
+    // Group order: Alpha first (earliest queue position).
+    $tree = json_encode($visit->tree());
+    expect(strpos($tree, 'Alpha Series'))->toBeLessThan(strpos($tree, 'Beta Series'));
+});
+
+it('renders a cover image in the group header when the file is on disk', function () {
+    $caches = Covers::useTempCaches();
+    $mangaId = dtId('m', 30);
+    $manga = Covers::manga($mangaId, title: 'Covered Series');
+    Covers::store($caches, $manga);
+    dtChapter(30, $mangaId, '4');
+    dtInsertRow(dtId('c', 30), $mangaId, QueueState::Queued);
+
+    $visit = Native::visit('/downloads')->assertSee('Covered Series');
+
+    expect(json_encode($visit->tree()))->toContain("storage\/cache\/covers\/{$mangaId}\/cover.jpg.256.jpg");
+});
+
 it('never renders the comodin chapter (read_now_lane)', function () {
     Covers::manga(dtId('m', 8), title: 'Comodin Series');
     dtChapter(8, dtId('m', 8), '42');

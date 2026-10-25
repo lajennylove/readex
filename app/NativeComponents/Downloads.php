@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\NativeComponents;
 
+use App\Adapters\Http\RateLimit\Priority;
+use App\Covers\CoverStore;
 use App\Downloads\DownloadQueue;
 use App\Downloads\QueueState;
 use App\Models\Chapter;
@@ -62,6 +64,11 @@ class Downloads extends NativeComponent implements HasResumeBar
         /** @var array<string, Chapter> $chapters */
         $chapters = Chapter::query()->whereIn('id', $chapterIds)->get()->keyBy('id')->all();
 
+        $coverStore = app(CoverStore::class);
+        // Any cover that isn't on disk yet is queued like other screens do — the next poll
+        // re-render picks the file up.
+        $coverStore->queue($mangas, Priority::Bulk);
+
         $groups = [];
 
         foreach ($pending as $row) {
@@ -77,6 +84,7 @@ class Downloads extends NativeComponent implements HasResumeBar
                 $groups[$mangaId] = [
                     'mangaId' => $mangaId,
                     'title' => $chain->title($manga->title ?? [], $manga->alt_titles ?? []),
+                    'cover' => $coverStore->path($manga),
                     'rows' => [],
                 ];
             }
@@ -91,6 +99,12 @@ class Downloads extends NativeComponent implements HasResumeBar
                 'actions' => self::actionsFor($row->state),
             ];
         }
+
+        foreach ($groups as &$group) {
+            $n = count($group['rows']);
+            $group['count'] = $n === 1 ? '1 chapter' : "{$n} chapters";
+        }
+        unset($group);
 
         return view('native.downloads', [
             'groups' => array_values($groups),

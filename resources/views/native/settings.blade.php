@@ -56,6 +56,9 @@
         <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Storage</native:text>
             <native:text class="text-base text-theme-on-background">{{ $storage }}</native:text>
+            @if ($storageLow)
+                <native:text class="text-sm text-theme-destructive">Storage is almost full. Free up space on this device before downloading or reading more.</native:text>
+            @endif
             <native:button label="Clear image cache" variant="secondary" @press="askClearCache" />
             <native:text class="text-xs text-theme-on-surface-variant">Chapters you opened longest ago go first when the cache is full. Clearing keeps your Library, reading progress and downloads.</native:text>
         </native:column>

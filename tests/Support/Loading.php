@@ -29,7 +29,7 @@ final class Loading
                 return $answer;
             }
 
-            if (rtrim($request->url(), '/') === rtrim(config('mangadex.api_url'), '/')) {
+            if (rtrim($request->url(), '/') === rtrim(config('source.api_url'), '/')) {
                 // Setup's source-URL health check (Plan-08 Task 3): a bare GET of the base URL.
                 return Http::response('', 200);
             }

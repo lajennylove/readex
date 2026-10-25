@@ -41,14 +41,14 @@ final class MangaDexFixtures
             $raw = file_get_contents(self::path($name));
             $meta = json_decode($raw, true, flags: JSON_THROW_ON_ERROR);
             $body = json_decode($raw, false, flags: JSON_THROW_ON_ERROR)->body;
-            $base = str_starts_with($meta['path'], 'https://') ? $meta['path'] : rtrim(config('mangadex.api_url'), '/').$meta['path'];
+            $base = str_starts_with($meta['path'], 'https://') ? $meta['path'] : rtrim(config('source.api_url'), '/').$meta['path'];
             $url = $base.($meta['query'] ? '?'.Query::build($meta['query']) : '');
 
             $responses[self::key($url)] = [json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), $meta['status'], $meta['headers']];
         }
 
         return function (Request $request) use ($responses) {
-            if (str_starts_with($request->url(), rtrim(config('mangadex.covers_url'), '/').'/')) {
+            if (str_starts_with($request->url(), rtrim(config('source.covers_url'), '/').'/')) {
                 return Http::response('', 404);
             }
 

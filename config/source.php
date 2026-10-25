@@ -10,7 +10,7 @@ return [
 
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 
-    'contact' => env('MANGADEX_CONTACT'),
+    'contact' => env('SOURCE_CONTACT'),
 
     'connect_timeout' => 5,
 
@@ -27,7 +27,7 @@ return [
     // Identical GETs within this many seconds share one response (UI thread, async tasks, queue worker).
     'share_seconds' => 5,
 
-    'share_store' => env('MANGADEX_SHARE_STORE', 'database'),
+    'share_store' => env('SOURCE_SHARE_STORE', 'database'),
 
     'status_family' => 'mangadex.org',
 

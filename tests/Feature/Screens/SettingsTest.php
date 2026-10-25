@@ -309,7 +309,7 @@ it('credits scanlation groups in the About row', function () {
     Native::test(Settings::class)
         ->assertSee('Data from your provider')
         ->assertSee('Chapters are translated by the scanlation groups credited on each chapter.')
-        ->assertSee('ReaDex '.config('mangadex.app_version'));
+        ->assertSee('ReaDex '.config('source.app_version'));
 });
 
 it('renders without dropped Tailwind classes', function () {

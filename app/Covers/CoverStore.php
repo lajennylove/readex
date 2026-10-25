@@ -112,7 +112,7 @@ final class CoverStore
     {
         $size = config('readex.covers.size');
 
-        return rtrim(config('mangadex.covers_url'), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";
+        return rtrim(config('source.covers_url'), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";
     }
 
     /**

@@ -33,7 +33,7 @@ final class LimitsTable
 
     public static function fromConfig(): self
     {
-        return new self(config('mangadex-limits'));
+        return new self(config('source-limits'));
     }
 
     public function resolve(Call $call, Priority $priority): Resolution

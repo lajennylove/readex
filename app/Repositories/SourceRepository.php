@@ -71,7 +71,7 @@ final class SourceRepository
     /** The real, fixed base URL of the built-in MangaDex adapter — never the sources table's own `config`. */
     public function builtInMangaDexUrl(): string
     {
-        return rtrim(config('mangadex.api_url'), '/');
+        return rtrim(config('source.api_url'), '/');
     }
 
     /** A typed URL that is really just MangaDex's own documented API, loosely (trailing slash, case). */

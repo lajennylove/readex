@@ -8,6 +8,8 @@ use App\Adapters\Http\Exceptions\RequestDeferred;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadCovers;
 use App\Models\Manga;
+use App\Storage\DiskSpaceGuard;
+use App\Storage\Exceptions\DiskSpaceLow;
 use App\Storage\StorageBridge;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
@@ -24,6 +26,7 @@ final class CoverStore
     public function __construct(
         private readonly Client $client,
         private readonly StorageBridge $bridge,
+        private readonly DiskSpaceGuard $diskSpace,
     ) {}
 
     /** Image src for a tile, or null while the thumbnail isn't on the phone (grey placeholder). */
@@ -66,7 +69,7 @@ final class CoverStore
      * Download one thumbnail (covers bucket). False when the series has no cover or the
      * response isn't an image; the series' older cover files are removed on success.
      *
-     * @throws RequestDeferred|ApiError|ConnectionException
+     * @throws RequestDeferred|ApiError|ConnectionException|DiskSpaceLow
      */
     public function download(Manga $manga, Priority $priority, float $maxWait = 10.0): bool
     {
@@ -81,6 +84,8 @@ final class CoverStore
         if (is_file($path)) {
             return true;
         }
+
+        $this->diskSpace->ensure();
 
         $bytes = $this->client->download($this->url($manga), $priority, $maxWait);
 

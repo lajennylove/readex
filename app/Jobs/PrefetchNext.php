@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Adapters\Http\RateLimit\Priority;
@@ -13,10 +15,19 @@ use Native\Mobile\Facades\Network;
 /**
  * Spec §5.6, D33 choice 6: queues the next chapters after the one being read into the cache tier.
  * Licensed chapters are skipped; a chapter already on the phone counts as prefetched.
+ *
+ * Incident guardrail (2026-10-25): a capped `$tries` and `backoff()`, matching the other queued
+ * jobs in this folder, so an unexpected Throwable here (a missing relation, a storage error)
+ * retries a handful of times with growing gaps and then lands in `failed_jobs`, instead of the
+ * queue worker re-running it at full speed indefinitely.
  */
 class PrefetchNext implements ShouldQueue
 {
     use Queueable;
+
+    public int $tries = 5;
+
+    public array $backoff = [10, 30, 60, 120];
 
     public function __construct(
         public readonly string $mangaId,

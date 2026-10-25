@@ -4,6 +4,7 @@ namespace App\Storage;
 
 use App\Models\Chapter;
 use App\Models\StoredChapter;
+use App\Storage\Exceptions\DiskSpaceLow;
 use ErrorException;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,10 @@ final class PageStore
 
     private const LOCK_WAIT_SECONDS = 10;
 
-    public function __construct(private readonly StorageBridge $bridge) {}
+    public function __construct(
+        private readonly StorageBridge $bridge,
+        private readonly DiskSpaceGuard $diskSpace,
+    ) {}
 
     /**
      * Start storing a chapter, or pick up where it stopped. A chapter keeps the quality, tier and
@@ -97,6 +101,7 @@ final class PageStore
      * just moved the chapter out of.
      *
      * @throws ChapterGone the chapter wasn't begun, or was dropped meanwhile
+     * @throws DiskSpaceLow the app's storage volume is below the configured minimum free space
      */
     public function put(string $chapterId, int $index, string $bytes): bool
     {
@@ -110,6 +115,8 @@ final class PageStore
         if ($extension === false) {
             return false;
         }
+
+        $this->diskSpace->ensure();
 
         return $this->locked($chapterId, function () use ($chapterId, $index, $bytes, $size, $extension) {
             $stored = $this->stored($chapterId);
@@ -143,13 +150,19 @@ final class PageStore
     /**
      * Download (D34): move the chapter to the local tier, which iOS never purges and the cache
      * cap never touches. Quality, counts and manifest stay. False when it isn't stored.
+     *
+     * @throws DiskSpaceLow the app's storage volume is below the configured minimum free space
      */
     public function promote(string $chapterId): bool
     {
         return $this->move($chapterId, 'local');
     }
 
-    /** Remove download (D35 11): back to the cache tier, still readable until the cache needs the space. */
+    /**
+     * Remove download (D35 11): back to the cache tier, still readable until the cache needs the space.
+     *
+     * @throws DiskSpaceLow the app's storage volume is below the configured minimum free space
+     */
     public function demote(string $chapterId): bool
     {
         return $this->move($chapterId, 'cache');
@@ -160,6 +173,8 @@ final class PageStore
         if ($this->stored($chapterId) === null) {
             return false;
         }
+
+        $this->diskSpace->ensure();
 
         return $this->locked($chapterId, function () use ($chapterId, $tier) {
             $stored = $this->stored($chapterId);

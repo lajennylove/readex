@@ -16,6 +16,7 @@ use App\Repositories\DataReset;
 use App\Repositories\FactoryReset;
 use App\Repositories\SettingsRepository;
 use App\Repositories\SourceRepository;
+use App\Storage\DiskSpaceGuard;
 use App\Storage\ImageCache;
 use App\Storage\StorageBridge;
 use Carbon\CarbonInterface;
@@ -73,6 +74,14 @@ class Settings extends NativeComponent implements HasResumeBar
     /** Bytes of the image cache, counted when Settings opens and after Clear (not on every poll). */
     public int $cacheBytes = 0;
 
+    /**
+     * True when the device's free storage is at or below the configured minimum
+     * (`readex.storage.min_free_bytes`), counted when Settings opens. Mirrors the same
+     * DiskSpaceGuard check every write path uses, so what the user sees here matches what
+     * actually blocks downloads and cache writes.
+     */
+    public bool $storageLow = false;
+
     public function mount(SettingsRepository $settings): void
     {
         $this->language = $settings->language();
@@ -81,6 +90,7 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->run = RefreshAllData::running();
         $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
         $this->cacheBytes = app(ImageCache::class)->usage();
+        $this->storageLow = app(DiskSpaceGuard::class)->isLow();
     }
 
     public function navTitle(): string
@@ -301,6 +311,7 @@ class Settings extends NativeComponent implements HasResumeBar
                 default => 'Refresh provider data',
             },
             'storage' => self::storageLine($this->cacheBytes, config('readex.cache.cap_bytes')),
+            'storageLow' => $this->storageLow,
             'refreshBlocked' => $this->refilling() || $paused !== null,
             'lastRefreshed' => $refreshedAt === null ? 'Never refreshed' : 'Last refreshed '.$this->localTime($refreshedAt, 'M j, H:i'),
             'stepLabels' => DataLoader::STEPS,

@@ -91,6 +91,27 @@ return [
         'prefetch_chapters' => 2,
     ],
 
+    // Disk-space guardrails (incident 2026-10-25: an overnight retry loop filled the device's
+    // disk through unbounded log growth; a future bug of any kind must not be able to repeat
+    // that on a phone no one is watching).
+    'storage' => [
+        // DiskSpaceGuard skips/throws below this much free space on the app's own storage
+        // volume (disk_free_space() against the caches path — iOS gives no total-device-free
+        // API). A tenth of cache.cap_bytes: generous enough to leave the OS and other apps
+        // room on an otherwise-full phone, small enough it never fires during normal use.
+        'min_free_bytes' => 100_000_000,
+    ],
+
+    'logging' => [
+        // EnforceLogCap last-resort backstop: storage/logs/laravel.log is truncated once it
+        // passes this size, regardless of which Monolog driver/rotation is active. Laravel's
+        // daily driver rotates by date, not by size within a day, so a tight retry loop can
+        // still fill a day's file; this threshold is far above any legitimate day of app logs
+        // but about 1,400x smaller than the 35 GB the overnight incident produced, so it
+        // catches a runaway loop within minutes instead of hours.
+        'max_log_bytes' => 25_000_000,
+    ],
+
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 

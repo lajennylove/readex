@@ -26,6 +26,7 @@ use App\Repositories\MangaRepository;
 use App\Repositories\RecommendationRepository;
 use App\Repositories\SettingsRepository;
 use App\Repositories\StatisticsRepository;
+use App\Repositories\ViewedSeriesRepository;
 use Illuminate\Support\Sleep;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
@@ -60,6 +61,13 @@ class MangaDetail extends NativeComponent implements HasResumeBar
         $this->mangaId = $id;
         $this->tab = TabsLayout::tabOf($this->nativeRouter?->currentUri());
         $this->load();
+
+        // "You may still be interested" row (D41): a Detail screen mount is the one and only
+        // trigger — opened the chapter listing, not favorited and not (yet) read. Only once the
+        // series itself is known locally ("mounted successfully"), not a dangling/offline id.
+        if (Manga::query()->whereKey($this->mangaId)->exists()) {
+            app(ViewedSeriesRepository::class)->recordView($this->mangaId);
+        }
 
         $chapter = Chapter::query()->find($this->data(self::READ));
 

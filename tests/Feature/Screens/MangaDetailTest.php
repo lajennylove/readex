@@ -74,6 +74,20 @@ function detailButtons(array $node): array
     return $labels;
 }
 
+/** @return list<array{id: int, label: string, selected: bool}> every chip in screen order */
+function chipNodes(array $node): array
+{
+    $chips = ($node['type'] ?? null) === 'chip'
+        ? [['id' => $node['id'], 'label' => $node['props']['label'] ?? '', 'selected' => (bool) ($node['props']['value'] ?? false)]]
+        : [];
+
+    foreach ($node['children'] ?? [] as $child) {
+        $chips = [...$chips, ...chipNodes($child)];
+    }
+
+    return $chips;
+}
+
 function detailChapter(string $id, string $mangaId, ?string $number, int $pages = 20): Chapter
 {
     return Chapter::query()->create([
@@ -328,6 +342,75 @@ it('switches the chapter list language and ignores a language the series lacks',
 
     $screen->call('pickLanguage', 'de');
     expect($screen->get('language'))->toBe('en');
+});
+
+it('keeps each language chip bound to one stable native node reference across renders (bug: chip multiselect after scroll)', function () {
+    // Regression for the Manga Detail chip-row bug.
+    //
+    // Root cause (confirmed by tracing vendor/nativephp/mobile/src/Edge/Element.php
+    // toArray()): a node's wire `id` is resolved by precedence: explicit
+    // `nodeId`, else a hash of `native:key` (stable regardless of position),
+    // else (only inside an already-keyed parent) positional index, else the
+    // legacy global `$nextId++` counter. The chip row in
+    // resources/views/native/manga-detail.blade.php has NO `native:key` on
+    // `<native:chip>`, so each chip's id is the bare `$nextId++` counter
+    // value at its position in the WHOLE tree, not scoped to the row.
+    //
+    // On the native (SwiftUI) side, NativeUIChipRenderer keeps its
+    // "selected" state in `@State private var isSelected`, which SwiftUI
+    // scopes per view the same way it scopes any other local state: by the
+    // node's wire `id` -- and only re-seeds it from the server's `value`
+    // prop on first appearance (`.onAppear { if !initialized { isSelected
+    // = serverValue } }`). A scroll-view re-layout (from the user
+    // scrolling the row) plus any unrelated re-render that changes sibling
+    // count/order BEFORE the chip row (anywhere in the tree, since ids are
+    // positional across the whole publish, not per-row) shifts every
+    // subsequent `$nextId++` value. A chip that used to be at id N is now
+    // serialized at id N+1 (or N-1), and SwiftUI matches the OLD id's
+    // already-initialized view (with its own stale `isSelected`) to a
+    // DIFFERENT chip's node -- the stale selection renders on the wrong
+    // chip while the new pick ALSO renders selected, i.e. two (or more)
+    // chips visually active.
+    //
+    // This can't exercise SwiftUI directly from Pest, but the wire-level
+    // precondition for it IS testable and IS the defect: without a stable
+    // key, a chip's `id` field changes across renders whenever something
+    // else in the tree shifts -- e.g. tapping Favorite/Favorited above the
+    // chip row. The fix (keying each chip by its unique, stable language
+    // code) makes `id` depend only on that code, immune to any sibling
+    // churn, so native view state never crosses over to a different chip.
+    detailSeries(DETAIL_SEEDED, ['es-la', 'en', 'fr']);
+    seededChapter('es-1', DETAIL_SEEDED, '1');
+    seededChapter('en-1', DETAIL_SEEDED, '1', ['language' => 'en']);
+    seededChapter('fr-1', DETAIL_SEEDED, '1', ['language' => 'fr']);
+
+    $screen = Native::visit('/home/manga/'.DETAIL_SEEDED);
+
+    $idsByLabel = fn () => collect(chipNodes($screen->tree()))->pluck('id', 'label')->all();
+
+    $before = $idsByLabel();
+    expect($before)->toHaveCount(3)
+        ->and($before)->toHaveKeys([Languages::name('es-la'), Languages::name('en'), Languages::name('fr')]);
+
+    // Saving reading progress makes a Continue button APPEAR above the chip
+    // row on the next render -- a new sibling inserted earlier in the tree,
+    // exactly the kind of upstream shape change a scrolled scroll-view's
+    // own re-layout can cause before a chip tap's event lands. Without a
+    // stable `native:key`, every node serialized after the insertion point
+    // (including every chip) gets a DIFFERENT positional `$nextId++` value
+    // than it had the frame before.
+    app(LibraryRepository::class)->saveProgress('es-1', 4, 20);
+    $screen->call('onResume');
+    $afterContinueAppears = $idsByLabel();
+
+    expect($afterContinueAppears)->toBe($before);
+
+    // The real end-to-end guarantee: after picking a language across these
+    // re-renders, exactly that one chip is selected -- never more than one.
+    $screen->toggle("pickLanguage('en')", true);
+    $chips = chipNodes($screen->tree());
+    expect(collect($chips)->where('selected', true)->pluck('label')->all())
+        ->toBe([Languages::name('en')]);
 });
 
 it('has no language switch for a series in one language, and says when it has no chapters', function () {

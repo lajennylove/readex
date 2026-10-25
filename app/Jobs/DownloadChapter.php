@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Adapters\Http\Exceptions\ApiError;
@@ -12,6 +14,7 @@ use App\Pages\LoadState;
 use App\Pages\PageFetcher;
 use App\Pages\SourceTrouble;
 use App\Storage\ChapterGone;
+use App\Storage\Exceptions\DiskSpaceLow;
 use App\Storage\PageStore;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -30,12 +33,20 @@ use Throwable;
  * release until the controller's retry time; offline → again in a minute; the source answering the
  * lookup with 5xx / 429 / 403 → again after 1 s, 4 s, 15 s, then every minute. A cache run ends
  * by queueing EnforceCacheCap. A cache chapter that Clear image cache or the cap drops ends the
- * job quietly, also between slices: only the reader or a download begins it again.
+ * job quietly, also between slices: only the reader or a download begins it again. Low free space
+ * (DiskSpaceLow) releases like offline: the device needs room back, not a faster retry.
  *
  * Download work (spec §11.3): a `local` job, or any job for a chapter in the download queue
  * (the unique lock drops a download's dispatch while the reader's own job runs). It writes into
  * the local tier, checks the queue between pages so Stop ends it at the next page, and tells
  * Downloads when the chapter ends (done, unavailable, failed for good) so a Download all moves on.
+ *
+ * Incident guardrail (2026-10-25): an unexpected Throwable from handle() (not one of the
+ * explicit catches below) previously had no backoff, so the queue worker could re-run it as fast
+ * as it could loop until `retryUntil()` (one hour), each attempt re-logging the same stack
+ * trace. `backoff()` spaces those attempts out; `$tries` additionally caps any attempt made
+ * after a release resets the attempt count (the DiskSpaceLow/offline/trouble release paths
+ * below), since Laravel's worker defers to `retryUntil()` over `$tries` whenever both are set.
  */
 class DownloadChapter implements ShouldBeUnique, ShouldQueue
 {
@@ -58,6 +69,12 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
 
     /** Under the database queue's retry_after (90 s), so a running slice is never handed out twice. */
     public int $timeout = 80;
+
+    /** A genuinely unexpected Throwable (not one of the explicit catches) gets this many tries. */
+    public int $tries = 5;
+
+    /** Seconds before each of those attempts; the last value repeats past 5. */
+    public array $backoff = [10, 30, 60, 120];
 
     public function __construct(
         public readonly string $chapterId,
@@ -93,13 +110,13 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        if ($download) {
-            app(PageStore::class)->promote($this->chapterId);
-        }
-
         $until = Carbon::now()->addSeconds(config('readex.pages.job_budget_seconds'));
 
         try {
+            if ($download) {
+                app(PageStore::class)->promote($this->chapterId);
+            }
+
             $fetcher->run(
                 $chapter,
                 fn (array $skip) => $stopped() ? null : $fetcher->nextMissing($this->chapterId, $skip),
@@ -114,6 +131,11 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
 
             return;
         } catch (ConnectionException) {
+            $fetcher->record($this->chapterId, LoadState::Offline);
+            $this->release(self::OFFLINE_RETRY_SECONDS);
+
+            return;
+        } catch (DiskSpaceLow) {
             $fetcher->record($this->chapterId, LoadState::Offline);
             $this->release(self::OFFLINE_RETRY_SECONDS);
 

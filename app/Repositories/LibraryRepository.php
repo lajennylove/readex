@@ -17,6 +17,14 @@ final class LibraryRepository
     /** Library filter chips (§5.7). */
     public const FILTERS = ['all', 'reading', 'downloaded', 'favorites'];
 
+    /** Library grid sort options (spec section 1), exactly these 4. */
+    public const SORTS = ['opened', 'downloaded', 'added', 'title'];
+
+    public function __construct(
+        private readonly SeriesStatusRepository $status,
+        private readonly ViewedSeriesRepository $viewed,
+    ) {}
+
     public function add(string $mangaId): LibraryEntry
     {
         return LibraryEntry::query()->firstOrCreate(['manga_id' => $mangaId], ['created_at' => Carbon::now()]);
@@ -25,6 +33,16 @@ final class LibraryRepository
     public function has(string $mangaId): bool
     {
         return LibraryEntry::query()->whereKey($mangaId)->exists();
+    }
+
+    /**
+     * Takes a series out of the Library (Library tile long-press, confirmed). Only the
+     * `collections` row goes — reading progress and stored chapters stay, so the series picks
+     * up where it left off if it's added back.
+     */
+    public function removeFromLibrary(string $mangaId): void
+    {
+        LibraryEntry::query()->whereKey($mangaId)->delete();
     }
 
     /**
@@ -46,6 +64,18 @@ final class LibraryRepository
     public function setFavorite(string $mangaId, bool $favorite): void
     {
         $this->add($mangaId)->update(['favorite' => $favorite]);
+
+        if ($favorite) {
+            // D42: favoriting makes it a first-class Library entry at once, leaving the
+            // "You may still be interested" row.
+            $this->viewed->removeOnFavorite($mangaId);
+        }
+    }
+
+    /** Library grid tile long-press "Pin"/"Unpin" (spec §1): pinned series lead the grid. */
+    public function setPinned(string $mangaId, bool $pinned): void
+    {
+        $this->add($mangaId)->update(['pinned' => $pinned]);
     }
 
     public function preferredGroup(string $mangaId): ?string
@@ -80,6 +110,9 @@ final class LibraryRepository
             }
 
             $progress->save();
+            // D42: opening (reading) any chapter of a series promotes it out of the interest row,
+            // independent of favoriting.
+            $this->viewed->removeOnRead($mangaId);
 
             return $progress;
         });
@@ -121,6 +154,90 @@ final class LibraryRepository
         $manga = Manga::query()->whereIn('id', $ids)->get()->keyBy('id');
 
         return $ids->map(fn (string $id) => $manga->get($id))->filter()->values();
+    }
+
+    /**
+     * The Library grid (spec §1): pinned series lead, then the rest in `$sort` order; `$search`
+     * filters by title substring, case-insensitive; `$filter` is the same All/Reading/
+     * Downloaded/Favorites chip `collections()` uses. Every tile carries its own chips, chapter
+     * counts and bytes on disk, built from one pass over the series the Library actually has
+     * (`SeriesStatusRepository` is reused for the chip facts, so the rules stay in one place).
+     *
+     * @return Collection<int, LibraryTile>
+     */
+    public function grid(string $sort = 'opened', string $search = '', string $filter = 'all'): Collection
+    {
+        if (! in_array($sort, self::SORTS, true)) {
+            throw new InvalidArgumentException("Unknown Library sort [{$sort}].");
+        }
+
+        if (! in_array($filter, self::FILTERS, true)) {
+            throw new InvalidArgumentException("Unknown Library filter [{$filter}].");
+        }
+
+        $lastRead = ReadingProgress::query()->selectRaw('manga_id, max(updated_at) as last_read')->groupBy('manga_id');
+        $lastDownloaded = DB::table('stored_chapters')
+            ->join('chapters', 'chapters.id', '=', 'stored_chapters.chapter_id')
+            ->selectRaw('chapters.manga_id, max(stored_chapters.downloaded_at) as last_downloaded')
+            ->where('stored_chapters.status', 'done')
+            ->groupBy('chapters.manga_id');
+        $downloaded = Chapter::query()->select('manga_id')->whereIn('id', StoredChapter::query()
+            ->select('chapter_id')->where('status', 'done')->whereIn('tier', ['local', 'icloud']));
+
+        $entries = LibraryEntry::query()
+            ->leftJoinSub($lastRead, 'p', 'p.manga_id', '=', 'collections.manga_id')
+            ->leftJoinSub($lastDownloaded, 'd', 'd.manga_id', '=', 'collections.manga_id')
+            ->when($filter === 'reading', fn ($q) => $q->whereNotNull('p.last_read'))
+            ->when($filter === 'downloaded', fn ($q) => $q->whereIn('collections.manga_id', $downloaded))
+            ->when($filter === 'favorites', fn ($q) => $q->where('favorite', true))
+            ->get(['collections.*', 'p.last_read', 'd.last_downloaded']);
+
+        if ($filter === 'reading') {
+            $entries = $entries->filter(fn ($e) => $this->resume($e->manga_id) !== null)->values();
+        }
+
+        $manga = Manga::query()->whereIn('id', $entries->pluck('manga_id'))->get()->keyBy('id');
+
+        if ($search !== '') {
+            $needle = mb_strtolower(trim($search));
+            $manga = $manga->filter(fn (Manga $m) => str_contains(mb_strtolower(app(SettingsRepository::class)->chain()->title($m->title ?? [], $m->alt_titles ?? [])), $needle));
+        }
+
+        $entries = $entries->filter(fn ($e) => $manga->has($e->manga_id));
+
+        $key = match ($sort) {
+            'title' => fn ($e) => mb_strtolower(app(SettingsRepository::class)->chain()->title($manga[$e->manga_id]->title ?? [], $manga[$e->manga_id]->alt_titles ?? [])),
+            'added' => fn ($e) => -Carbon::parse($e->created_at)->getTimestamp(),
+            'downloaded' => fn ($e) => $e->last_downloaded === null ? [1, 0] : [0, -Carbon::parse($e->last_downloaded)->getTimestamp()],
+            default => fn ($e) => $e->last_read === null ? [1, 0] : [0, -Carbon::parse($e->last_read)->getTimestamp()], // 'opened'
+        };
+
+        $ordered = $entries
+            ->sortBy(fn ($e) => [$e->pinned ? 0 : 1, $key($e), $e->manga_id], SORT_REGULAR)
+            ->values();
+
+        return $ordered->map(fn ($e) => $this->buildTile($manga[$e->manga_id], $e));
+    }
+
+    private function buildTile(Manga $manga, object $entry): LibraryTile
+    {
+        $facts = $this->status->factsFor($manga->id);
+        $chapterIds = Chapter::query()->where('manga_id', $manga->id)->pluck('id');
+        $downloadedIds = StoredChapter::query()->whereIn('chapter_id', $chapterIds)
+            ->where('status', 'done')->whereIn('tier', ['local', 'icloud'])->pluck('chapter_id');
+        $bytesOnDisk = (int) StoredChapter::query()->whereIn('chapter_id', $chapterIds)->sum('bytes');
+        $readChapters = ReadingProgress::query()->where('manga_id', $manga->id)->whereNotNull('finished_at')->count();
+
+        return new LibraryTile(
+            manga: $manga,
+            pinned: (bool) $entry->pinned,
+            favorite: (bool) $entry->favorite,
+            chips: SeriesChips::from($facts),
+            downloadedChapters: $downloadedIds->count(),
+            totalChapters: $facts->releasedCount,
+            readChapters: $readChapters,
+            bytesOnDisk: $bytesOnDisk,
+        );
     }
 
     /**

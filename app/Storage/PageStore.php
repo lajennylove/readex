@@ -6,6 +6,7 @@ use App\Models\Chapter;
 use App\Models\StoredChapter;
 use ErrorException;
 use FilesystemIterator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
@@ -369,11 +370,16 @@ final class PageStore
         $this->atomic($this->folder($stored).'/manifest.json', json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
 
         $done = array_filter($manifest['pages']);
+        $isDone = count($done) === count($manifest['pages']);
 
         $stored->update([
             'pages_done' => count($done),
             'bytes' => array_sum(array_column($done, 'bytes')),
-            'status' => count($done) === count($manifest['pages']) ? 'done' : 'partial',
+            'status' => $isDone ? 'done' : 'partial',
+            // Library "Recently downloaded" sort (spec §1): the moment a chapter first turns
+            // done, not touched again by a later write (e.g. Remove download + re-download keeps
+            // its own new timestamp, but a chapter already done never updates this twice).
+            'downloaded_at' => $isDone ? ($stored->downloaded_at ?? Carbon::now()) : $stored->downloaded_at,
         ]);
     }
 

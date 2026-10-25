@@ -22,6 +22,7 @@ class Collection extends Model
     {
         return [
             'favorite' => 'boolean',
+            'pinned' => 'boolean',
             'paused' => 'boolean',
             'created_at' => 'immutable_datetime',
         ];

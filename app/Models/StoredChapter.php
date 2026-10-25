@@ -25,6 +25,7 @@ class StoredChapter extends Model
             'page_count' => 'integer',
             'bytes' => 'integer',
             'last_opened_at' => 'immutable_datetime',
+            'downloaded_at' => 'immutable_datetime',
         ];
     }
 }

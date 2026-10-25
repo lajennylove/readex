@@ -3,7 +3,6 @@
 namespace App\Downloads;
 
 use App\Adapters\Http\RateLimit\Priority;
-use App\Jobs\DownloadChapter;
 use App\Models\Chapter;
 use App\Models\Download;
 use App\Models\StoredChapter;
@@ -14,7 +13,6 @@ use App\Storage\PageStore;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * Downloads (spec §11.3, D34, D35 11–12): chapters kept in the local tier, which the cache cap
@@ -108,8 +106,9 @@ final class Downloads
     // ──────── Classic Downloads API (unchanged behaviour) ────────
 
     /**
-     * Download one chapter, on any connection (D35 12): moved when it's all in the cache, else
-     * moved with what it has and the rest queued in the quality it started with.
+     * Download one chapter, on any connection (D35 12). Plan 25: routes through
+     * DownloadQueue::enqueueOne so every new row starts in `queued`; the queued →
+     * downloading transition is owned exclusively by DownloadQueue::claimNext().
      */
     public function download(string $chapterId, Priority $priority = Priority::Prefetch): void
     {
@@ -120,17 +119,18 @@ final class Downloads
             return;
         }
 
+        // "Download is a retry": clear any failed-page markers so the next job for
+        // this chapter re-asks for pages that failed previously (spec §5.6).
+        $this->fetcher->forgetFailed($chapterId);
         $this->library->addChapter($chapterId);
-        $this->enqueue([$chapter], null, $priority, started: true);
-
-        if ($this->start($chapterId, $priority)) {
-            $this->finish($chapterId);
-        }
+        $this->queue->enqueueOne($chapterId, $priority);
     }
 
     /**
-     * Download all: the plan's chapters as one batch at bulk priority, only the first one
-     * started. Nothing while a batch of the series runs.
+     * Download all: the plan's chapters as one batch at bulk priority. Nothing while a
+     * batch of the series runs. Plan 25: routes through DownloadQueue::enqueueBatch so
+     * every new row starts in `queued`; claimNext() drives the queued → downloading
+     * transition one chapter at a time.
      *
      * @return int chapters queued
      */
@@ -149,11 +149,17 @@ final class Downloads
         }
 
         $this->library->addChapter($chapters->first()->id);
-        $batch = (string) Str::uuid();
-        $this->enqueue($chapters->all(), $batch, Priority::Bulk, started: false);
-        $this->startNext($batch);
 
-        return $chapters->count();
+        // "Download is a retry": clear any failed-page markers for every chapter
+        // in the batch so re-tapping Download all re-asks for pages that failed
+        // previously (spec §5.6). The old flow cleared one chapter at a time via
+        // start(); routing through enqueueBatch doesn't call forgetFailed, so we
+        // do it here, up front, for the whole batch.
+        foreach ($chapters as $c) {
+            $this->fetcher->forgetFailed($c->id);
+        }
+
+        return $this->queue->enqueueBatch($mangaId, $language, $chapters->all(), Priority::Bulk);
     }
 
     /**
@@ -219,10 +225,9 @@ final class Downloads
 
         $entry->delete();
 
-        if ($entry->batch !== null && $entry->started_at !== null) {
-            $this->startNext($entry->batch);
-        }
-
+        // Plan 25: next-row dispatch is DownloadQueue::kick()'s job; no more
+        // direct startNext() path (it bypassed claimNext and set state=downloading
+        // on insert of the follow-up chapter).
         $this->queue->kick();
     }
 
@@ -259,13 +264,9 @@ final class Downloads
             return;
         }
 
-        if ($entry->batch !== null && $entry->started_at !== null) {
-            $this->startNext($entry->batch);
-        }
-
-        // Plan 21: unified queue — after any chapter ends, drain the next runnable
-        // row regardless of batch, so enqueueOne/enqueueBatch rows that weren't
-        // part of a classic Download-all batch still move.
+        // Plan 25: unified queue — DownloadQueue::kick() drains the next runnable
+        // row for both the classic batch flow and the new enqueueOne/enqueueBatch
+        // paths. No more startNext() shortcut (it bypassed claimNext()).
         $this->queue->kick();
     }
 
@@ -329,60 +330,6 @@ final class Downloads
     private function entry(string $chapterId): ?Download
     {
         return Download::query()->whereKey($chapterId)->whereNull('finished_at')->first();
-    }
-
-    /** @param  list<Chapter>  $chapters  in reading order */
-    private function enqueue(array $chapters, ?string $batch, Priority $priority, bool $started): void
-    {
-        $now = Carbon::now();
-
-        Download::query()->upsert(array_map(fn (Chapter $chapter, int $position) => [
-            'chapter_id' => $chapter->id,
-            'manga_id' => $chapter->manga_id,
-            'batch' => $batch,
-            'position' => $position,
-            'priority' => $priority->value,
-            'state' => $started ? QueueState::Downloading->value : QueueState::Queued->value,
-            'started_at' => $started ? $now : null,
-            'finished_at' => null,
-            'created_at' => $now,
-        ], $chapters, array_keys($chapters)), ['chapter_id']);
-    }
-
-    /** The batch's next chapter not started, claimed so two runtimes never both start it; chapters all on the phone just move. */
-    private function startNext(string $batch): void
-    {
-        while (($next = Download::query()->where('batch', $batch)->whereNull('started_at')->whereNull('finished_at')->orderBy('position')->first()) !== null) {
-            if (Download::query()->whereKey($next->chapter_id)->whereNull('started_at')->update(['started_at' => Carbon::now(), 'state' => QueueState::Downloading->value]) !== 1) {
-                return;
-            }
-
-            if (! $this->start($next->chapter_id, Priority::from($next->priority))) {
-                return;
-            }
-
-            $this->finish($next->chapter_id);
-        }
-    }
-
-    /**
-     * A chapter the cap evicts between the check and the move gets its job like one never stored.
-     * Pages that failed are asked for again: a download the user starts is a retry.
-     *
-     * @return bool the chapter was all on the phone: moved, nothing to download
-     */
-    private function start(string $chapterId, Priority $priority): bool
-    {
-        $this->fetcher->forgetFailed($chapterId);
-        $complete = $this->pages->has($chapterId);
-
-        if ($this->pages->promote($chapterId) && $complete) {
-            return true;
-        }
-
-        DownloadChapter::dispatch($chapterId, 'local', $priority);
-
-        return false;
     }
 
     private function finish(string $chapterId): bool

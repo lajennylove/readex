@@ -1,6 +1,7 @@
 <?php
 
 use App\Adapters\Http\RateLimit\Priority;
+use App\Downloads\DownloadQueue;
 use App\Downloads\Downloads;
 use App\Downloads\DownloadState;
 use App\Jobs\DownloadChapter;
@@ -52,18 +53,25 @@ function t7Chapter(string $id, array $attributes = []): void
     Pages::chapter($id, ['manga_id' => 't7-m', 'pages' => 4, ...$attributes]);
 }
 
-it('downloads a chapter that is all in the cache by moving it: no page asked for, no job, Downloaded at once', function () {
+it('downloads a chapter that is all in the cache by moving it: no page asked for, the queued job just promotes the folder', function () {
+    // Plan 25: every row now starts in `queued`; the actual promote happens
+    // when the dispatched DownloadChapter job runs. For an all-cached chapter
+    // the job never asks for a page — it just moves the folder and marks done.
     Http::fake(fn () => throw new RuntimeException('no network'));
     Stored::chapter('t7-full', 3);
 
     $this->downloads->download('t7-full');
+
+    expect($this->downloads->status('t7-full')->state)->toBe(DownloadState::Queued)
+        ->and(t7Queued())->toBe(['t7-full local prefetch']);
+
+    t7Run(Queue::pushed(DownloadChapter::class)->first())->assertNotReleased();
 
     expect(StoredChapter::query()->find('t7-full')->tier)->toBe('local')
         ->and($this->store->pathFor('t7-full', 0))->toBe('storage/downloads/t7-full/001.jpg')
         ->and($this->downloads->status('t7-full')->state)->toBe(DownloadState::Downloaded)
         ->and($this->downloads->isQueued('t7-full'))->toBeFalse();
     Http::assertNothingSent();
-    Queue::assertNotPushed(DownloadChapter::class);
 });
 
 it('moves a chapter partly in the cache and finishes the missing pages in the quality it started with', function () {
@@ -73,9 +81,9 @@ it('moves a chapter partly in the cache and finishes the missing pages in the qu
 
     $this->downloads->download('t7-half');
 
-    expect(StoredChapter::query()->find('t7-half')->tier)->toBe('local')
-        ->and(t7Queued())->toBe(['t7-half local prefetch'])
-        ->and($this->downloads->status('t7-half')->caption())->toBe('Downloading 50%');
+    // Plan 25: the row is queued; promote + fetch happen when the job runs.
+    expect(t7Queued())->toBe(['t7-half local prefetch'])
+        ->and($this->downloads->status('t7-half')->caption())->toBe('Queued');
 
     t7Run(Queue::pushed(DownloadChapter::class)->first())->assertNotReleased();
 
@@ -105,23 +113,16 @@ it('queues a chapter not on the phone, which begins in the downloads folder', fu
 });
 
 it('queues the job when the image cache drops the chapter between the check and the move', function () {
+    // Plan 25: download() no longer races the promote path itself — it just
+    // enqueues a `queued` row and kicks the queue. The actual promote (and the
+    // cache-eviction race it defends against) is now the DownloadChapter job's
+    // problem; see Pages tests for that race. Here we only verify the shim
+    // enqueues even when the chapter was already in the cache tier.
     Stored::chapter('t7-ev', 2);
-    $lock = Cache::lock('readex.pages.store.t7-ev', 30, 'other-runtime');
-    expect($lock->get())->toBeTrue();
-    $evicted = false;
-    Sleep::whenFakingSleep(function () use ($lock, &$evicted) {
-        if (! $evicted) {
-            $evicted = true;
-            $lock->release();
-            app(PageStore::class)->evict('t7-ev');
-        }
-    });
 
     $this->downloads->download('t7-ev');
 
-    expect($evicted)->toBeTrue()
-        ->and(StoredChapter::query()->find('t7-ev'))->toBeNull()
-        ->and(t7Queued())->toBe(['t7-ev local prefetch'])
+    expect(t7Queued())->toBe(['t7-ev local prefetch'])
         ->and($this->downloads->isQueued('t7-ev'))->toBeTrue()
         ->and($this->downloads->status('t7-ev')->caption())->toBe('Queued');
 });
@@ -407,7 +408,11 @@ describe('status', function () {
                 't7-s-cached' => null,
                 't7-s-done' => 'Downloaded',
                 't7-s-stop' => 'Download stopped · 33%',
-                't7-s-run' => 'Downloading 25%',
+                // Plan 25: every newly-enqueued row starts in `queued` with
+                // `started_at = null`. The `downloading` caption is produced by
+                // DownloadQueue::claimNext() setting `started_at`; see the
+                // dedicated transition test below.
+                't7-s-run' => 'Queued',
                 't7-s-feed' => 'Queued',
                 't7-s-zero' => 'Queued',
                 't7-s-wait' => 'Queued',
@@ -419,11 +424,15 @@ describe('status', function () {
             ]);
     });
 
-    it('says Queued until the first page is in the downloads, Downloading after', function () {
+    it('says Queued until DownloadQueue::claimNext() flips the row to downloading, Downloading after', function () {
+        // Plan 25: `download()` just enqueues a `queued` row; the queued →
+        // downloading transition is owned by `DownloadQueue::claimNext()` (which
+        // is what the background worker calls at the start of a slice).
         t7Chapter('t7-s-one');
         $this->downloads->download('t7-s-one');
         expect($this->downloads->status('t7-s-one')->state)->toBe(DownloadState::Queued);
 
+        app(DownloadQueue::class)->claimNext();
         Stored::partial('t7-s-one', 1, 4, tier: 'local');
         expect($this->downloads->status('t7-s-one')->caption())->toBe('Downloading 25%');
     });

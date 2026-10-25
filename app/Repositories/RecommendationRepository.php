@@ -45,7 +45,7 @@ final class RecommendationRepository
     }
 
     /**
-     * One call (MangaDex sends them all, no paging), then `/manga?ids[]` for titles and covers
+     * One call (the source sends them all, no paging), then `/manga?ids[]` for titles and covers
      * with every content rating. Nothing is replaced until both calls are back.
      */
     public function refresh(string $mangaId, Priority $priority = Priority::Interactive): void

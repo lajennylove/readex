@@ -25,7 +25,7 @@ use Native\Mobile\Facades\Network;
 
 /**
  * First run (spec §9, reworked Plan-08 Task 3 — Jenny 2026-10-24 17:54 EDT): a content
- * source URL (empty by default, no pre-filled MangaDex URL, health-checked before saving),
+ * source URL (empty by default, no pre-filled URL, health-checked before saving),
  * then language + content rating, then the DataLoader steps with progress. Home opens when
  * every step is done, or after `setup_cutoff_seconds` once a Home row has loaded; empty rows
  * then refresh on Home. `setup_done` is only set when Home opens.
@@ -47,7 +47,7 @@ class Setup extends NativeComponent
 
     /**
      * The content source URL/API endpoint (Jenny 2026-10-24 17:54 EDT): empty by default —
-     * never pre-filled with MangaDex's own URL — so the sources table only ever holds what the
+     * never pre-filled with the built-in source's own URL — so the sources table only ever holds what the
      * user actually typed in and loaded from, never a hardcoded preference (D45 §2 proof point).
      */
     public string $sourceUrl = '';

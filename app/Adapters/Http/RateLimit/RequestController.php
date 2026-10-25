@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Sleep;
 
 /**
- * Decides when each MangaDex request may go out. All state lives in SQLite so the UI
+ * Decides when each source request may go out. All state lives in SQLite so the UI
  * thread, async tasks and the queue worker share one budget. Time comes from Carbon
  * and waiting from Sleep, so tests drive both with Carbon::setTestNow + Sleep::fake.
  */

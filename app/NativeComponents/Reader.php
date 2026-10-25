@@ -234,7 +234,7 @@ class Reader extends NativeComponent
         }
     }
 
-    /** Offline or MangaDex trouble: ask again every `offline_retry_seconds` unless the phone says it has no connection. */
+    /** Offline or source trouble: ask again every `offline_retry_seconds` unless the phone says it has no connection. */
     #[Poll(1000)]
     public function checkPages(): void
     {
@@ -302,7 +302,7 @@ class Reader extends NativeComponent
 
     /**
      * missing / external / unavailable / offline (never stored, no connection) / retrying (never
-     * stored, MangaDex trouble) / failed (never stored, unexpected error) / loading (no page count
+     * stored, source trouble) / failed (never stored, unexpected error) / loading (no page count
      * yet) / pages.
      */
     private function screen(?Chapter $chapter): string

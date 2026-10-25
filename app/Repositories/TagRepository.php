@@ -23,7 +23,7 @@ final class TagRepository
         return Freshness::result($tags, $tags->min('fetched_at'), 'tags');
     }
 
-    /** Replaces the whole set: a tag MangaDex no longer sends is removed. */
+    /** Replaces the whole set: a tag the source no longer sends is removed. */
     public function refresh(Priority $priority = Priority::Interactive): void
     {
         $rows = TagMapper::rows($this->client->get('/manga/tag', [], $priority));

@@ -40,7 +40,7 @@ final class HomeRepository
 
     /**
      * Ids from the community JSON (its list id is remembered); when the JSON fails, the
-     * remembered MangaDex list (Review Focus 6). No remembered id: the JSON error bubbles
+     * remembered source list (Review Focus 6). No remembered id: the JSON error bubbles
      * up and the row stays as it was. Most followed first, the JSON itself has no ranking.
      */
     public function refreshSeason(Priority $priority = Priority::Interactive): void

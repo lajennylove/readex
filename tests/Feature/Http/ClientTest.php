@@ -143,7 +143,7 @@ describe('sharing identical GETs', function () {
     it('waits for a call already in flight instead of sending a second one', function () {
         Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => ['a second call']])]);
         $url = 'https://api.mangadex.org/manga/abc/feed';
-        $key = 'mangadex:get:'.sha1($url);
+        $key = 'source:get:'.sha1($url);
         $store = Cache::store(config('source.share_store'));
         $inFlight = $store->lock($key.':lock', 30);
         $inFlight->acquire();

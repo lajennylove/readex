@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Throwable;
 
 /**
- * The "Refresh MangaDex data" refill (spec §7.1) on the queue worker, after Settings has
+ * The "Refresh provider data" refill (spec §7.1) on the queue worker, after Settings has
  * cleared the saved data. Home rows go out `interactive`, tags and covers `bulk`. One pass:
  * a row that comes back busy or failed is refreshed by Home itself.
  */

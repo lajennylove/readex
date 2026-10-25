@@ -16,7 +16,7 @@ use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
 /**
- * Spec §5.7: the three MangaDex rows (D37: no Continue reading row; the resume bar is the shortcut).
+ * Spec §5.7: the three source rows (D37: no Continue reading row; the resume bar is the shortcut).
  * Each row refreshes on its own when empty or stale; an empty row keeps its place with
  * placeholder tiles until it loads (Review Focus 2).
  */

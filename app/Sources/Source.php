@@ -8,7 +8,7 @@ use App\Repositories\Result;
 /**
  * Phase 8 (Plan-08 §2): the generic plumbing every content source exposes — browse/search,
  * chapter-feed, page-fetch — so screens/repositories that read a series' chapters and pages
- * don't need to know which source answered. MangaDex is the only implementation today
+ * don't need to know which source answered. The HTTP source is the only implementation today
  * (`HttpSource`), wrapping the existing Phase 1–5 repositories/client unchanged (no new
  * behavior, no new network calls); user-added sources and multi-source browsing wiring are
  * explicitly out of this task's scope (Plan-08 Task 1 open question).
@@ -21,7 +21,7 @@ interface Source
     /** Display name shown in Settings → Sources. */
     public function label(): string;
 
-    /** True for the one source the app ships with (MangaDex); false for any user-added source. */
+    /** True for the one source the app ships with; false for any user-added source. */
     public function isBuiltIn(): bool;
 
     /** Saved search/browse results (SQLite only, same shape `MangaRepository::search()` returns today). */

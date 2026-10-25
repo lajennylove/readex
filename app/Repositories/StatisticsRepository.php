@@ -64,7 +64,7 @@ final class StatisticsRepository
         DB::transaction(fn () => $this->store($response['statistics'] ?? [], withDistribution: true));
     }
 
-    /** @param  array<string, array<string, mixed>>  $statistics  manga id => MangaDex statistics */
+    /** @param  array<string, array<string, mixed>>  $statistics  manga id => source statistics */
     private function store(array $statistics, bool $withDistribution): void
     {
         $now = Carbon::now();

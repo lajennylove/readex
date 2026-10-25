@@ -279,7 +279,7 @@ class MangaDetail extends NativeComponent implements HasResumeBar
         ]));
     }
 
-    /** "★ 8.32 · 40,308 follows" (Bayesian rating, as MangaDex shows it); null before statistics load. */
+    /** "★ 8.32 · 40,308 follows" (Bayesian rating, as the source shows it); null before statistics load. */
     public static function stats(?Statistic $statistic): ?string
     {
         if ($statistic === null) {

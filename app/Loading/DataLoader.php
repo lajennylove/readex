@@ -2,9 +2,9 @@
 
 namespace App\Loading;
 
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Covers\CoverStore;
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Manga;
 use App\Refresh\Outcome;
 use App\Refresh\RefreshStatus;

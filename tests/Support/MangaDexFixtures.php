@@ -2,7 +2,7 @@
 
 namespace Tests\Support;
 
-use App\MangaDex\Query;
+use App\Adapters\Http\Query;
 use Closure;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;

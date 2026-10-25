@@ -1,8 +1,8 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Loading\DataLoader;
 use App\Loading\LoadProgress;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Tag;
 use App\Refresh\RefreshStatus;
 use App\Repositories\HomeRepository;

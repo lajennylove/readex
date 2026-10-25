@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex\Mappers;
+namespace App\Adapters\Http\Mappers;
 
 /** `/manga/tag` entries (same shape as `manga.attributes.tags`) → `tags` rows. */
 final class TagMapper

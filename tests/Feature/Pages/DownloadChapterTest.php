@@ -1,9 +1,9 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Downloads\Downloads;
 use App\Jobs\DownloadChapter;
 use App\Jobs\EnforceCacheCap;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\StoredChapter;
 use App\Pages\LoadState;
 use App\Pages\PageFetcher;

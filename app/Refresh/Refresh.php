@@ -2,7 +2,7 @@
 
 namespace App\Refresh;
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use InvalidArgumentException;
 
 /**

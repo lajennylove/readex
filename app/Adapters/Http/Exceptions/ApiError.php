@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex\Exceptions;
+namespace App\Adapters\Http\Exceptions;
 
 use Illuminate\Http\Client\Response;
 use RuntimeException;

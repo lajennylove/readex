@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\Mappers\ChapterMapper;
+use App\Adapters\Http\Mappers\ChapterMapper;
 use Carbon\CarbonImmutable;
 use Tests\Support\MangaDexFixtures;
 

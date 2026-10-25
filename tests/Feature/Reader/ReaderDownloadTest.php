@@ -1,8 +1,8 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Downloads\Downloads;
 use App\Jobs\DownloadChapter;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Download;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;

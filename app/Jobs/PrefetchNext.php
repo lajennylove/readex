@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Repositories\LibraryRepository;
 use App\Storage\PageStore;

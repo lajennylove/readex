@@ -1,8 +1,8 @@
 <?php
 
-use App\MangaDex\Mappers\ChapterMapper;
-use App\MangaDex\Mappers\MangaMapper;
-use App\MangaDex\Mappers\TagMapper;
+use App\Adapters\Http\Mappers\ChapterMapper;
+use App\Adapters\Http\Mappers\MangaMapper;
+use App\Adapters\Http\Mappers\TagMapper;
 use App\Models\Chapter;
 use App\Models\Manga;
 use App\Models\Tag;

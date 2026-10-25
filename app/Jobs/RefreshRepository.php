@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Refresh\Landed;
 use App\Refresh\Outcome;
 use App\Refresh\Refresh;

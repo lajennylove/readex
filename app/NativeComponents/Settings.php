@@ -2,13 +2,13 @@
 
 namespace App\NativeComponents;
 
+use App\Adapters\Http\RateLimit\ConnectionState;
+use App\Adapters\Http\RateLimit\ConnectionStatus;
+use App\Adapters\Http\RateLimit\RequestController;
 use App\Jobs\RefreshAllData;
 use App\Language\Languages;
 use App\Loading\DataLoader;
 use App\Loading\LoadProgress;
-use App\MangaDex\RateLimit\ConnectionState;
-use App\MangaDex\RateLimit\ConnectionStatus;
-use App\MangaDex\RateLimit\RequestController;
 use App\NativeComponents\Concerns\ChoosesContentRatings;
 use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeLayouts\HasResumeBar;

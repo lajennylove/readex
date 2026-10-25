@@ -2,9 +2,9 @@
 
 namespace App\Repositories;
 
-use App\MangaDex\Client;
-use App\MangaDex\Mappers\TagMapper;
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\Client;
+use App\Adapters\Http\Mappers\TagMapper;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Tag;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

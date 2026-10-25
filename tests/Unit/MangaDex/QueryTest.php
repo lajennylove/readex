@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\Query;
+use App\Adapters\Http\Query;
 
 it('builds MangaDex query strings', function (array $params, string $expected) {
     expect(Query::build($params))->toBe($expected);

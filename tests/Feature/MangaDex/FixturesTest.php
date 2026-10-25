@@ -1,7 +1,7 @@
 <?php
 
-use App\MangaDex\Client;
-use App\MangaDex\Mappers\ChapterMapper;
+use App\Adapters\Http\Client;
+use App\Adapters\Http\Mappers\ChapterMapper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Sleep;
 use Tests\Support\MangaDexFixtures;

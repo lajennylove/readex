@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\MangaDex\Client;
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\Query;
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\Query;
+use App\Adapters\Http\RateLimit\Priority;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;

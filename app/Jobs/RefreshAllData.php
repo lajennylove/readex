@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Loading\DataLoader;
 use App\Loading\LoadProgress;
-use App\MangaDex\RateLimit\Priority;
 use App\Refresh\RefreshStatus;
 use App\Repositories\SettingsRepository;
 use Illuminate\Contracts\Queue\ShouldBeUnique;

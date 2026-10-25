@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Models\Chapter;
 use App\Models\Manga;
 use App\Models\MangaListEntry;

@@ -1,9 +1,9 @@
 <?php
 
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\Busy;
-use App\MangaDex\RateLimit\BusyReason;
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\Busy;
+use App\Adapters\Http\RateLimit\BusyReason;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Response;
 

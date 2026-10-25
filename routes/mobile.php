@@ -1,5 +1,6 @@
 <?php
 
+use App\NativeComponents\Downloads;
 use App\NativeComponents\Eula;
 use App\NativeComponents\Home;
 use App\NativeComponents\Library;
@@ -22,6 +23,7 @@ Route::nativeGroup(TabsLayout::class, function () {
     Route::native('/home', Home::class);
     Route::native('/search', Search::class);
     Route::native('/library', Library::class);
+    Route::native('/downloads', Downloads::class);
     Route::native('/settings', Settings::class);
     Route::native('/settings/sources', Sources::class);
 

@@ -103,7 +103,7 @@ function rbRouterAt(TestableComponent $screen, string $uri): void
 
 it('shows no bar when nothing has been read', function (string $uri) {
     expect(rbBar(Native::visit($uri)))->toBeNull();
-})->with(['/home', '/search', '/library', '/settings', '/home/manga/'.RB_OTHER]);
+})->with(['/home', '/search', '/library', '/downloads', '/settings', '/home/manga/'.RB_OTHER]);
 
 it('shows the bar on every tab screen and on Detail, with the chain title and the saved page', function (string $uri) {
     $this->library->saveProgress(RB_CH12, 4, 43);
@@ -114,7 +114,7 @@ it('shows the bar on every tab screen and on Detail, with the chain title and th
     expect($bar)->not->toBeNull()
         ->and(rbTexts($screen))->toBe(['Solo Leveling ES', 'Ch. 12 · page 5 / 43'])
         ->and(rbNodes($bar, 'pressable')[0]['props']['a11y_label'])->toBe('Resume Solo Leveling ES, Ch. 12, page 5 of 43');
-})->with(['/home', '/search', '/library', '/settings', '/home/manga/'.RB_SOLO, '/search/manga/'.RB_OTHER]);
+})->with(['/home', '/search', '/library', '/downloads', '/settings', '/home/manga/'.RB_SOLO, '/search/manga/'.RB_OTHER]);
 
 it('says Up next for the next, unopened chapter, and only the chapter when the page count is unknown', function () {
     $this->library->saveProgress(RB_CH12, 42, 43);

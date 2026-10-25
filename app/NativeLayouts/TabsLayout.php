@@ -36,6 +36,7 @@ class TabsLayout extends NativeLayout
             ->add(Tab::link('Home', '/home', icon: 'home', ios: 'house'))
             ->add(Tab::link('Search', '/search', icon: 'search', ios: 'magnifyingglass'))
             ->add(Tab::link('Library', '/library', icon: 'library_books', ios: 'books.vertical'))
+            ->add(Tab::link('Downloads', '/downloads', icon: 'download', ios: 'arrow.down.circle'))
             ->add(Tab::link('Settings', '/settings', icon: 'settings', ios: 'gearshape'))
             ->dark()
             ->minimizeOnScroll();

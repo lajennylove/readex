@@ -297,6 +297,30 @@ it('renders a 700-chapter list quickly enough to re-render on every poll', funct
     fwrite(STDERR, sprintf("700-chapter re-render: %.0f ms, tree %d KB\n", $ms, strlen(json_encode($screen->tree())) / 1024));
 });
 
+/** Every empty (childless) column's height in screen order. */
+function detailEmptyColumnHeights(array $node): array
+{
+    $heights = ($node['type'] ?? null) === 'column' && ($node['children'] ?? []) === []
+        ? [(int) ($node['layout']['height'] ?? 0)]
+        : [];
+
+    foreach ($node['children'] ?? [] as $child) {
+        $heights = [...$heights, ...detailEmptyColumnHeights($child)];
+    }
+
+    return $heights;
+}
+
+it('leaves a bottom pad under the chapter list so the last chapters clear the floating resume bar', function () {
+    // The resume bar is ~64 px (cover h-12 + outer py-2); the spacer at the end of the
+    // scroll should be 2× that so a normal scroll-up + release leaves the last chapter
+    // above the bar. h-32 = 128 px.
+    $screen = Native::visit('/search/manga/'.DETAIL_RTW);
+    $heights = detailEmptyColumnHeights($screen->tree());
+
+    expect($heights)->toContain(128);
+});
+
 it('opens a Spanish reader on English when the series has no Spanish chapters (Review Focus 7)', function () {
     detailSeries(DETAIL_SEEDED, ['ja', 'en', 'fr'], ['ja-ro' => 'Romaji Title']);
     seededChapter('en-1', DETAIL_SEEDED, '1', ['language' => 'en']);

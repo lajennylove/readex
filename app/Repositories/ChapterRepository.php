@@ -153,6 +153,27 @@ final class ChapterRepository
         return [...$chain, ...$rest];
     }
 
+    /**
+     * Languages for the Detail chip row: every language the series advertises in
+     * `available_languages`, chain-first then alphabetical. Unlike `languages()`, this does NOT
+     * drop languages whose fresh feed came back empty — the tile badge is derived from the same
+     * `available_languages` field, so hiding one of them in Detail silently strands the reader
+     * on a series they chose because of its badge. An empty fresh feed is instead communicated
+     * by the "No chapters in {language} yet" state inside the Chapters section once the chip is
+     * tapped; the lazy fetch runs through the existing `pickLanguage` → `load()` path.
+     *
+     * @return list<string>
+     */
+    public function advertisedLanguages(string $mangaId): array
+    {
+        $available = Manga::query()->find($mangaId)?->available_languages ?? [];
+        $chain = array_values(array_intersect($this->settings->chain()->languages, $available));
+        $rest = array_values(array_diff($available, $chain));
+        sort($rest);
+
+        return [...$chain, ...$rest];
+    }
+
     /** The language the chapter list opens in: first chain language the series has. */
     public function defaultLanguage(string $mangaId): ?string
     {

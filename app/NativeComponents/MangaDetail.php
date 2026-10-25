@@ -100,7 +100,11 @@ class MangaDetail extends NativeComponent implements HasResumeBar
 
         $this->queueCovers(array_values(array_filter([$detail->data, ...$similar->data->all()])));
 
-        if ($this->language === '' || ! in_array($this->language, app(ChapterRepository::class)->languages($this->mangaId), true)) {
+        // A language the series advertises stays picked even when its fresh feed came back
+        // empty — the Chapters section shows "No chapters in … yet" rather than silently
+        // reverting the reader's choice (bugfix 0023). Only drop the pick if the series no
+        // longer advertises it at all.
+        if ($this->language === '' || ! in_array($this->language, app(ChapterRepository::class)->advertisedLanguages($this->mangaId), true)) {
             $this->language = $this->openingLanguage();
         }
 
@@ -147,7 +151,7 @@ class MangaDetail extends NativeComponent implements HasResumeBar
 
     public function pickLanguage(string $language): void
     {
-        if ($language === $this->language || ! in_array($language, app(ChapterRepository::class)->languages($this->mangaId), true)) {
+        if ($language === $this->language || ! in_array($language, app(ChapterRepository::class)->advertisedLanguages($this->mangaId), true)) {
             return;
         }
 
@@ -166,7 +170,11 @@ class MangaDetail extends NativeComponent implements HasResumeBar
         $chain = app(SettingsRepository::class)->chain();
         $chapters = app(ChapterRepository::class);
         $current = app(LibraryRepository::class)->resume($this->mangaId);
+        // Header "Also in …" line uses readable languages (the empty-feed ones are genuinely
+        // gone from the source for now); the chip row below uses the broader advertised set so
+        // every language the tile badge promises stays reachable.
         $languages = $chapters->languages($this->mangaId);
+        $advertised = $chapters->advertisedLanguages($this->mangaId);
 
         return view('native.manga-detail', [
             'manga' => $manga,
@@ -181,8 +189,8 @@ class MangaDetail extends NativeComponent implements HasResumeBar
             'loadingSimilar' => $this->inFlight($this->similarRefresh()),
             'favorite' => $this->isFavorite(),
             'continue' => $this->continueLabel($current),
-            'switch' => count($languages) > 1
-                ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $languages)
+            'switch' => count($advertised) > 1
+                ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $advertised)
                 : [],
             'sections' => $this->language === '' ? [] : $this->chapterSections($current),
             'downloadAll' => $this->language === '' ? null : $this->downloadAllButton($this->mangaId, $this->language),

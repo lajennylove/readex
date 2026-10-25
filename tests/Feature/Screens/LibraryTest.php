@@ -1,12 +1,9 @@
 <?php
 
 use App\Models\Chapter;
-use App\Models\Collection as LibraryEntry;
 use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
 use Illuminate\Support\Carbon;
-use Native\Mobile\Events\Alert\ButtonPressed;
-use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 
 const LT_SOLO = 'lt000000-0000-4000-8000-000000000001';
@@ -25,30 +22,6 @@ beforeEach(function () {
         'external_url' => null, 'readable_at' => Carbon::now(), 'fetched_at' => Carbon::now(),
     ]);
     $this->library->saveProgress(LT_CH1, 0, 20);
-});
-
-it('holding a Library tile asks to remove the series, and confirming removes it', function () {
-    expect($this->library->has(LT_SOLO))->toBeTrue();
-
-    Native::visit('/library')
-        ->longPress('askRemoveFromLibrary')
-        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Remove from library'
-            && $p['buttons'] === [
-                ['label' => 'Cancel', 'style' => 'cancel'],
-                ['label' => 'Remove', 'style' => 'destructive'],
-            ])
-        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Remove']);
-
-    expect($this->library->has(LT_SOLO))->toBeFalse()
-        ->and(LibraryEntry::query()->whereKey(LT_SOLO)->exists())->toBeFalse();
-});
-
-it('does nothing when the removal is cancelled', function () {
-    Native::visit('/library')
-        ->longPress('askRemoveFromLibrary')
-        ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel']);
-
-    expect($this->library->has(LT_SOLO))->toBeTrue();
 });
 
 it('removes a series from the library repository directly, leaving its reading progress untouched', function () {

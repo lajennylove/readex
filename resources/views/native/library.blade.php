@@ -38,10 +38,6 @@
 
     <native:refreshable class="w-full flex-1" @refresh="pullToRefresh">
         <native:column class="w-full gap-2 pb-6">
-            @if ($continue !== [])
-                @include('native.partials.row', ['label' => 'Continue reading', 'tiles' => $continue])
-            @endif
-
             @if ($tiles !== [])
                 <native:row class="w-full gap-4 px-4 pt-2 pb-4 flex-wrap">
                     @foreach ($tiles as $tile)

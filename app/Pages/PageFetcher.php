@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Cache;
  *
  * An image that fails gets one fresh @Home lookup per run and one retry; after that the page is
  * marked failed ("Tap to retry"), the rest keep loading. A connection error is never a failed
- * page: the run stops as offline and the page waits. A lookup MangaDex answers with 5xx, 429 or
+ * page: the run stops as offline and the page waits. A lookup the source answers with 5xx, 429 or
  * 403 is never "removed" either: the run stops and the chapter is retried.
  */
 final class PageFetcher
@@ -273,7 +273,7 @@ final class PageFetcher
     }
 
     /**
-     * The @Home server; 5xx, 429 and 403 are MangaDex's trouble, any other error means the chapter is gone.
+     * The @Home server; 5xx, 429 and 403 are the source's trouble, any other error means the chapter is gone.
      *
      * @throws RequestDeferred|ConnectionException|ApiError|SourceTrouble
      */

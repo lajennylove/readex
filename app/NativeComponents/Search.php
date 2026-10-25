@@ -63,7 +63,7 @@ class Search extends NativeComponent implements HasResumeBar
 
     public ?string $tagId = null;
 
-    /** Whether MangaDex has more after the saved results; null until a refresh or loadMore says. */
+    /** Whether the source has more after the saved results; null until a refresh or loadMore says. */
     public ?bool $more = null;
 
     public function navTitle(): string

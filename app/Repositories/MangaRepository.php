@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 final class MangaRepository
 {
-    /** MangaDex rejects offset + limit above this. */
+    /** The source rejects offset + limit above this. */
     private const MAX_RESULTS = 10_000;
 
     public function __construct(
@@ -194,7 +194,7 @@ final class MangaRepository
         $now = Carbon::now();
         $rows = [];
 
-        // Page boundaries shift when MangaDex adds a series; a repeat keeps its first place.
+        // Page boundaries shift when the source adds a series; a repeat keeps its first place.
         foreach ($ids as $i => $id) {
             if (! $known->has($id)) {
                 $rows[] = ['list_key' => $key, 'batch' => $batch, 'position' => $offset + $i, 'manga_id' => $id, 'fetched_at' => $now];

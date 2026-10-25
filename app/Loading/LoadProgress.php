@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Per-step state of one DataLoader run, in the cache. The loader runs on the async lane
- * (Setup) or the queue worker (Refresh MangaDex data), both other PHP runtimes, and
+ * (Setup) or the queue worker (Refresh provider data), both other PHP runtimes, and
  * AsyncTask has no progress channel, so the screen polls this.
  */
 final class LoadProgress

@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\DB;
 
 final class DataReset
 {
-    /** Saved MangaDex answers that go away entirely (§7.1). */
+    /** Saved source answers that go away entirely (§7.1). */
     private const TABLES = ['manga_lists', 'tags', 'statistics', 'recommendations', 'at_home', 'chapter_feeds'];
 
     /**
-     * "Refresh MangaDex data" clearing step (§7.1, D20, Review Focus 5). Chapters of Library
+     * "Refresh provider data" clearing step (§7.1, D20, Review Focus 5). Chapters of Library
      * series, plus any stored or started chapter, and their manga stay with `fetched_at = null`;
-     * every other MangaDex row goes. Settings, collections, progress and stored chapters (and
+     * every other source row goes. Settings, collections, progress and stored chapters (and
      * the controller's rate buckets) aren't touched. The refill is Phase 4 (`RefreshAllData`).
      */
     public function clearRemoteData(): void

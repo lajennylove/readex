@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\File;
  * Plan-08 Task 4 (Jenny 2026-10-24 18:29 EDT): "a full destructible restore ... delete all the
  * downloads, caches, settings in the database, everything ... restore the app to factory
  * settings (as just installed new)". Unlike `DataReset::clearRemoteData()` (§7.1, "Refresh
- * MangaDex data" — keeps the Library, progress, downloads, settings), this clears absolutely
+ * provider data" — keeps the Library, progress, downloads, settings), this clears absolutely
  * everything: every table and every file on disk, the whole SQLite database back to empty, so
  * the next launch is indistinguishable from a true fresh install (EULA, then Setup, again).
  */

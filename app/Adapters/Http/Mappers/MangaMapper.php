@@ -17,7 +17,7 @@ final class MangaMapper
             'status' => $a['status'] ?? null,
             'year' => isset($a['year']) ? (int) $a['year'] : null,
             'content_rating' => $a['contentRating'],
-            // MangaDex sometimes lists null or a language twice.
+            // The source sometimes lists null or a language twice.
             'available_languages' => array_values(array_unique(array_filter($a['availableTranslatedLanguages'] ?? [], 'is_string'))),
             'original_language' => $a['originalLanguage'] ?? null,
             'tag_ids' => array_column($a['tags'] ?? [], 'id'),

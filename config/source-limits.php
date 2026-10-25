@@ -1,9 +1,9 @@
 <?php
 
 /*
-| Copy of https://api.mangadex.org/docs/2-limitations/ (checked 2026-10-22), every row,
-| including endpoints v1 never calls. "capacity" is our budget, "limit" is MangaDex's
-| documented number; header sync scales the budget by capacity/limit when MangaDex
+| Copy of the source's documented rate limits (checked 2026-10-22), every row,
+| including endpoints v1 never calls. "capacity" is our budget, "limit" is the source's
+| documented number; header sync scales the budget by capacity/limit when the source
 | reports a different limit.
 */
 
@@ -50,7 +50,7 @@ return [
         'report' => ['capacity' => 2, 'per_seconds' => 1],
     ],
 
-    // Endpoint rules for api.mangadex.org. First match wins. {id} matches one path segment.
+    // Endpoint rules for the source API. First match wins. {id} matches one path segment.
     'rules' => [
         ['GET', '/at-home/server/{id}', 'at-home'],
         ['GET', '/manga/random', 'random'],

@@ -10,7 +10,7 @@ use App\Repositories\Result;
 use App\Repositories\SettingsRepository;
 
 /**
- * MangaDex behind the Source interface (Plan-08 Task 1): a thin wrapper over the existing
+ * The built-in HTTP source behind the Source interface (Plan-08 Task 1): a thin wrapper over the existing
  * Phase 1–5 repositories/client. No behavior change — same rate limits (D21), same credits,
  * same SQLite tables, same tests. This is the only Source the app ships with (D45 §2: a
  * generic adapter interface, never a built-in scraper for any other site).

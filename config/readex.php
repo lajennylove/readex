@@ -46,7 +46,7 @@ return [
     'popular_new_days' => 30,
 
     'covers' => [
-        // MangaDex thumbnail width (it serves .256.jpg and .512.jpg).
+        // Source thumbnail width (the source serves .256.jpg and .512.jpg).
         'size' => 256,
         // Tiles a screen shows first; their covers download at interactive priority.
         'visible' => 12,

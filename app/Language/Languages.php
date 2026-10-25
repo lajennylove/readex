@@ -5,7 +5,7 @@ namespace App\Language;
 /** Reading languages offered in Setup and Settings (spec §9 step 5), seeded locally, no API call. */
 final class Languages
 {
-    /** MangaDex code => native name; Latin script A–Z first, then the other scripts. */
+    /** Source language code => native name; Latin script A–Z first, then the other scripts. */
     public const NAMES = [
         'az' => 'Azərbaycanca',
         'id' => 'Bahasa Indonesia',

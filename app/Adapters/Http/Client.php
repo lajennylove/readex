@@ -18,18 +18,19 @@ use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * The only way the app talks to MangaDex, its @Home image servers, uploads.mangadex.org
- * and the seasonal JSON. Every request asks the RequestController for a slot first and
- * hands it the response afterwards; this class holds no rate-limit logic of its own.
+ * The only way the app talks to the configured content source, its image servers,
+ * upload hosts and seasonal JSON. Every request asks the RequestController for a slot
+ * first and hands it the response afterwards; this class holds no rate-limit logic of
+ * its own.
  */
 final class Client
 {
-    private const REPORT_SKIP_KEY = 'mangadex:report:skip';
+    private const REPORT_SKIP_KEY = 'source:report:skip';
 
     public function __construct(private readonly RequestController $controller) {}
 
     /**
-     * GET an api.mangadex.org path. JSON is decoded to associative arrays, so MangaDex's
+     * GET a source API path. JSON is decoded to associative arrays, so the source's
      * empty objects (`{}`, sometimes sent as `[]`) both arrive as `[]`.
      *
      * @throws RequestDeferred|ApiError|ConnectionException
@@ -39,7 +40,7 @@ final class Client
         return $this->getJson($this->apiUrl($path, $query), $priority, $maxWait);
     }
 
-    /** Drop the shared response of get($path, $query), so the next identical GET really asks MangaDex. */
+    /** Drop the shared response of get($path, $query), so the next identical GET really asks the source. */
     public function forget(string $path, array $query = []): void
     {
         Cache::store(config('source.share_store'))->forget($this->shareKey($this->apiUrl($path, $query)));
@@ -160,7 +161,7 @@ final class Client
 
     private function shareKey(string $url): string
     {
-        return 'mangadex:get:'.sha1($url);
+        return 'source:get:'.sha1($url);
     }
 
     /**

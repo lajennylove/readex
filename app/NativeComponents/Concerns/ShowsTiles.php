@@ -142,10 +142,12 @@ trait ShowsTiles
     /**
      * What `native.partials.tile` needs; title and badge follow the reading chain (spec §10).
      * `$removable` offers a long-press "Remove from library" action (Library tiles only).
+     * `$longPress` overrides the long-press target method entirely ("You may still be
+     * interested" row: `Library::removeFromInterestRow()`, not the Library-removal dialog).
      *
-     * @return array{manga: Manga, title: string, badge: ?string, caption: ?string, chapterId: ?string, removable: bool}
+     * @return array{manga: Manga, title: string, badge: ?string, caption: ?string, chapterId: ?string, removable: bool, longPress: ?string}
      */
-    protected function tile(Manga $manga, LanguageChain $chain, ?string $caption = null, ?string $chapterId = null, bool $removable = false): array
+    protected function tile(Manga $manga, LanguageChain $chain, ?string $caption = null, ?string $chapterId = null, bool $removable = false, ?string $longPress = null): array
     {
         return [
             'manga' => $manga,
@@ -154,6 +156,7 @@ trait ShowsTiles
             'caption' => $caption,
             'chapterId' => $chapterId,
             'removable' => $removable,
+            'longPress' => $longPress,
         ];
     }
 

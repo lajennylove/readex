@@ -426,7 +426,7 @@ it('gives Latest updates the full visible budget when Season + Popular already h
         ->and($fetchedIds)->toHaveCount($visible);
 });
 
-it('keeps Continue reading on the Library placeholder until the Phase 6 grid, never on Home (choice 2, D37)', function () {
+it('keeps Continue reading on the Library grid, never on Home (choice 2, D37)', function () {
     fillHome();
     Native::test(Library::class)->assertSee('Your series will show up here')->assertDontSee('Continue reading');
 
@@ -437,7 +437,7 @@ it('keeps Continue reading on the Library placeholder until the Phase 6 grid, ne
     Native::test(Library::class)
         ->assertSee('Continue reading')
         ->assertSee(Home::chapterLabel($chapter).' · 50%')
-        ->assertSee('Your series will show up here');
+        ->assertDontSee('Your series will show up here');
 
     expect(Covers::fetched($this->async))->toContain($chapter->manga_id);
     Native::test(Home::class)->assertSee('This season')->assertDontSee('Continue reading');

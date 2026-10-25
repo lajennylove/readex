@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Exceptions\RequestDeferred;
 use App\Adapters\Http\RateLimit\Priority;
+use App\Downloads\DownloadQueue;
 use App\Downloads\Downloads;
 use App\Models\Chapter;
 use App\Pages\ChapterUnavailable;
@@ -103,10 +104,18 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        $queue = app(DownloadQueue::class);
         $download = $this->tier === 'local' || $downloads->isQueued($this->chapterId);
-        $stopped = fn () => $download && ! $downloads->isQueued($this->chapterId);
+        // Plan 21: a `canceling` row is a user Cancel in flight; treat it as
+        // stopped so the worker halts at the next page, then mark it done so
+        // the chain moves on.
+        $stopped = fn () => $download && (! $downloads->isQueued($this->chapterId) || $queue->isCanceling($this->chapterId));
 
         if ($stopped() || (! $download && app(PageStore::class)->wasEvicted($this->chapterId))) {
+            if ($download && $queue->isCanceling($this->chapterId)) {
+                $queue->markDone($this->chapterId);
+            }
+
             return;
         }
 
@@ -127,16 +136,28 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             );
         } catch (RequestDeferred $e) {
             $fetcher->record($this->chapterId, LoadState::Busy);
+            if ($download) {
+                app(DownloadQueue::class)->release($this->chapterId);
+            }
             $this->release($this->secondsUntil($e->busy->retryAt));
 
             return;
         } catch (ConnectionException) {
             $fetcher->record($this->chapterId, LoadState::Offline);
+            if ($download) {
+                app(DownloadQueue::class)->release($this->chapterId);
+            }
             $this->release(self::OFFLINE_RETRY_SECONDS);
 
             return;
         } catch (DiskSpaceLow) {
+            // Plan 21: chapter-boundary disk-space guard. Flip the row back to
+            // `queued` so pending() sees it correctly; Laravel's retry will
+            // re-dispatch and re-attempt once space returns.
             $fetcher->record($this->chapterId, LoadState::Offline);
+            if ($download) {
+                app(DownloadQueue::class)->release($this->chapterId);
+            }
             $this->release(self::OFFLINE_RETRY_SECONDS);
 
             return;
@@ -165,6 +186,10 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
         Cache::forget($this->troubleKey());
 
         if ($stopped()) {
+            if ($download && $queue->isCanceling($this->chapterId)) {
+                $queue->markDone($this->chapterId);
+            }
+
             return;
         }
 

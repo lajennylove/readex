@@ -31,7 +31,81 @@ final class Downloads
         private readonly PageStore $pages,
         private readonly LibraryRepository $library,
         private readonly PageFetcher $fetcher,
+        private readonly DownloadQueue $queue,
     ) {}
+
+    // ──────── Thin shim over DownloadQueue (Plan 21) ────────
+    //
+    // These methods are the public API the Downloads tab (Phase B) will call.
+    // The classic download() / downloadAll() / stop() / remove() paths below
+    // still work and continue to drive the same `downloads` table — this shim
+    // just exposes the new orchestration surface without forcing every caller
+    // to update in the same PR.
+
+    public function readNow(string $chapterId): ?Chapter
+    {
+        return $this->queue->readNow($chapterId);
+    }
+
+    public function readNowChapterId(): ?string
+    {
+        return $this->queue->readNowChapterId();
+    }
+
+    public function clearReadNow(?string $chapterId = null): void
+    {
+        $this->queue->clearReadNow($chapterId);
+    }
+
+    public function pause(string $chapterId): void
+    {
+        $this->queue->pause($chapterId);
+    }
+
+    public function resume(string $chapterId): void
+    {
+        $this->queue->resume($chapterId);
+    }
+
+    public function cancel(string $chapterId): void
+    {
+        $this->queue->cancel($chapterId);
+    }
+
+    /** @param  list<Chapter>  $chapters */
+    public function enqueueBatch(string $mangaId, string $language, array $chapters, Priority $priority = Priority::Bulk): int
+    {
+        return $this->queue->enqueueBatch($mangaId, $language, $chapters, $priority);
+    }
+
+    public function enqueueOne(string $chapterId, Priority $priority = Priority::Bulk): void
+    {
+        $this->queue->enqueueOne($chapterId, $priority);
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Download> */
+    public function pending(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->queue->pending();
+    }
+
+    public function nextRunnable(): ?Download
+    {
+        return $this->queue->nextRunnable();
+    }
+
+    /** @return array{queued: int, downloading: int, done: int, total: int} */
+    public function statusFor(string $mangaId): array
+    {
+        return $this->queue->statusFor($mangaId);
+    }
+
+    public function queue(): DownloadQueue
+    {
+        return $this->queue;
+    }
+
+    // ──────── Classic Downloads API (unchanged behaviour) ────────
 
     /**
      * Download one chapter, on any connection (D35 12): moved when it's all in the cache, else
@@ -148,6 +222,8 @@ final class Downloads
         if ($entry->batch !== null && $entry->started_at !== null) {
             $this->startNext($entry->batch);
         }
+
+        $this->queue->kick();
     }
 
     /** Stop a Download all: the chapters not started go, the ended ones stay, the current one stays partial. */
@@ -186,6 +262,11 @@ final class Downloads
         if ($entry->batch !== null && $entry->started_at !== null) {
             $this->startNext($entry->batch);
         }
+
+        // Plan 21: unified queue — after any chapter ends, drain the next runnable
+        // row regardless of batch, so enqueueOne/enqueueBatch rows that weren't
+        // part of a classic Download-all batch still move.
+        $this->queue->kick();
     }
 
     public function isQueued(string $chapterId): bool
@@ -261,6 +342,7 @@ final class Downloads
             'batch' => $batch,
             'position' => $position,
             'priority' => $priority->value,
+            'state' => $started ? QueueState::Downloading->value : QueueState::Queued->value,
             'started_at' => $started ? $now : null,
             'finished_at' => null,
             'created_at' => $now,
@@ -271,7 +353,7 @@ final class Downloads
     private function startNext(string $batch): void
     {
         while (($next = Download::query()->where('batch', $batch)->whereNull('started_at')->whereNull('finished_at')->orderBy('position')->first()) !== null) {
-            if (Download::query()->whereKey($next->chapter_id)->whereNull('started_at')->update(['started_at' => Carbon::now()]) !== 1) {
+            if (Download::query()->whereKey($next->chapter_id)->whereNull('started_at')->update(['started_at' => Carbon::now(), 'state' => QueueState::Downloading->value]) !== 1) {
                 return;
             }
 
@@ -305,6 +387,6 @@ final class Downloads
 
     private function finish(string $chapterId): bool
     {
-        return Download::query()->whereKey($chapterId)->whereNull('finished_at')->update(['finished_at' => Carbon::now()]) === 1;
+        return Download::query()->whereKey($chapterId)->whereNull('finished_at')->update(['finished_at' => Carbon::now(), 'state' => QueueState::Done->value]) === 1;
     }
 }

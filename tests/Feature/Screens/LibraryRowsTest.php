@@ -91,13 +91,28 @@ it('removes a series from the Library via the same long-press action sheet', fun
     expect($this->library->has(lrsId('m', 1)))->toBeFalse();
 });
 
-it('removes a series from the interest row via its own long-press action', function () {
+it('long-pressing an interest-row tile asks before removing, and confirming removes it', function () {
     lrsManga(1, 'Interesting series');
     app(ViewedSeriesRepository::class)->recordView(lrsId('m', 1));
 
-    Native::visit('/library')->call('removeFromInterestRow', lrsId('m', 1));
+    Native::visit('/library')
+        ->longPress("askRemoveFromInterestRow('".lrsId('m', 1)."')")
+        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Remove from your interests?'
+            && array_column($p['buttons'], 'label') === ['Cancel', 'Remove'])
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Remove']);
 
     expect(app(ViewedSeriesRepository::class)->list())->toBeEmpty();
+});
+
+it('cancelling the prompt leaves the series in the interest row', function () {
+    lrsManga(1, 'Interesting series');
+    app(ViewedSeriesRepository::class)->recordView(lrsId('m', 1));
+
+    Native::visit('/library')
+        ->longPress("askRemoveFromInterestRow('".lrsId('m', 1)."')")
+        ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel']);
+
+    expect(app(ViewedSeriesRepository::class)->list())->not->toBeEmpty();
 });
 
 it('shows a downloaded series under the Downloaded row with its status chip', function () {

@@ -62,7 +62,13 @@ final class Downloads
      */
     public function downloadAll(string $mangaId, string $language): int
     {
-        $chapters = $this->plan($mangaId, $language)['chapters'];
+        // A licensed series serves every chapter from the publisher's own site
+        // (external_url) and nothing is actually downloadable. Filtering first
+        // avoids silently adding the series to the Library for a no-op batch —
+        // mirrors the single-chapter download()'s own external_url guard.
+        $chapters = $this->plan($mangaId, $language)['chapters']
+            ->filter(fn (Chapter $c) => $c->external_url === null)
+            ->values();
 
         if ($chapters->isEmpty() || $this->running($mangaId) !== null) {
             return 0;

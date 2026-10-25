@@ -14,7 +14,6 @@ use App\Storage\StorageBridge;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 use Native\Mobile\PendingAsyncTask;
 
 /**
@@ -63,8 +62,6 @@ final class CoverStore
     {
         $ids = $this->missing($mangas, 'fetched');
 
-        Log::channel('covers')->debug('CoverStore::fetch', ['dispatching' => count($ids), 'ids' => $ids]);
-
         return $ids === [] ? null : FetchCovers::dispatch($ids);
     }
 
@@ -79,35 +76,20 @@ final class CoverStore
         $relative = $this->relative($manga);
 
         if ($relative === null) {
-            Log::channel('covers')->warning('download: relative=null (missing cover_file)', [
-                'manga' => $manga->id, 'cover_file' => $manga->cover_file,
-            ]);
-
             return false;
         }
 
         $path = $this->absolute($relative);
 
         if (is_file($path)) {
-            Log::channel('covers')->debug('download: cache hit', ['manga' => $manga->id]);
-
             return true;
         }
 
         $this->diskSpace->ensure();
 
-        $url = $this->url($manga);
-        Log::channel('covers')->info('download: cache miss, GET', [
-            'manga' => $manga->id, 'url' => $url, 'priority' => $priority->value,
-        ]);
-
-        $bytes = $this->client->download($url, $priority, $maxWait);
+        $bytes = $this->client->download($this->url($manga), $priority, $maxWait);
 
         if (@getimagesizefromstring($bytes) === false) {
-            Log::channel('covers')->warning('download: response is not an image', [
-                'manga' => $manga->id, 'bytes' => strlen($bytes),
-            ]);
-
             return false;
         }
 
@@ -121,10 +103,6 @@ final class CoverStore
                 @unlink($old);
             }
         }
-
-        Log::channel('covers')->info('download: ok', [
-            'manga' => $manga->id, 'bytes' => strlen($bytes), 'path' => $relative,
-        ]);
 
         return true;
     }
@@ -154,32 +132,14 @@ final class CoverStore
     public function missingCovers(iterable $mangas): array
     {
         $missing = [];
-        $skipped = [];
-        $cached = [];
 
         foreach ($mangas as $manga) {
             $relative = $this->relative($manga);
 
-            if ($relative === null) {
-                $skipped[] = ['id' => $manga->id, 'cover_file' => $manga->cover_file];
-
-                continue;
-            }
-
-            if (! is_file($this->absolute($relative))) {
+            if ($relative !== null && ! is_file($this->absolute($relative))) {
                 $missing[] = $manga;
-            } else {
-                $cached[] = $manga->id;
             }
         }
-
-        Log::channel('covers')->debug('missingCovers', [
-            'input' => is_countable($mangas) ? count($mangas) : null,
-            'cached' => count($cached),
-            'missing' => count($missing),
-            'skipped_null_relative' => count($skipped),
-            'skipped_samples' => array_slice($skipped, 0, 3),
-        ]);
 
         return $missing;
     }

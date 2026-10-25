@@ -27,7 +27,7 @@ final class SettingsRepository
         $code = strtolower(trim($code));
 
         if (preg_match('/^[a-z]{2,3}(-[a-z]{2,4})?$/', $code) !== 1) {
-            throw new InvalidArgumentException("Not a MangaDex language code [{$code}].");
+            throw new InvalidArgumentException("Not a valid source language code [{$code}].");
         }
 
         if ($code === $this->language()) {

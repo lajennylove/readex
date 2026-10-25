@@ -10,6 +10,6 @@ final class RequestDeferred extends RuntimeException
 {
     public function __construct(public readonly Busy $busy)
     {
-        parent::__construct("MangaDex request deferred ({$busy->reason->value}) until {$busy->retryAt}");
+        parent::__construct("Source request deferred ({$busy->reason->value}) until {$busy->retryAt}");
     }
 }

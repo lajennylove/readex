@@ -8,12 +8,12 @@ namespace App\Sources;
  */
 final class SourceRegistry
 {
-    public function __construct(private readonly HttpSource $mangaDex) {}
+    public function __construct(private readonly HttpSource $builtIn) {}
 
     /** @return list<Source> every source the app currently knows, built-in first. */
     public function all(): array
     {
-        return [$this->mangaDex];
+        return [$this->builtIn];
     }
 
     public function find(string $key): ?Source
@@ -28,8 +28,8 @@ final class SourceRegistry
     }
 
     /** The built-in HTTP source adapter directly, for the call sites that are still single-source only this task (D45 §2). */
-    public function mangaDex(): HttpSource
+    public function builtIn(): HttpSource
     {
-        return $this->mangaDex;
+        return $this->builtIn;
     }
 }

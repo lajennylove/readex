@@ -8,12 +8,12 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
-/** Recorded MangaDex responses (tests/Fixtures/mangadex). No test reaches the real API. */
+/** Recorded source HTTP responses (tests/Fixtures/http). No test reaches the real API. */
 final class SourceFixtures
 {
     public static function path(string $name): string
     {
-        return dirname(__DIR__)."/Fixtures/mangadex/{$name}.json";
+        return dirname(__DIR__)."/Fixtures/http/{$name}.json";
     }
 
     /** The body decoded the way Client::get() decodes it. */
@@ -55,7 +55,7 @@ final class SourceFixtures
             $found = $responses[self::key($request->url())] ?? null;
 
             if ($found === null || $request->method() !== 'GET') {
-                throw new RuntimeException("No MangaDex fixture for {$request->method()} {$request->url()}");
+                throw new RuntimeException("No source fixture for {$request->method()} {$request->url()}");
             }
 
             return Http::response(...$found);

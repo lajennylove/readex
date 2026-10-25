@@ -33,7 +33,7 @@ it('registers MangaDex as the only source and finds it by key', function () {
     expect($registry->all())->toHaveCount(1)
         ->and($registry->all()[0])->toBeInstanceOf(HttpSource::class)
         ->and($registry->find('mangadex'))->toBeInstanceOf(HttpSource::class)
-        ->and($registry->find('mangadex'))->toBe($registry->mangaDex())
+        ->and($registry->find('mangadex'))->toBe($registry->builtIn())
         ->and($registry->find('unknown'))->toBeNull();
 });
 

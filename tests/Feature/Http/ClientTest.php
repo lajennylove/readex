@@ -105,7 +105,7 @@ describe('errors', function () {
         )]);
 
         expect(fn () => $this->client->get('/manga/missing'))
-            ->toThrow(ApiError::class, 'MangaDex HTTP 404: Manga not found');
+            ->toThrow(ApiError::class, 'HTTP 404: Manga not found');
 
         expect(usage('global'))->toBe(1);
     });

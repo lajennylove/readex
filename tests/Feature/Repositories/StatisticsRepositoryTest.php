@@ -8,7 +8,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const STATS_RTW = 'aafb046c-9de4-4c3d-990c-6d75b079c0b9';
 
@@ -21,7 +21,7 @@ beforeEach(function () {
 /** The 39 manga recommended for Release that Witch (ids of the recorded batch). */
 function statsRecommendedIds(): array
 {
-    return array_keys(MangaDexFixtures::body('statistics-rtw-recommended')['statistics']);
+    return array_keys(SourceFixtures::body('statistics-rtw-recommended')['statistics']);
 }
 
 /** Http::fake() stubs stack and the fixture fake throws on anything unrecorded, so start over. */
@@ -51,7 +51,7 @@ function statsAnswer(array $ids, ?float $average = 7.5, int $follows = 10): arra
 }
 
 it('saves ratings and follows for a batch of manga from one call', function () {
-    MangaDexFixtures::fake('statistics-rtw-recommended');
+    SourceFixtures::fake('statistics-rtw-recommended');
     $ids = statsRecommendedIds();
 
     $this->stats->refresh($ids);
@@ -60,7 +60,7 @@ it('saves ratings and follows for a batch of manga from one call', function () {
 
     expect($result->data)->toHaveCount(39)
         ->and($result->isStale)->toBeFalse()
-        ->and($first->follows)->toBe(MangaDexFixtures::body('statistics-rtw-recommended')['statistics'][$ids[0]]['follows'])
+        ->and($first->follows)->toBe(SourceFixtures::body('statistics-rtw-recommended')['statistics'][$ids[0]]['follows'])
         ->and($first->rating_bayesian)->toBeFloat()
         ->and($first->distribution)->toBeNull();
     Http::assertSentCount(1);
@@ -125,7 +125,7 @@ it('saves a null rating for a series nobody rated yet', function () {
 });
 
 it('loads the rating distribution for the detail screen', function () {
-    MangaDexFixtures::fake('statistics-rtw');
+    SourceFixtures::fake('statistics-rtw');
 
     expect($this->stats->detail(STATS_RTW)->isEmpty())->toBeTrue();
 
@@ -144,7 +144,7 @@ it('marks the detail stale while only batched numbers are saved, and a batch kee
 
     expect($this->stats->detail(STATS_RTW)->isStale)->toBeTrue();
 
-    fakeStatsAgain(MangaDexFixtures::stub('statistics-rtw'));
+    fakeStatsAgain(SourceFixtures::stub('statistics-rtw'));
     $this->stats->refreshDetail(STATS_RTW);
 
     Carbon::setTestNow('2026-10-24 12:00:10');

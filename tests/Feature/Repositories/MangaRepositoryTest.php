@@ -10,7 +10,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const OPM = 'd8a959f7-648e-4c8d-8f23-f1f3f8e129f3';
 const NOVA = '8a45c930-32d1-423e-bffd-9e8d71312134';
@@ -39,7 +39,7 @@ function fakeAgain(Closure $stub): void
 
 it('puts Spanish series first for a Spanish reader, API order inside each group (Review Focus 1)', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('search-one-punch-p1');
+    SourceFixtures::fake('search-one-punch-p1');
 
     expect($this->manga->refreshSearch('one punch'))->toBeTrue();
     $result = $this->manga->search('one punch');
@@ -55,7 +55,7 @@ it('puts Spanish series first for a Spanish reader, API order inside each group 
 });
 
 it('keeps the API order for an English reader, series without chapters last', function () {
-    MangaDexFixtures::fake('search-one-punch-p1');
+    SourceFixtures::fake('search-one-punch-p1');
 
     $this->manga->refreshSearch('one punch');
 
@@ -66,7 +66,7 @@ it('keeps the API order for an English reader, series without chapters last', fu
 
 it('appends the next page as its own batch, earlier tiles keep their place (Review Focus 2)', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('search-one-punch-p1', 'search-one-punch-p2');
+    SourceFixtures::fake('search-one-punch-p1', 'search-one-punch-p2');
 
     $this->manga->refreshSearch('one punch');
     $before = shortIds($this->manga->search('one punch')->data);
@@ -84,7 +84,7 @@ it('appends the next page as its own batch, earlier tiles keep their place (Revi
 });
 
 it('re-sorts on a language change without any API call', function () {
-    MangaDexFixtures::fake('search-one-punch-p1');
+    SourceFixtures::fake('search-one-punch-p1');
     $this->manga->refreshSearch('one punch');
     fakeAgain(fn () => throw new RuntimeException('no network expected'));
 
@@ -94,7 +94,7 @@ it('re-sorts on a language change without any API call', function () {
 });
 
 it('keeps the saved list when offline, marked stale (Review Focus 4)', function () {
-    MangaDexFixtures::fake('search-one-punch-p1');
+    SourceFixtures::fake('search-one-punch-p1');
     $this->manga->refreshSearch('one punch');
 
     Carbon::setTestNow(Carbon::now()->addHour());
@@ -112,7 +112,7 @@ it('keeps the saved list when offline, marked stale (Review Focus 4)', function 
 it('replaces the saved list on refresh', function () {
     $key = $this->manga->listKey('one punch');
     MangaListEntry::insert(['list_key' => $key, 'batch' => 1, 'position' => 0, 'manga_id' => NOVA, 'fetched_at' => Carbon::now()]);
-    MangaDexFixtures::fake('search-one-punch-p1');
+    SourceFixtures::fake('search-one-punch-p1');
 
     $this->manga->refreshSearch('one punch');
 
@@ -121,11 +121,11 @@ it('replaces the saved list on refresh', function () {
 });
 
 it('skips a series repeated on the next page, keeping its first place', function () {
-    MangaDexFixtures::fake('search-one-punch-p1');
+    SourceFixtures::fake('search-one-punch-p1');
     $this->manga->refreshSearch('one punch');
 
-    $page2 = MangaDexFixtures::body('search-one-punch-p2');
-    $page2['data'][0] = MangaDexFixtures::body('search-one-punch-p1')['data'][2];
+    $page2 = SourceFixtures::body('search-one-punch-p2');
+    $page2['data'][0] = SourceFixtures::body('search-one-punch-p1')['data'][2];
     fakeAgain(fn () => Http::response($page2));
 
     $this->manga->loadMore('one punch');
@@ -136,7 +136,7 @@ it('skips a series repeated on the next page, keeping its first place', function
 });
 
 it('browses a tag by most followed', function () {
-    MangaDexFixtures::fake('browse-cooking');
+    SourceFixtures::fake('browse-cooking');
 
     expect($this->manga->refreshSearch('', [COOKING]))->toBeTrue()
         ->and($this->manga->search('', [COOKING])->data)->toHaveCount(10);
@@ -164,7 +164,7 @@ it('stops at the 10,000 result cap without calling the API', function () {
 });
 
 it('fetches manga by ids and answers in the order asked', function () {
-    MangaDexFixtures::fake('manga-ids');
+    SourceFixtures::fake('manga-ids');
 
     $this->manga->refreshByIds([OPM, NOVA]);
     $result = $this->manga->byIds([NOVA, OPM]);
@@ -190,7 +190,7 @@ it('asks for at most 100 ids per call', function () {
 });
 
 it('saves a series detail and marks it stale after a day', function () {
-    MangaDexFixtures::fake('manga-nova');
+    SourceFixtures::fake('manga-nova');
 
     $this->manga->refreshDetail(NOVA);
 
@@ -203,7 +203,7 @@ it('saves a series detail and marks it stale after a day', function () {
 });
 
 it('saves author and artist with the detail, and a later list call keeps them', function () {
-    MangaDexFixtures::fake('manga-nova', 'manga-ids');
+    SourceFixtures::fake('manga-nova', 'manga-ids');
 
     $this->manga->refreshDetail(NOVA);
     $this->manga->refreshByIds([OPM, NOVA]);

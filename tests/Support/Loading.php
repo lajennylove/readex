@@ -21,7 +21,7 @@ final class Loading
     public static function fake(?Closure $override = null, array &$covers = []): void
     {
         Http::swap(new Factory(app('events')));
-        $fixtures = MangaDexFixtures::stub(...self::FIXTURES);
+        $fixtures = SourceFixtures::stub(...self::FIXTURES);
         $jpeg = Covers::jpeg();
 
         Http::fake(function (Request $request) use ($override, $fixtures, $jpeg, &$covers) {

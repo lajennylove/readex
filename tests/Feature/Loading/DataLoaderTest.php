@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Tests\Support\Covers;
 use Tests\Support\Loading;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 beforeEach(function () {
     Carbon::setTestNow('2026-10-24 12:00:00');
@@ -98,7 +98,7 @@ it('skips a broken cover and keeps going', function () {
 });
 
 it('does not load tags again when Setup already got them', function () {
-    MangaDexFixtures::fake('tags');
+    SourceFixtures::fake('tags');
     app(TagRepository::class)->refresh();
     // Past the client's 5 s shared-GET cache, so a second tags call would reach Http.
     Carbon::setTestNow('2026-10-24 12:00:10');

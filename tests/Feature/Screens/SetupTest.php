@@ -65,7 +65,7 @@ function ratingToggle(string $label, bool $on): Closure
 }
 
 /** Types MangaDex's own API URL into the source field — the shortest path through Continue in most tests. */
-function withMangaDexSource(TestableComponent $screen): TestableComponent
+function withBuiltInSource(TestableComponent $screen): TestableComponent
 {
     return $screen->call('changeSourceUrl', config('source.api_url'));
 }
@@ -159,7 +159,7 @@ it('keeps at least one rating on', function () {
 });
 
 it('saves the choices, loads everything and opens Home', function () {
-    $screen = withMangaDexSource(Native::test(Setup::class))
+    $screen = withBuiltInSource(Native::test(Setup::class))
         ->select('chooseLanguage', 'Español (Latinoamérica)')
         ->tap('Continue')
         ->assertReplacedWith('/home');
@@ -172,11 +172,11 @@ it('saves the choices, loads everything and opens Home', function () {
         ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
     $this->async->assertDispatched(fn (array $d) => $d['work']['task'] === LoadTask::class);
 
-    expect(app(SourceRepository::class)->mangaDexEnabled())->toBeTrue();
+    expect(app(SourceRepository::class)->builtInEnabled())->toBeTrue();
 });
 
 it('saves the content rating the reader picked', function () {
-    withMangaDexSource(Native::test(Setup::class))
+    withBuiltInSource(Native::test(Setup::class))
         ->toggle("setRating('suggestive')", false)
         ->tap('Continue')
         ->assertReplacedWith('/home');
@@ -223,7 +223,7 @@ it('saves whatever other source URL the reader typed, labeled by its host, not j
 it('says "First launch needs internet" and stays in Setup when offline (Review Focus 1)', function () {
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
 
-    $screen = withMangaDexSource(Native::test(Setup::class))
+    $screen = withBuiltInSource(Native::test(Setup::class))
         ->tap('Continue')
         ->assertSet('phase', Setup::OFFLINE)
         ->assertSee('First launch needs internet')
@@ -241,7 +241,7 @@ it('says "First launch needs internet" and stays in Setup when offline (Review F
 it('also catches no connection when the phone claims to be online', function () {
     Loading::fake(fn () => throw new ConnectionException('cURL error 6'));
 
-    withMangaDexSource(Native::test(Setup::class))
+    withBuiltInSource(Native::test(Setup::class))
         ->tap('Continue')
         ->assertSee("Couldn't connect to that source. Check the URL and try again.")
         ->assertNoNavigation();
@@ -252,7 +252,7 @@ it('also catches no connection when the phone claims to be online', function () 
 it('opens Home when rows load but one keeps failing', function () {
     Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
 
-    $screen = withMangaDexSource(Native::test(Setup::class))->tap('Continue')->assertReplacedWith('/home');
+    $screen = withBuiltInSource(Native::test(Setup::class))->tap('Continue')->assertReplacedWith('/home');
 
     expect($screen->get('steps')['season'])->toBe('unavailable');
 });

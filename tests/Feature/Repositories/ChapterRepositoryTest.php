@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const FEED_OPM = 'd8a959f7-648e-4c8d-8f23-f1f3f8e129f3';
 const FEED_CSM = 'a77742b1-befd-49a4-bff5-1ad4e6b0ef7b';
@@ -37,7 +37,7 @@ function chapterNumbers(iterable $chapters): array
 /** A feed page built from the recorded OPM chapter, `$count` chapters numbered from `$from`. */
 function syntheticFeedPage(int $from, int $count, int $total): array
 {
-    $template = MangaDexFixtures::body('feed-one-punch-es-la')['data'][0];
+    $template = SourceFixtures::body('feed-one-punch-es-la')['data'][0];
     $data = [];
 
     for ($n = $from; $n < $from + $count; $n++) {
@@ -58,7 +58,7 @@ function fakeFeedAgain(Closure $stub): void
 }
 
 it('sorts decimal numbers naturally and puts "No volume yet" last (Review Focus 3)', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
 
     $this->chapters->refresh(FEED_OPM, 'es-la');
     $sections = $this->chapters->sections(FEED_OPM, 'es-la');
@@ -75,7 +75,7 @@ it('sorts decimal numbers naturally and puts "No volume yet" last (Review Focus 
 });
 
 it('saves the feed with its total and answers fresh for an hour, then stale', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
 
     $this->chapters->refresh(FEED_OPM, 'es-la');
     $result = $this->chapters->get(FEED_OPM, 'es-la');
@@ -90,7 +90,7 @@ it('saves the feed with its total and answers fresh for an hour, then stale', fu
 });
 
 it('uses the 15-minute age for a series in the Library', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
     $this->chapters->refresh(FEED_OPM, 'es-la');
     LibraryEntry::create(['manga_id' => FEED_OPM, 'created_at' => Carbon::now()]);
 
@@ -100,7 +100,7 @@ it('uses the 15-minute age for a series in the Library', function () {
 });
 
 it('shows a null number as Oneshot without a volume', function () {
-    MangaDexFixtures::fake('feed-oneshot-en');
+    SourceFixtures::fake('feed-oneshot-en');
 
     $this->chapters->refresh(FEED_ONESHOT, 'en');
     $sections = $this->chapters->sections(FEED_ONESHOT, 'en');
@@ -111,7 +111,7 @@ it('shows a null number as Oneshot without a volume', function () {
 });
 
 it('keeps external chapters with their link and orders duplicate uploads by group', function () {
-    MangaDexFixtures::fake('feed-chainsaw-man-en');
+    SourceFixtures::fake('feed-chainsaw-man-en');
 
     $this->chapters->refresh(FEED_CSM, 'en');
     $chapters = $this->chapters->get(FEED_CSM, 'en')->data;
@@ -127,7 +127,7 @@ it('keeps external chapters with their link and orders duplicate uploads by grou
 });
 
 it('puts every upload of a number into the volume one of them has', function () {
-    $page = MangaDexFixtures::body('feed-one-punch-es-la');
+    $page = SourceFixtures::body('feed-one-punch-es-la');
     $late = $page['data'][0];
     $late['id'] = (string) Str::uuid();
     $late['attributes']['volume'] = null;
@@ -165,7 +165,7 @@ it('fetches every page past 500 (offset + limit, one language)', function () {
 });
 
 it('keeps the saved feed when a page fails, marked stale later (Review Focus 4)', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
     $this->chapters->refresh(FEED_OPM, 'es-la');
 
     $calls = 0;
@@ -183,12 +183,12 @@ it('keeps the saved feed when a page fails, marked stale later (Review Focus 4)'
 });
 
 it('drops chapters gone from MangaDex, but a stored one stays for the Library', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
     $this->chapters->refresh(FEED_OPM, 'es-la');
     [$stored, $dropped] = Chapter::where('manga_id', FEED_OPM)->orderBy('id')->limit(2)->pluck('id')->all();
     StoredChapter::create(['chapter_id' => $stored, 'tier' => 'icloud', 'quality' => 'data-saver', 'status' => 'done']);
 
-    $page = MangaDexFixtures::body('feed-one-punch-es-la');
+    $page = SourceFixtures::body('feed-one-punch-es-la');
     $page['data'] = array_values(array_filter($page['data'], fn (array $c) => ! in_array($c['id'], [$stored, $dropped], true)));
     $page['total'] = 180;
     fakeFeedAgain(fn () => Http::response($page));
@@ -203,7 +203,7 @@ it('drops chapters gone from MangaDex, but a stored one stays for the Library', 
 });
 
 it('keeps each language on its own', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
     $this->chapters->refresh(FEED_OPM, 'es-la');
 
     expect($this->chapters->get(FEED_OPM, 'en')->isEmpty())->toBeTrue()
@@ -212,7 +212,7 @@ it('keeps each language on its own', function () {
 });
 
 it('sends every content rating and the group include', function () {
-    MangaDexFixtures::fake('feed-one-punch-es-la');
+    SourceFixtures::fake('feed-one-punch-es-la');
 
     $this->chapters->refresh(FEED_OPM, 'es-la');
 
@@ -221,7 +221,7 @@ it('sends every content rating and the group include', function () {
 });
 
 it('opens the chapter list in the first chain language and lists the chain first', function () {
-    MangaDexFixtures::fake('manga-ids');
+    SourceFixtures::fake('manga-ids');
     app(MangaRepository::class)->refreshByIds([FEED_OPM, '8a45c930-32d1-423e-bffd-9e8d71312134']);
     $this->settings->setLanguage('es-la');
 

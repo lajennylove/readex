@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\SourceConfig;
-use App\Sources\MangaDexSource;
+use App\Sources\HttpSource;
 use App\Sources\SourceHealthCheck;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -31,10 +31,10 @@ final class SourceRepository
     /** Ensures the built-in row exists, called once at boot (idempotent). Keeps the label in sync with the adapter's current label on existing installs. */
     public function seedBuiltIn(): void
     {
-        $label = app(MangaDexSource::class)->label();
+        $label = app(HttpSource::class)->label();
 
         $row = SourceConfig::query()->firstOrCreate(
-            ['key' => MangaDexSource::KEY],
+            ['key' => HttpSource::KEY],
             ['label' => $label, 'kind' => 'builtin', 'enabled' => true, 'blocked' => false, 'created_at' => Carbon::now()],
         );
 
@@ -58,9 +58,9 @@ final class SourceRepository
     }
 
     /** True while the built-in MangaDex source is enabled and not blocked — the only source with a real content adapter today (Task 1). */
-    public function mangaDexEnabled(): bool
+    public function builtInEnabled(): bool
     {
-        return $this->enabled()->contains(fn (SourceConfig $s) => $s->key === MangaDexSource::KEY);
+        return $this->enabled()->contains(fn (SourceConfig $s) => $s->key === HttpSource::KEY);
     }
 
     public function find(string $key): ?SourceConfig
@@ -69,7 +69,7 @@ final class SourceRepository
     }
 
     /** The real, fixed base URL of the built-in MangaDex adapter — never the sources table's own `config`. */
-    public function builtInMangaDexUrl(): string
+    public function builtInUrl(): string
     {
         return rtrim(config('source.api_url'), '/');
     }
@@ -77,7 +77,7 @@ final class SourceRepository
     /** A typed URL that is really just MangaDex's own documented API, loosely (trailing slash, case). */
     public function matchesBuiltIn(string $url): bool
     {
-        return rtrim(mb_strtolower(trim($url)), '/') === mb_strtolower($this->builtInMangaDexUrl());
+        return rtrim(mb_strtolower(trim($url)), '/') === mb_strtolower($this->builtInUrl());
     }
 
     /**
@@ -124,10 +124,10 @@ final class SourceRepository
 
         if ($this->matchesBuiltIn($baseUrl)) {
             $this->seedBuiltIn();
-            $this->setEnabled(MangaDexSource::KEY, true);
-            $this->setBlocked(MangaDexSource::KEY, false);
+            $this->setEnabled(HttpSource::KEY, true);
+            $this->setBlocked(HttpSource::KEY, false);
 
-            return $this->find(MangaDexSource::KEY);
+            return $this->find(HttpSource::KEY);
         }
 
         $host = parse_url($baseUrl, PHP_URL_HOST) ?: $baseUrl;

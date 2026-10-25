@@ -10,7 +10,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const RECS_RTW = 'aafb046c-9de4-4c3d-990c-6d75b079c0b9';
 
@@ -57,7 +57,7 @@ function recsAnswer(array $scores): array
 }
 
 it('loads recommendations plus one /manga call for covers, best score first', function () {
-    MangaDexFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
+    SourceFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
 
     $this->recs->refresh(RECS_RTW);
     $result = $this->recs->get(RECS_RTW);
@@ -74,7 +74,7 @@ it('loads recommendations plus one /manga call for covers, best score first', fu
 
 it('puts Spanish series first for a Spanish reader, score order inside (D17)', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
+    SourceFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
 
     $this->recs->refresh(RECS_RTW);
     $data = $this->recs->get(RECS_RTW)->data;
@@ -85,7 +85,7 @@ it('puts Spanish series first for a Spanish reader, score order inside (D17)', f
 });
 
 it('filters by the content-rating setting at read time, without a refetch', function () {
-    MangaDexFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
+    SourceFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
     $this->recs->refresh(RECS_RTW);
     $top = $this->recs->get(RECS_RTW)->data->first()->id;
     Manga::query()->whereKey($top)->update(['content_rating' => 'erotica']);
@@ -101,7 +101,7 @@ it('filters by the content-rating setting at read time, without a refetch', func
 });
 
 it('asks /manga for every content rating', function () {
-    MangaDexFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
+    SourceFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
 
     $this->recs->refresh(RECS_RTW);
 
@@ -110,7 +110,7 @@ it('asks /manga for every content rating', function () {
 });
 
 it('keeps the saved row when the covers call fails (Review Focus 4)', function () {
-    MangaDexFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
+    SourceFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
     $this->recs->refresh(RECS_RTW);
     $before = recsIds($this->recs->get(RECS_RTW)->data);
 
@@ -143,7 +143,7 @@ it('stays fresh for a series with no recommendations, and makes no /manga call',
 });
 
 it('leaves out a recommended manga /manga did not return', function () {
-    $known = MangaDexFixtures::body('recommendations-rtw-manga')['data'][0];
+    $known = SourceFixtures::body('recommendations-rtw-manga')['data'][0];
     fakeRecsAgain(fn (Request $r) => str_contains($r->url(), '/recommendation')
         ? Http::response(recsAnswer([$known['id'] => 0.8, '00000000-0000-4000-8000-000000000001' => 0.9]))
         : Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [$known], 'limit' => 100, 'offset' => 0, 'total' => 1]));
@@ -156,7 +156,7 @@ it('leaves out a recommended manga /manga did not return', function () {
 });
 
 it('is stale when a recommended manga row is gone', function () {
-    MangaDexFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
+    SourceFixtures::fake('recommendations-rtw', 'recommendations-rtw-manga');
     $this->recs->refresh(RECS_RTW);
     $gone = $this->recs->get(RECS_RTW)->data->first()->id;
 

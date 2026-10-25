@@ -8,7 +8,7 @@ namespace App\Sources;
  */
 final class SourceRegistry
 {
-    public function __construct(private readonly MangaDexSource $mangaDex) {}
+    public function __construct(private readonly HttpSource $mangaDex) {}
 
     /** @return list<Source> every source the app currently knows, built-in first. */
     public function all(): array
@@ -28,7 +28,7 @@ final class SourceRegistry
     }
 
     /** The MangaDex adapter directly, for the call sites that are still MangaDex-only this task (D45 §2). */
-    public function mangaDex(): MangaDexSource
+    public function mangaDex(): HttpSource
     {
         return $this->mangaDex;
     }

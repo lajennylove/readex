@@ -34,7 +34,7 @@ use Tests\Support\Loading;
 beforeEach(function () {
     Carbon::setTestNow('2026-10-24 12:00:00');
     Sleep::fake(syncWithCarbon: true);
-    Covers::useTempCaches();
+    $this->caches = Covers::useTempCaches();
     // The recorded first-run calls are an es-la reader's.
     app(SettingsRepository::class)->setLanguage('es-la');
     $this->async = AsyncTask::fake();
@@ -399,6 +399,31 @@ it('fetches Latest updates\' leading covers right away even though Season + Popu
     $firstLatestId = $rows['latest'][0]->id;
 
     expect($fetchedIds)->toContain($firstLatestId);
+});
+
+it('gives Latest updates the full visible budget when Season + Popular already have every cover cached (bug: the flat per-row split still wasted slots on rows with nothing missing)', function () {
+    fillHome();
+    $rows = rowMangas();
+    // Season and Popular rarely change (same series most of the week): every one of their
+    // covers is already on disk, so a flat 4-per-row split would still "spend" 8 of the 12
+    // fetch-now slots on rows that have zero genuinely missing covers.
+    foreach ([...$rows['season'], ...$rows['popular']] as $manga) {
+        Covers::store($this->caches, $manga);
+    }
+    // A series can appear in more than one row (e.g. also Latest updates); only Latest's covers
+    // not already cached by the Season/Popular loop above count as genuinely missing.
+    $cachedIds = array_flip([...array_map(fn ($m) => $m->id, $rows['season']), ...array_map(fn ($m) => $m->id, $rows['popular'])]);
+    $missingLatest = array_values(array_filter($rows['latest'], fn ($m) => ! isset($cachedIds[$m->id])));
+    expect(count($missingLatest))->toBeGreaterThanOrEqual(config('readex.covers.visible'));
+
+    Native::test(Home::class);
+
+    $fetchedIds = Covers::fetched($this->async);
+    $visible = config('readex.covers.visible');
+    $expectedLatest = array_map(fn ($m) => $m->id, array_slice($missingLatest, 0, $visible));
+
+    expect($fetchedIds)->toBe($expectedLatest)
+        ->and($fetchedIds)->toHaveCount($visible);
 });
 
 it('keeps Continue reading on the Library placeholder until the Phase 6 grid, never on Home (choice 2, D37)', function () {

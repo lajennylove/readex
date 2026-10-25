@@ -70,9 +70,13 @@ trait ShowsTiles
     }
 
     /**
-     * Missing covers for several rows shown at once (screen order), each given its own equal
-     * slice of `covers.visible` as a `fetch()` budget: the row's first `covers.visible / count($rows)`
-     * tiles download right away, the rest of every row is queued together in the background.
+     * Missing covers for several rows shown at once (screen order): each row's fetch-now share
+     * of `covers.visible` is sized to how many of its covers are actually missing on disk, not a
+     * flat `covers.visible / count($rows)` split. A row with nothing missing (e.g. Season or
+     * Popular on a day neither has changed) claims none of the budget, so a row with more missing
+     * covers than its even share (typically Latest updates, which changes on almost every load)
+     * gets the rest instead of it being wasted on redundant `fetch()` no-ops. The rest of every
+     * row — whatever its fetch-now share didn't cover — is queued together in the background.
      *
      * A single shared budget consumed first-come, first-served by whichever row the caller lists
      * first would starve every later row — on Home, Season (often 65+ series) and Popular (20)
@@ -89,15 +93,50 @@ trait ShowsTiles
             return;
         }
 
-        $perRow = intdiv(config('readex.covers.visible'), count($rows));
+        $missingByRow = array_map(fn (array $row) => $covers->missingCovers($row), $rows);
+        $budgets = self::allocateFetchBudget(array_map(fn (array $missing) => count($missing), $missingByRow), (int) config('readex.covers.visible'));
         $background = [];
 
-        foreach ($rows as $row) {
-            $covers->fetch(array_slice($row, 0, $perRow));
-            $background = [...$background, ...array_slice($row, $perRow)];
+        foreach ($rows as $index => $row) {
+            $fetchNow = array_slice($missingByRow[$index], 0, $budgets[$index]);
+            $covers->fetch($fetchNow);
+
+            $fetchNowIds = array_flip(array_map(fn (Manga $m) => $m->id, $fetchNow));
+            $background = [...$background, ...array_values(array_filter($row, fn (Manga $m) => ! isset($fetchNowIds[$m->id])))];
         }
 
         $covers->queue($background, Priority::Prefetch);
+    }
+
+    /**
+     * One slot at a time to every row that still has missing covers and the total budget isn't
+     * spent, round-robin in row order — so a row whose `$needs` entry hits 0 (every cover already
+     * cached) simply stops claiming slots and the rest of the budget keeps circulating to rows
+     * that still need it, instead of each row being capped at a flat `$budget / count($needs)`
+     * regardless of how much it actually needs.
+     *
+     * @param  list<int>  $needs  each row's missing-cover count, in row order
+     * @return list<int> each row's allocated fetch-now budget, same order, each <= its need
+     */
+    private static function allocateFetchBudget(array $needs, int $budget): array
+    {
+        $allocated = array_fill(0, count($needs), 0);
+
+        while ($budget > 0 && array_sum($needs) > 0) {
+            foreach ($needs as $index => $need) {
+                if ($budget === 0) {
+                    break;
+                }
+
+                if ($need > 0) {
+                    $allocated[$index]++;
+                    $needs[$index]--;
+                    $budget--;
+                }
+            }
+        }
+
+        return $allocated;
     }
 
     /**

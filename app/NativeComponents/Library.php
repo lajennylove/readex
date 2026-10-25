@@ -17,10 +17,16 @@ use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Facades\Dialog;
 
 /**
- * Spec §1: the Library grid — pinned series first, filter chips (All/Reading/Downloaded/
- * Favorites), a sort picker (Last opened/Recently downloaded/Date added/Title), a title
- * search field, and status chips per tile (Downloading/Downloaded/New/Finished). Below the
- * grid, the "You may still be interested" row (D41) for series only glanced at on Detail.
+ * The Library (bugfix/0018 scope): horizontally-scrolling rows per status rather than a single
+ * grid behind filter + sort chips. The resume bar handles "last opened"; the Reading row carries
+ * every other started series. Rows below:
+ *
+ *   - Favorites        — every favorited series, latest favorite first.
+ *   - New              — fully downloaded + no chapter opened yet, latest download first.
+ *   - Downloaded       — every fully-downloaded series, latest download first.
+ *   - Reading          — every series with any reading progress, latest read first,
+ *                        excluding the one currently in the resume bar.
+ *   - Interested       — "You may still be interested" row (D42), kept as-is.
  */
 class Library extends NativeComponent implements HasResumeBar
 {
@@ -33,15 +39,6 @@ class Library extends NativeComponent implements HasResumeBar
 
     private const REMOVE = 'Remove';
 
-    public string $filter = 'all';
-
-    public string $sort = 'opened';
-
-    /** The field's text as typed; a trimmed/normalized copy lives in `$search`. */
-    public string $searchText = '';
-
-    public string $search = '';
-
     public function navTitle(): string
     {
         return 'Library';
@@ -50,36 +47,6 @@ class Library extends NativeComponent implements HasResumeBar
     public function mount(): void
     {
         $this->queueTileCovers();
-    }
-
-    public function setFilter(string $filter): void
-    {
-        if (in_array($filter, LibraryRepository::FILTERS, true)) {
-            $this->filter = $filter;
-            $this->queueTileCovers();
-        }
-    }
-
-    public function setSort(string $sort): void
-    {
-        if (in_array($sort, LibraryRepository::SORTS, true)) {
-            $this->sort = $sort;
-            $this->queueTileCovers();
-        }
-    }
-
-    /** The field's text, debounced on the phone. */
-    public function searchFor(string $text): void
-    {
-        $this->searchText = $text;
-        $this->search = preg_replace('/\s+/u', ' ', trim($text));
-        $this->queueTileCovers();
-    }
-
-    public function clearSearch(): void
-    {
-        $this->searchText = '';
-        $this->search = '';
     }
 
     /** Library tile hold: Pin/Unpin plus the existing destructive Remove. */
@@ -109,28 +76,28 @@ class Library extends NativeComponent implements HasResumeBar
     public function render(): View
     {
         $chain = app(SettingsRepository::class)->chain();
-        $grid = $this->grid();
+        $library = app(LibraryRepository::class);
+
+        $resumeBarMangaId = $library->lastOpened()?->manga->id;
+
+        $favorites = $library->grid('added', '', 'favorites');
+        $downloaded = $library->grid('downloaded', '', 'downloaded');
+        $new = $downloaded->filter(fn (LibraryTile $t) => $t->chips->new);
+        $reading = $library->grid('opened', '', 'reading')
+            ->reject(fn (LibraryTile $t) => $t->manga->id === $resumeBarMangaId)
+            ->values();
+
+        $toTiles = fn (Collection $rows) => $rows->map(fn (LibraryTile $t) => $this->libraryTile($t, $chain))->values()->all();
 
         return view('native.library', [
-            'tiles' => $grid->map(fn (LibraryTile $t) => $this->libraryTile($t, $chain))->all(),
+            'favorites' => $toTiles($favorites),
+            'new' => $toTiles($new),
+            'downloaded' => $toTiles($downloaded),
+            'reading' => $toTiles($reading),
             'interested' => app(ViewedSeriesRepository::class)->list()->map(fn ($m) => $this->tile($m, $chain, longPress: 'removeFromInterestRow'))->all(),
-            'filter' => $this->filter,
-            'filters' => LibraryRepository::FILTERS,
-            'sort' => $this->sort,
-            'sorts' => LibraryRepository::SORTS,
-            'searchText' => $this->searchText,
         ]);
     }
 
-    private function grid(): Collection
-    {
-        return app(LibraryRepository::class)->grid($this->sort, $this->search, $this->filter);
-    }
-
-    /**
-     * A grid tile's own data: `ShowsTiles::tile()` plus pinned/chips/the status-chip labels to
-     * show, in a fixed order so the row doesn't reflow between renders.
-     */
     private function libraryTile(LibraryTile $tile, LanguageChain $chain): array
     {
         $chips = $tile->chips;
@@ -151,7 +118,17 @@ class Library extends NativeComponent implements HasResumeBar
 
     private function queueTileCovers(): void
     {
-        $this->queueCovers($this->grid()->map(fn (LibraryTile $t) => $t->manga)->all());
-        $this->queueCovers(app(ViewedSeriesRepository::class)->list()->all());
+        $library = app(LibraryRepository::class);
+        $resumeBarMangaId = $library->lastOpened()?->manga->id;
+
+        $favorites = $library->grid('added', '', 'favorites')->map(fn (LibraryTile $t) => $t->manga)->all();
+        $downloaded = $library->grid('downloaded', '', 'downloaded')->map(fn (LibraryTile $t) => $t->manga)->all();
+        $reading = $library->grid('opened', '', 'reading')
+            ->reject(fn (LibraryTile $t) => $t->manga->id === $resumeBarMangaId)
+            ->map(fn (LibraryTile $t) => $t->manga)
+            ->all();
+        $interested = app(ViewedSeriesRepository::class)->list()->all();
+
+        $this->queueRowCovers([$favorites, $downloaded, $reading, $interested]);
     }
 }

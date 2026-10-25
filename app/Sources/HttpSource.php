@@ -15,7 +15,7 @@ use App\Repositories\SettingsRepository;
  * same SQLite tables, same tests. This is the only Source the app ships with (D45 §2: a
  * generic adapter interface, never a built-in scraper for any other site).
  */
-final class MangaDexSource implements Source
+final class HttpSource implements Source
 {
     public const KEY = 'mangadex';
 

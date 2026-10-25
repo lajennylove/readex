@@ -7,13 +7,13 @@ use App\Models\Chapter;
 use App\Models\Manga;
 use App\Models\Tag;
 use Illuminate\Support\Carbon;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 it('saves mapped rows through the models unchanged', function () {
     $now = Carbon::now();
-    $manga = MangaMapper::rows(MangaDexFixtures::body('search-one-punch'))[2];
-    $chapter = ChapterMapper::rows(MangaDexFixtures::body('feed-one-punch-es-la'))[0];
-    $tag = TagMapper::rows(MangaDexFixtures::body('tags'))[0];
+    $manga = MangaMapper::rows(SourceFixtures::body('search-one-punch'))[2];
+    $chapter = ChapterMapper::rows(SourceFixtures::body('feed-one-punch-es-la'))[0];
+    $tag = TagMapper::rows(SourceFixtures::body('tags'))[0];
 
     Manga::create([...$manga, 'fetched_at' => $now]);
     Chapter::create([...$chapter, 'fetched_at' => $now]);

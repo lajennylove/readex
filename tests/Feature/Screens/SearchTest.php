@@ -24,8 +24,8 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
-use Tests\Support\MangaDexFixtures;
 use Tests\Support\Skeletons;
+use Tests\Support\SourceFixtures;
 
 const COOKING_TAG = 'ea2bc92d-1c26-4930-9b7c-d5c0dc1b6869';
 
@@ -42,7 +42,7 @@ beforeEach(function () {
     /** `$override` answers a request first (return null to pass it on to the fixtures). */
     $this->fake = function (?Closure $override = null): void {
         Http::swap(new Factory(app('events')));
-        $fixtures = MangaDexFixtures::stub('tags', 'search-one-punch', 'search-one-punch-p1', 'search-one-punch-p2', 'browse-cooking');
+        $fixtures = SourceFixtures::stub('tags', 'search-one-punch', 'search-one-punch-p1', 'search-one-punch-p2', 'browse-cooking');
 
         Http::fake(function (Request $request) use ($override, $fixtures) {
             if (! str_contains($request->url(), 'uploads.mangadex.org/covers/')) {
@@ -214,7 +214,7 @@ it('searches titles from the search field, in reading-language order with badges
 });
 
 it('searches inside the chosen tag', function () {
-    ($this->fake)(fn (Request $request) => str_contains(rawurldecode($request->url()), 'title=') ? Http::response(MangaDexFixtures::body('search-one-punch-p2')) : null);
+    ($this->fake)(fn (Request $request) => str_contains(rawurldecode($request->url()), 'title=') ? Http::response(SourceFixtures::body('search-one-punch-p2')) : null);
 
     $screen = Native::test(Search::class)
         ->toggle("openTag('".COOKING_TAG."')", true)

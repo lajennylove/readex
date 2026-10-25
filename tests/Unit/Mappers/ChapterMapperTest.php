@@ -2,13 +2,13 @@
 
 use App\Adapters\Http\Mappers\ChapterMapper;
 use Carbon\CarbonImmutable;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const OPM_ID = 'd8a959f7-648e-4c8d-8f23-f1f3f8e129f3';
 
 function opmChapter(string $id): array
 {
-    return collect(ChapterMapper::rows(MangaDexFixtures::body('feed-one-punch-es-la')))->firstWhere('id', $id);
+    return collect(ChapterMapper::rows(SourceFixtures::body('feed-one-punch-es-la')))->firstWhere('id', $id);
 }
 
 it('maps a feed chapter with its group', function () {
@@ -28,7 +28,7 @@ it('maps a feed chapter with its group', function () {
 });
 
 it('maps the whole recorded feed in API order', function () {
-    $rows = ChapterMapper::rows(MangaDexFixtures::body('feed-one-punch-es-la'));
+    $rows = ChapterMapper::rows(SourceFixtures::body('feed-one-punch-es-la'));
 
     expect($rows)->toHaveCount(182)
         ->and(array_unique(array_column($rows, 'manga_id')))->toBe([OPM_ID])
@@ -57,7 +57,7 @@ it('keeps the first group of a joint release', function () {
 });
 
 it('maps external chapters with zero pages', function () {
-    $rows = collect(ChapterMapper::rows(MangaDexFixtures::body('feed-chainsaw-man-en')));
+    $rows = collect(ChapterMapper::rows(SourceFixtures::body('feed-chainsaw-man-en')));
     $first = $rows->firstWhere('id', '6f2b5712-2461-48fd-a519-c2c9cb93f0b1');
 
     expect($rows)->toHaveCount(108)
@@ -68,7 +68,7 @@ it('maps external chapters with zero pages', function () {
 });
 
 it('maps a oneshot with null number and volume', function () {
-    $row = ChapterMapper::rows(MangaDexFixtures::body('feed-oneshot-en'))[0];
+    $row = ChapterMapper::rows(SourceFixtures::body('feed-oneshot-en'))[0];
 
     expect($row['number'])->toBeNull()
         ->and($row['volume'])->toBeNull()
@@ -78,7 +78,7 @@ it('maps a oneshot with null number and volume', function () {
 });
 
 it('leaves out unavailable chapters', function () {
-    $response = MangaDexFixtures::body('feed-oneshot-en');
+    $response = SourceFixtures::body('feed-oneshot-en');
     $response['data'][] = array_replace_recursive($response['data'][0], ['id' => 'gone', 'attributes' => ['isUnavailable' => true]]);
 
     expect(array_column(ChapterMapper::rows($response), 'id'))->toBe(['4e01bda4-0a04-4cdd-b3a9-edcafa7bbfd4']);

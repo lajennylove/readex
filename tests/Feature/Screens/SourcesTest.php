@@ -3,7 +3,7 @@
 use App\Models\SourceConfig;
 use App\NativeComponents\Sources;
 use App\Repositories\SourceRepository;
-use App\Sources\MangaDexSource;
+use App\Sources\HttpSource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Native\Mobile\Events\Alert\ButtonPressed;
@@ -69,12 +69,12 @@ it('shows an error and keeps the fields when the URL fails its health check', fu
 });
 
 it('blocks and unblocks a source from its toggle', function () {
-    Native::test(Sources::class)->call('toggleBlocked', MangaDexSource::KEY, true);
+    Native::test(Sources::class)->call('toggleBlocked', HttpSource::KEY, true);
 
-    expect(app(SourceRepository::class)->find(MangaDexSource::KEY)->blocked)->toBeTrue();
+    expect(app(SourceRepository::class)->find(HttpSource::KEY)->blocked)->toBeTrue();
 
-    Native::test(Sources::class)->call('toggleBlocked', MangaDexSource::KEY, false);
-    expect(app(SourceRepository::class)->find(MangaDexSource::KEY)->blocked)->toBeFalse();
+    Native::test(Sources::class)->call('toggleBlocked', HttpSource::KEY, false);
+    expect(app(SourceRepository::class)->find(HttpSource::KEY)->blocked)->toBeFalse();
 });
 
 it('removes a user source after confirming, keeps it if cancelled', function () {
@@ -133,6 +133,6 @@ it('cancelling edit discards changes', function () {
 });
 
 it('never offers Edit URL for the built-in MangaDex row', function () {
-    Native::test(Sources::class)->call('startEdit', MangaDexSource::KEY)
+    Native::test(Sources::class)->call('startEdit', HttpSource::KEY)
         ->assertSet('editing', null);
 });

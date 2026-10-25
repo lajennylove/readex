@@ -168,7 +168,7 @@ final class PageFetcher
      * @throws RequestDeferred no request slot
      * @throws ConnectionException offline
      * @throws ApiError the @Home lookup failed (chapter removed)
-     * @throws MangaDexTrouble the @Home lookup got 5xx / 429 / 403
+     * @throws SourceTrouble the @Home lookup got 5xx / 429 / 403
      * @throws ChapterUnavailable the lookup lists no pages
      * @throws ChapterGone the image cache dropped the chapter: the run stops, nothing is marked failed
      */
@@ -210,7 +210,7 @@ final class PageFetcher
     /**
      * @param  array{server: AtHome, quality: string, urls: list<string>, relooked: bool}  $session
      *
-     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble|ChapterGone
+     * @throws RequestDeferred|ConnectionException|ApiError|SourceTrouble|ChapterGone
      */
     private function fetchPage(string $chapterId, int $index, array &$session, Priority $priority, float $maxWait): bool
     {
@@ -255,7 +255,7 @@ final class PageFetcher
      *
      * @return array{server: AtHome, quality: string, urls: list<string>, relooked: bool}
      *
-     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble|ChapterUnavailable|ChapterGone
+     * @throws RequestDeferred|ConnectionException|ApiError|SourceTrouble|ChapterUnavailable|ChapterGone
      */
     private function open(Chapter $chapter, Priority $priority, string $tier): array
     {
@@ -275,7 +275,7 @@ final class PageFetcher
     /**
      * The @Home server; 5xx, 429 and 403 are MangaDex's trouble, any other error means the chapter is gone.
      *
-     * @throws RequestDeferred|ConnectionException|ApiError|MangaDexTrouble
+     * @throws RequestDeferred|ConnectionException|ApiError|SourceTrouble
      */
     private function server(string $chapterId, Priority $priority): AtHome
     {
@@ -283,7 +283,7 @@ final class PageFetcher
             return $this->atHome->server($chapterId, $priority);
         } catch (ApiError $e) {
             if ($e->status >= 500 || in_array($e->status, [403, 429], true)) {
-                throw new MangaDexTrouble($e->getMessage(), $e->status, $e);
+                throw new SourceTrouble($e->getMessage(), $e->status, $e);
             }
 
             throw $e;

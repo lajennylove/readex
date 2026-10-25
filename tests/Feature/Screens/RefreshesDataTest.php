@@ -24,8 +24,8 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Edge\TailwindParser;
 use Native\Mobile\Testing\Native;
 use Tests\Support\FakeRefreshTarget;
-use Tests\Support\MangaDexFixtures;
 use Tests\Support\RefreshingScreen;
+use Tests\Support\SourceFixtures;
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-23 18:30:00', 'UTC'));
@@ -481,7 +481,7 @@ describe('RefreshRepository job', function () {
 
 describe('Refresh', function () {
     it('runs a real repository method with the given priority', function () {
-        MangaDexFixtures::fake('tags');
+        SourceFixtures::fake('tags');
 
         $outcome = Outcome::capture(fn () => Refresh::of([TagRepository::class, 'refresh'])->run(Priority::Interactive));
 

@@ -26,8 +26,8 @@ use Native\Mobile\AsyncTask;
 use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
-use Tests\Support\MangaDexFixtures;
 use Tests\Support\Skeletons;
+use Tests\Support\SourceFixtures;
 
 const DETAIL_RTW = 'aafb046c-9de4-4c3d-990c-6d75b079c0b9';
 const DETAIL_NOVA = '8a45c930-32d1-423e-bffd-9e8d71312134';
@@ -40,7 +40,7 @@ beforeEach(function () {
     $this->async = AsyncTask::fake();
     Queue::fake();
     $this->asked = [];
-    $fixtures = MangaDexFixtures::stub('manga-rtw', 'manga-nova', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2', 'recommendations-rtw', 'recommendations-rtw-manga', 'recommendations-nova');
+    $fixtures = SourceFixtures::stub('manga-rtw', 'manga-nova', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2', 'recommendations-rtw', 'recommendations-rtw-manga', 'recommendations-nova');
     Http::fake(function (Request $request) use ($fixtures) {
         $this->asked[] = rawurldecode($request->url());
 
@@ -567,7 +567,7 @@ it('leaves the row out for a series nobody recommended anything for, and asks ag
 });
 
 it('keeps the row in place with placeholders while The provider is busy, and leaves it out when the call failed', function () {
-    $fixtures = MangaDexFixtures::stub('manga-rtw', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2');
+    $fixtures = SourceFixtures::stub('manga-rtw', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2');
     $fail = new RequestDeferred(new Busy(Carbon::now()->addMinute()->getTimestampMs() / 1000, BusyReason::Saturated));
     Http::swap(new Factory(app('events')));
     Http::fake(function (Request $request) use ($fixtures, &$fail) {

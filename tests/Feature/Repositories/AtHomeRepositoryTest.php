@@ -7,7 +7,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const AT_HOME_ONESHOT = '4e01bda4-0a04-4cdd-b3a9-edcafa7bbfd4';
 
@@ -33,7 +33,7 @@ describe('get', function () {
     });
 
     it('is fresh for 10 minutes, stale at exactly 10', function () {
-        MangaDexFixtures::fake('at-home-oneshot');
+        SourceFixtures::fake('at-home-oneshot');
         $this->atHome->refresh(AT_HOME_ONESHOT);
 
         Carbon::setTestNow(Carbon::now()->addSeconds(599));
@@ -46,8 +46,8 @@ describe('get', function () {
 
 describe('refresh', function () {
     it('saves base URL, hash and both file lists in page order', function () {
-        MangaDexFixtures::fake('at-home-oneshot');
-        $body = MangaDexFixtures::body('at-home-oneshot');
+        SourceFixtures::fake('at-home-oneshot');
+        $body = SourceFixtures::body('at-home-oneshot');
 
         $server = $this->atHome->refresh(AT_HOME_ONESHOT, Priority::Interactive);
 
@@ -117,8 +117,8 @@ describe('forget', function () {
 
 describe('pageUrls', function () {
     it('builds data-saver and original URLs in page order', function () {
-        MangaDexFixtures::fake('at-home-oneshot');
-        $body = MangaDexFixtures::body('at-home-oneshot');
+        SourceFixtures::fake('at-home-oneshot');
+        $body = SourceFixtures::body('at-home-oneshot');
         $server = $this->atHome->refresh(AT_HOME_ONESHOT);
         $hash = $body['chapter']['hash'];
 

@@ -2,7 +2,7 @@
 
 use App\Models\SourceConfig;
 use App\Repositories\SourceRepository;
-use App\Sources\MangaDexSource;
+use App\Sources\HttpSource;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -17,7 +17,7 @@ it('seeds the built-in MangaDex row once, idempotently', function () {
     $this->repo->seedBuiltIn();
 
     expect(SourceConfig::query()->count())->toBe(1);
-    $source = SourceConfig::query()->find(MangaDexSource::KEY);
+    $source = SourceConfig::query()->find(HttpSource::KEY);
 
     expect($source->label)->toBe('Built-in example source')
         ->and($source->kind)->toBe('builtin')
@@ -29,7 +29,7 @@ it('lists the built-in source first, seeding it if missing', function () {
     $sources = $this->repo->all();
 
     expect($sources)->toHaveCount(1)
-        ->and($sources->first()->key)->toBe(MangaDexSource::KEY);
+        ->and($sources->first()->key)->toBe(HttpSource::KEY);
 });
 
 it('adds a user source from a generic name + URL once it health-checks ok (Jenny 2026-10-24 17:54 EDT)', function () {
@@ -70,12 +70,12 @@ it('rejects a URL that can\'t be reached at all (connection failure)', function 
 it('blocks and unblocks a source locally, no reporting backend (D45 §6 item 3)', function () {
     $this->repo->seedBuiltIn();
 
-    $this->repo->setBlocked(MangaDexSource::KEY, true);
-    expect($this->repo->find(MangaDexSource::KEY)->blocked)->toBeTrue()
+    $this->repo->setBlocked(HttpSource::KEY, true);
+    expect($this->repo->find(HttpSource::KEY)->blocked)->toBeTrue()
         ->and($this->repo->enabled())->toHaveCount(0);
 
-    $this->repo->setBlocked(MangaDexSource::KEY, false);
-    expect($this->repo->find(MangaDexSource::KEY)->blocked)->toBeFalse()
+    $this->repo->setBlocked(HttpSource::KEY, false);
+    expect($this->repo->find(HttpSource::KEY)->blocked)->toBeFalse()
         ->and($this->repo->enabled())->toHaveCount(1);
 });
 
@@ -84,8 +84,8 @@ it('removes a user source outright but never the built-in one', function () {
     $this->repo->seedBuiltIn();
     $user = $this->repo->add('Mine', 'https://example.test');
 
-    $this->repo->remove(MangaDexSource::KEY);
-    expect($this->repo->find(MangaDexSource::KEY))->not->toBeNull();
+    $this->repo->remove(HttpSource::KEY);
+    expect($this->repo->find(HttpSource::KEY))->not->toBeNull();
 
     $this->repo->remove($user->key);
     expect($this->repo->find($user->key))->toBeNull();
@@ -97,7 +97,7 @@ it('enabled() excludes blocked and disabled sources', function () {
     $user = $this->repo->add('Mine', 'https://example.test');
     $this->repo->setEnabled($user->key, false);
 
-    expect($this->repo->enabled()->pluck('key')->all())->toBe([MangaDexSource::KEY]);
+    expect($this->repo->enabled()->pluck('key')->all())->toBe([HttpSource::KEY]);
 });
 
 it('matches a typed URL against the built-in MangaDex API loosely (trailing slash, case)', function () {
@@ -109,11 +109,11 @@ it('matches a typed URL against the built-in MangaDex API loosely (trailing slas
 it('addFromSetup enables the built-in row instead of duplicating it when the URL is MangaDex\'s own', function () {
     Http::fake(['https://api.mangadex.org' => Http::response('', 200)]);
     $this->repo->seedBuiltIn();
-    $this->repo->setEnabled(MangaDexSource::KEY, false);
+    $this->repo->setEnabled(HttpSource::KEY, false);
 
     $source = $this->repo->addFromSetup('https://api.mangadex.org');
 
-    expect($source->key)->toBe(MangaDexSource::KEY)
+    expect($source->key)->toBe(HttpSource::KEY)
         ->and($source->enabled)->toBeTrue()
         ->and($this->repo->all())->toHaveCount(1);
 });
@@ -136,5 +136,5 @@ it('updateUrl changes a user source after a health check, refuses the built-in r
     expect($updated->config['base_url'])->toBe('https://b.test');
 
     $this->repo->seedBuiltIn();
-    expect(fn () => $this->repo->updateUrl(MangaDexSource::KEY, 'https://b.test'))->toThrow(InvalidArgumentException::class);
+    expect(fn () => $this->repo->updateUrl(HttpSource::KEY, 'https://b.test'))->toThrow(InvalidArgumentException::class);
 });

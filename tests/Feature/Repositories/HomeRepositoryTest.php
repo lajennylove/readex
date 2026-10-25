@@ -16,7 +16,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 const SEASON_LIST = '68ab4f4e-6f01-4898-9038-c5eee066be27';
 const SEASONAL_HOST = 'antsylich.github.io';
@@ -45,7 +45,7 @@ function fakeHomeAgain(Closure $stub): void
 function fakeSeasonalDown(Closure $github): void
 {
     fakeHomeAgain(function (Request $request) use ($github) {
-        $fixtures = MangaDexFixtures::stub('seasonal-list', 'season-manga');
+        $fixtures = SourceFixtures::stub('seasonal-list', 'season-manga');
 
         return parse_url($request->url(), PHP_URL_HOST) === SEASONAL_HOST ? $github($request) : $fixtures($request);
     });
@@ -61,7 +61,7 @@ function requestedIds(Request $request): array
 
 it('loads This season from the JSON, remembers its list id, Spanish series first (Review Focus 1)', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('seasonal-json', 'season-manga');
+    SourceFixtures::fake('seasonal-json', 'season-manga');
 
     $this->home->refreshSeason();
     $result = $this->home->season();
@@ -100,12 +100,12 @@ it('keeps the row empty without a remembered list id, no hardcoded fallback (Rev
 
 it('asks for the season in batches of at most page_sizes.ids', function () {
     config(['readex.page_sizes.ids' => 50]);
-    $season = MangaDexFixtures::body('season-manga')['data'];
+    $season = SourceFixtures::body('season-manga')['data'];
     $calls = [];
 
     fakeHomeAgain(function (Request $request) use ($season, &$calls) {
         if (parse_url($request->url(), PHP_URL_HOST) === SEASONAL_HOST) {
-            return Http::response(MangaDexFixtures::body('seasonal-json'));
+            return Http::response(SourceFixtures::body('seasonal-json'));
         }
 
         $calls[] = $ids = requestedIds($request);
@@ -121,12 +121,12 @@ it('asks for the season in batches of at most page_sizes.ids', function () {
 });
 
 it('keeps the saved season when the manga call fails, stale after a day (Review Focus 4)', function () {
-    MangaDexFixtures::fake('seasonal-json', 'season-manga');
+    SourceFixtures::fake('seasonal-json', 'season-manga');
     $this->home->refreshSeason();
 
     Carbon::setTestNow('2026-10-25 12:00:00');
     fakeHomeAgain(fn (Request $r) => parse_url($r->url(), PHP_URL_HOST) === SEASONAL_HOST
-        ? Http::response(MangaDexFixtures::body('seasonal-json'))
+        ? Http::response(SourceFixtures::body('seasonal-json'))
         : throw new ConnectionException('offline'));
 
     expect(fn () => $this->home->refreshSeason())->toThrow(ConnectionException::class);
@@ -138,7 +138,7 @@ it('keeps the saved season when the manga call fails, stale after a day (Review 
 
 it('loads Popular new titles created in the last 30 days, reordered for the reader', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('popular-new');
+    SourceFixtures::fake('popular-new');
 
     $this->home->refreshPopular();
     $result = $this->home->popular();
@@ -152,7 +152,7 @@ it('loads Popular new titles created in the last 30 days, reordered for the read
 });
 
 it('keeps the API order for an English reader', function () {
-    MangaDexFixtures::fake('popular-new');
+    SourceFixtures::fake('popular-new');
 
     $this->home->refreshPopular();
 
@@ -161,7 +161,7 @@ it('keeps the API order for an English reader', function () {
 
 it('shows one Latest updates tile per series, newest first, in two calls', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('latest-es-la', 'latest-es-la-manga');
+    SourceFixtures::fake('latest-es-la', 'latest-es-la-manga');
 
     $this->home->refreshLatest();
     $result = $this->home->latest();
@@ -188,8 +188,8 @@ it('shows one Latest updates tile per series, newest first, in two calls', funct
 
 it('never turns a Latest chapter into a one-chapter feed', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('latest-es-la', 'latest-es-la-manga');
-    [$newest, $second] = MangaDexFixtures::body('latest-es-la')['data'];
+    SourceFixtures::fake('latest-es-la', 'latest-es-la-manga');
+    [$newest, $second] = SourceFixtures::body('latest-es-la')['data'];
     // The second tile's chapter was already loaded by its series' feed an hour ago.
     Chapter::create(['id' => $second['id'], 'manga_id' => 'old', 'language' => 'en', 'number' => '414', 'fetched_at' => Carbon::now()->subHour()]);
 
@@ -203,7 +203,7 @@ it('never turns a Latest chapter into a one-chapter feed', function () {
 
 it('forgets chapters only the old Latest row used, keeps stored and in-progress ones', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('latest-es-la', 'latest-es-la-manga');
+    SourceFixtures::fake('latest-es-la', 'latest-es-la-manga');
     $this->home->refreshLatest();
 
     $old = MangaListEntry::query()->where('list_key', HomeRepository::LATEST)->orderBy('position')->pluck('chapter_id');
@@ -211,9 +211,9 @@ it('forgets chapters only the old Latest row used, keeps stored and in-progress 
     ReadingProgress::create(['chapter_id' => $old[2], 'manga_id' => 'x', 'page' => 1, 'page_count' => 10]);
 
     // Next refresh: the first three tiles' chapters are gone from the response.
-    $chapters = MangaDexFixtures::body('latest-es-la');
+    $chapters = SourceFixtures::body('latest-es-la');
     $chapters['data'] = array_values(array_filter($chapters['data'], fn (array $c) => ! in_array($c['id'], [$old[0], $old[1], $old[2]], true)));
-    $manga = MangaDexFixtures::body('latest-es-la-manga');
+    $manga = SourceFixtures::body('latest-es-la-manga');
 
     Carbon::setTestNow('2026-10-24 12:20:00');
     fakeHomeAgain(fn (Request $r) => str_ends_with(parse_url($r->url(), PHP_URL_PATH), '/chapter') ? Http::response($chapters) : Http::response($manga));
@@ -227,11 +227,11 @@ it('forgets chapters only the old Latest row used, keeps stored and in-progress 
 
 it('keeps the saved Latest tiles when the cover call fails (Review Focus 4)', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('latest-es-la', 'latest-es-la-manga');
+    SourceFixtures::fake('latest-es-la', 'latest-es-la-manga');
     $this->home->refreshLatest();
 
     Carbon::setTestNow('2026-10-24 12:30:00');
-    $chapters = MangaDexFixtures::body('latest-es-la');
+    $chapters = SourceFixtures::body('latest-es-la');
     fakeHomeAgain(fn (Request $r) => str_ends_with(parse_url($r->url(), PHP_URL_PATH), '/chapter') ? Http::response($chapters) : throw new ConnectionException('offline'));
 
     expect(fn () => $this->home->refreshLatest())->toThrow(ConnectionException::class);
@@ -243,7 +243,7 @@ it('keeps the saved Latest tiles when the cover call fails (Review Focus 4)', fu
 
 it('goes stale when the reading language changes (choice 5)', function () {
     $this->settings->setLanguage('es-la');
-    MangaDexFixtures::fake('latest-es-la', 'latest-es-la-manga');
+    SourceFixtures::fake('latest-es-la', 'latest-es-la-manga');
     $this->home->refreshLatest();
 
     $this->settings->setLanguage('fr');

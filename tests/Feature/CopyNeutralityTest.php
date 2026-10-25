@@ -4,11 +4,13 @@ use Illuminate\Support\Facades\File;
 
 /**
  * Plan-08 Task 6 (D45 §2/§5.4): a standing guard, not just a one-time review. Scans every
- * Blade view for any of the well-known non-MangaDex manga aggregator/piracy site names, so a
- * future screen can't accidentally reintroduce one. New sources are user-added only (§2); the
- * app itself must never name, suggest, or auto-discover one.
+ * user-facing surface — Blade views AND the NativeComponent / NativeLayout PHP classes that
+ * set screen titles, labels and placeholders from the PHP side — for well-known non-MangaDex
+ * manga aggregator / piracy site names. A reviewer-visible string that lived in a Native
+ * component class would bypass a views-only scan, so both roots are checked. See
+ * `docs/COPY-NEUTRALITY.md` for the policy this test enforces.
  */
-it('never names a specific non-MangaDex manga site anywhere in the views', function () {
+it('never names a specific non-MangaDex manga site anywhere a user could see it', function () {
     $banned = [
         'mangakakalot', 'manganato', 'mangafire', 'mangareader', 'bato.to', 'batotoo',
         'asurascans', 'asura scans', 'webtoons.com', 'tapas.io', 'mangaplus', 'mangadex.cc',
@@ -16,15 +18,29 @@ it('never names a specific non-MangaDex manga site anywhere in the views', funct
         'toonily', 'reaperscans', 'flamecomics', 'comick.io', 'comick.app',
     ];
 
-    $views = File::allFiles(resource_path('views/native'));
+    $roots = [
+        resource_path('views/native'),
+        app_path('NativeComponents'),
+        app_path('NativeLayouts'),
+    ];
+
     $offenders = [];
 
-    foreach ($views as $view) {
-        $contents = mb_strtolower(file_get_contents($view->getPathname()));
+    foreach ($roots as $root) {
+        if (! is_dir($root)) {
+            continue;
+        }
 
-        foreach ($banned as $name) {
-            if (str_contains($contents, $name)) {
-                $offenders[] = "{$view->getRelativePathname()} mentions \"{$name}\"";
+        foreach (File::allFiles($root) as $file) {
+            if ($file->getExtension() === 'php' && str_contains($file->getPathname(), '/tests/')) {
+                continue;
+            }
+            $contents = mb_strtolower(file_get_contents($file->getPathname()));
+
+            foreach ($banned as $name) {
+                if (str_contains($contents, $name)) {
+                    $offenders[] = "{$file->getRelativePathname()} mentions \"{$name}\"";
+                }
             }
         }
     }

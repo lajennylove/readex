@@ -362,21 +362,43 @@ it('opens a Continue reading tile on top of its series after the settle pause, s
     $detail->goBack()->assertScreen(Library::class)->assertNoNavigation();
 });
 
-it('fetches the first 12 covers right away and queues the rest, in screen order, without the started series in front', function () {
+it('fetches a fair per-row share of covers right away and queues the rest, without the started series in front', function () {
     fillHome();
     $rows = rowMangas();
     $started = collect(app(HomeRepository::class)->latest()->data)->first(fn (LatestUpdate $u) => $u->manga->id !== $rows['season'][0]->id);
     app(LibraryRepository::class)->saveProgress($started->chapter->id, 0, 10);
-    $order = array_map(fn ($m) => $m->id, [...$rows['season'], ...$rows['popular'], ...$rows['latest']]);
-    $continueFirst = [$started->manga->id, ...$order];
+    // config('readex.covers.visible') (12) split evenly across the 3 Home rows: 4 each.
+    $perRow = 4;
+    $fetchNow = [
+        ...array_map(fn ($m) => $m->id, array_slice($rows['season'], 0, $perRow)),
+        ...array_map(fn ($m) => $m->id, array_slice($rows['popular'], 0, $perRow)),
+        ...array_map(fn ($m) => $m->id, array_slice($rows['latest'], 0, $perRow)),
+    ];
+    $continueFirst = [$started->manga->id, ...$fetchNow];
 
     Native::test(Home::class);
 
     $jobs = Queue::pushed(DownloadCovers::class)->values();
-    expect(Covers::fetched($this->async))->toBe(array_values(array_unique(array_slice($order, 0, 12))))
+    expect(Covers::fetched($this->async))->toBe(array_values(array_unique($fetchNow)))
         ->not->toBe(array_values(array_unique(array_slice($continueFirst, 0, 12))))
         ->and($jobs)->toHaveCount(1)
         ->and($jobs[0]->priority)->toBe(Priority::Prefetch);
+});
+
+it('fetches Latest updates\' leading covers right away even though Season + Popular alone exceed the visible budget (bug: Latest was starved by a shared first-come budget)', function () {
+    fillHome();
+    $rows = rowMangas();
+    // Season (65) + Popular (20) alone already exceed the shared `covers.visible` budget (12),
+    // so under the old flat-concatenation behaviour every Latest cover landed past the budget
+    // and was only ever queued at Priority::Prefetch, never fetched right away.
+    expect(count($rows['season']) + count($rows['popular']))->toBeGreaterThanOrEqual(config('readex.covers.visible'));
+
+    Native::test(Home::class);
+
+    $fetchedIds = Covers::fetched($this->async);
+    $firstLatestId = $rows['latest'][0]->id;
+
+    expect($fetchedIds)->toContain($firstLatestId);
 });
 
 it('keeps Continue reading on the Library placeholder until the Phase 6 grid, never on Home (choice 2, D37)', function () {

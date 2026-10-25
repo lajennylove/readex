@@ -51,14 +51,17 @@ class Home extends NativeComponent implements HasResumeBar
 
     protected function load(): void
     {
-        $mangas = [];
+        $rows = [];
 
         foreach ($this->rows() as $key => $result) {
             $this->keepFresh($result, Refresh::of([HomeRepository::class, self::REFRESH[$key]]));
-            $mangas = [...$mangas, ...$this->mangasOf($key, $result)];
+            $rows[] = $this->mangasOf($key, $result);
         }
 
-        $this->queueCovers($mangas);
+        // Each row gets its own fair slice of the fetch-now budget (ShowsTiles::queueRowCovers):
+        // a shared budget consumed in screen order starved Latest updates, since Season + Popular
+        // alone already exceed it.
+        $this->queueRowCovers($rows);
     }
 
     /** @return array<string, Result> row key => Result, in ROWS order */

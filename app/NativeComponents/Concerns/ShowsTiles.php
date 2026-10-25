@@ -66,11 +66,38 @@ trait ShowsTiles
      */
     protected function queueCovers(array $mangas): void
     {
-        $visible = config('readex.covers.visible');
+        $this->queueRowCovers([$mangas]);
+    }
+
+    /**
+     * Missing covers for several rows shown at once (screen order), each given its own equal
+     * slice of `covers.visible` as a `fetch()` budget: the row's first `covers.visible / count($rows)`
+     * tiles download right away, the rest of every row is queued together in the background.
+     *
+     * A single shared budget consumed first-come, first-served by whichever row the caller lists
+     * first would starve every later row — on Home, Season (often 65+ series) and Popular (20)
+     * alone already exceed the old shared budget of 12, so Latest updates' covers never got
+     * fetched right away even though its tiles are on screen just like the others.
+     *
+     * @param  list<list<Manga>>  $rows
+     */
+    protected function queueRowCovers(array $rows): void
+    {
         $covers = app(CoverStore::class);
 
-        $covers->fetch(array_slice($mangas, 0, $visible));
-        $covers->queue(array_slice($mangas, $visible), Priority::Prefetch);
+        if ($rows === []) {
+            return;
+        }
+
+        $perRow = intdiv(config('readex.covers.visible'), count($rows));
+        $background = [];
+
+        foreach ($rows as $row) {
+            $covers->fetch(array_slice($row, 0, $perRow));
+            $background = [...$background, ...array_slice($row, $perRow)];
+        }
+
+        $covers->queue($background, Priority::Prefetch);
     }
 
     /**

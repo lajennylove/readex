@@ -234,6 +234,31 @@ final class DownloadQueue
     }
 
     /**
+     * Cancel every non-done row for a series in one shot. Queued/paused rows are deleted
+     * outright; downloading rows are flipped to `canceling` so the running worker halts
+     * mid-slice (same contract as the single-row `cancel()` — see Q2 note there). `done`
+     * rows are left alone. Returns the number of rows affected (deleted + transitioned).
+     */
+    public function cancelAllForManga(string $mangaId): int
+    {
+        return DB::transaction(function () use ($mangaId) {
+            $deletable = [QueueState::Queued->value, QueueState::Paused->value];
+
+            $deleted = Download::query()
+                ->where('manga_id', $mangaId)
+                ->whereIn('state', $deletable)
+                ->delete();
+
+            $flipped = Download::query()
+                ->where('manga_id', $mangaId)
+                ->where('state', QueueState::Downloading->value)
+                ->update(['state' => QueueState::Canceling->value]);
+
+            return $deleted + $flipped;
+        });
+    }
+
+    /**
      * The ordered list of rows that are not done and not the comodin's current
      * chapter: `queued`, `downloading`, `paused`, `canceling`. Used by the
      * Downloads tab (Phase B).

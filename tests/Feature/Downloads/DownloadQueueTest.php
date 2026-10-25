@@ -233,6 +233,54 @@ describe('pause / resume / cancel', function () {
     });
 });
 
+describe('cancelAllForManga', function () {
+    it('deletes queued/paused rows, flips downloading rows to canceling, leaves done + other mangas untouched, and returns the count', function () {
+        q21Chapter('a1', 'm-target');
+        q21Chapter('a2', 'm-target');
+        q21Chapter('a3', 'm-target');
+        q21Chapter('a4', 'm-target');
+        q21Chapter('b1', 'm-other');
+
+        // m-target: a1 queued, a2 paused, a3 downloading, a4 done
+        $this->queue->enqueueOne('a1');
+        $this->queue->enqueueOne('a2');
+        $this->queue->pause('a2');
+        Download::query()->insert([
+            'chapter_id' => 'a3', 'manga_id' => 'm-target', 'batch' => null, 'position' => 50,
+            'priority' => Priority::Bulk->value, 'state' => QueueState::Downloading->value,
+            'started_at' => now(), 'finished_at' => null, 'created_at' => now(),
+        ]);
+        Download::query()->insert([
+            'chapter_id' => 'a4', 'manga_id' => 'm-target', 'batch' => null, 'position' => 60,
+            'priority' => Priority::Bulk->value, 'state' => QueueState::Done->value,
+            'started_at' => now(), 'finished_at' => now(), 'created_at' => now(),
+        ]);
+        // m-other: untouched baseline
+        $this->queue->enqueueOne('b1');
+
+        $affected = $this->queue->cancelAllForManga('m-target');
+
+        expect($affected)->toBe(3)
+            ->and(Download::query()->whereKey('a1')->exists())->toBeFalse()
+            ->and(Download::query()->whereKey('a2')->exists())->toBeFalse()
+            ->and(Download::query()->whereKey('a3')->first()->state)->toBe(QueueState::Canceling)
+            ->and(Download::query()->whereKey('a4')->first()->state)->toBe(QueueState::Done)
+            ->and(Download::query()->whereKey('b1')->first()->state)->toBe(QueueState::Queued);
+    });
+
+    it('returns 0 when the manga has no non-done rows', function () {
+        q21Chapter('a1', 'm-target');
+        Download::query()->insert([
+            'chapter_id' => 'a1', 'manga_id' => 'm-target', 'batch' => null, 'position' => 1,
+            'priority' => Priority::Bulk->value, 'state' => QueueState::Done->value,
+            'started_at' => now(), 'finished_at' => now(), 'created_at' => now(),
+        ]);
+
+        expect($this->queue->cancelAllForManga('m-target'))->toBe(0)
+            ->and(Download::query()->whereKey('a1')->first()->state)->toBe(QueueState::Done);
+    });
+});
+
 describe('pending', function () {
     it('excludes done rows and the comodin chapter', function () {
         q21Chapter('a1');

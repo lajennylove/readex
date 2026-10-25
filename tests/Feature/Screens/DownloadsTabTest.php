@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Native\Mobile\AsyncTask;
+use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Testing\Native;
 use Tests\Support\Covers;
 
@@ -225,6 +226,65 @@ it('renders no divider when there is a single group', function () {
     $visit = Native::visit('/downloads')->assertSee('Only Series');
 
     expect(json_encode($visit->tree()))->not->toContain('"type":"divider"');
+});
+
+it('renders a Cancel-all pressable in each group header with an a11y label naming the series', function () {
+    Covers::manga(dtId('m', 60), title: 'Bulk Series');
+    dtChapter(60, dtId('m', 60), '1');
+    dtInsertRow(dtId('c', 60), dtId('m', 60), QueueState::Queued);
+
+    $visit = Native::visit('/downloads')->assertSee('Cancel all');
+    $tree = json_encode($visit->tree());
+    expect($tree)->toContain('Cancel all downloads for Bulk Series');
+});
+
+it('tapping Cancel all opens a destructive Dialog.Alert with the exact confirmation copy', function () {
+    Covers::manga(dtId('m', 61), title: 'Confirm Series');
+    dtChapter(61, dtId('m', 61), '1');
+    dtInsertRow(dtId('c', 61), dtId('m', 61), QueueState::Queued);
+
+    Native::visit('/downloads')
+        ->call('askCancelAllForManga', dtId('m', 61), 'Confirm Series')
+        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Cancel downloads?'
+            && $p['message'] === 'All queued, paused, and downloading chapters for "Confirm Series" will be removed from the queue. Chapters already downloaded stay on your device.'
+            && array_column($p['buttons'], 'label') === ['Cancel', 'Cancel all']
+            && $p['buttons'][1]['style'] === 'destructive');
+});
+
+it('confirming the dialog wipes every non-done row for that manga and the group disappears', function () {
+    $target = dtId('m', 62);
+    $other = dtId('m', 63);
+    Covers::manga($target, title: 'Target Series');
+    Covers::manga($other, title: 'Other Series');
+    dtChapter(62, $target, '1');
+    dtChapter(63, $target, '2');
+    dtChapter(64, $other, '1');
+    dtInsertRow(dtId('c', 62), $target, QueueState::Queued, position: 1);
+    dtInsertRow(dtId('c', 63), $target, QueueState::Paused, position: 2);
+    dtInsertRow(dtId('c', 64), $other, QueueState::Queued, position: 3);
+
+    Native::visit('/downloads')
+        ->call('askCancelAllForManga', $target, 'Target Series')
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Cancel all']);
+
+    expect(Download::query()->where('manga_id', $target)->exists())->toBeFalse()
+        ->and(Download::query()->whereKey(dtId('c', 64))->exists())->toBeTrue();
+
+    Native::visit('/downloads')
+        ->assertDontSee('Target Series')
+        ->assertSee('Other Series');
+});
+
+it('cancelling the Cancel-all dialog leaves every row intact', function () {
+    Covers::manga(dtId('m', 65), title: 'Keep Series');
+    dtChapter(65, dtId('m', 65), '1');
+    dtInsertRow(dtId('c', 65), dtId('m', 65), QueueState::Queued);
+
+    Native::visit('/downloads')
+        ->call('askCancelAllForManga', dtId('m', 65), 'Keep Series')
+        ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel']);
+
+    expect(Download::query()->whereKey(dtId('c', 65))->exists())->toBeTrue();
 });
 
 it('never renders the comodin chapter (read_now_lane)', function () {

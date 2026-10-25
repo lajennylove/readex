@@ -16,6 +16,8 @@ use App\NativeLayouts\HasResumeBar;
 use App\Repositories\SettingsRepository;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
+use Native\Mobile\Events\Alert\ButtonPressed;
+use Native\Mobile\Facades\Dialog;
 
 /**
  * The Downloads tab (Plan 26 Phase B): a mirror of DownloadQueue::pending() grouped
@@ -49,6 +51,24 @@ class Downloads extends NativeComponent implements HasResumeBar
     public function cancel(string $chapterId): void
     {
         app(DownloadQueue::class)->cancel($chapterId);
+    }
+
+    /**
+     * Group-header "Cancel all": confirm before wiping every non-done row for one series.
+     * Mirrors Library's askRemoveFromInterestRow pattern (destructive Dialog.Alert + ButtonPressed).
+     */
+    public function askCancelAllForManga(string $mangaId, string $title): void
+    {
+        Dialog::alert(
+            'Cancel downloads?',
+            'All queued, paused, and downloading chapters for "'.$title.'" will be removed from the queue. Chapters already downloaded stay on your device.',
+            [
+                ['label' => 'Cancel', 'style' => 'cancel'],
+                ['label' => 'Cancel all', 'style' => 'destructive'],
+            ],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === 'Cancel all'
+            ? app(DownloadQueue::class)->cancelAllForManga($mangaId)
+            : null);
     }
 
     public function render(): View

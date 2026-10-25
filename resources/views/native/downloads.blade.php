@@ -15,6 +15,12 @@
                         <native:text class="text-sm text-theme-on-surface-variant">{{ $group['count'] }}</native:text>
                     </native:column>
                 </native:row>
+                <native:pressable
+                    native:key="dl-cancel-all-{{ $group['mangaId'] }}"
+                    @press="askCancelAllForManga('{{ $group['mangaId'] }}', '{{ addslashes($group['title']) }}')"
+                    a11y-label="Cancel all downloads for {{ $group['title'] }}">
+                    <native:text class="text-sm text-theme-on-surface-variant underline">Cancel all</native:text>
+                </native:pressable>
                 <native:column class="w-full gap-1" native:key="dl-rows-{{ $group['mangaId'] }}">
                     @foreach ($group['rows'] as $row)
                         <native:row class="w-full items-center justify-between gap-3 py-2" native:key="dl-row-{{ $row['chapterId'] }}">

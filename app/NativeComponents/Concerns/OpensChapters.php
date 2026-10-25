@@ -8,7 +8,7 @@ use App\NativeComponents\Reader;
 use App\NativeLayouts\TabsLayout;
 use Native\Mobile\Facades\Browser;
 
-/** Where a chapter opens: the reader inside the current tab, from outside Detail on top of its series' Detail; licensed chapters (MangaPlus, VIZ…) only exist on the publisher's site, so the in-app browser. */
+/** Where a chapter opens: the reader inside the current tab, from outside Detail on top of its series' Detail; licensed chapters that the source doesn't serve pages for (the publisher hosts them itself) open in the in-app browser. */
 trait OpensChapters
 {
     /** @return bool the reader is opening (false: the publisher's page is) */

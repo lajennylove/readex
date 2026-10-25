@@ -7,7 +7,6 @@ namespace App\NativeComponents;
 use App\Downloads\DownloadQueue;
 use App\Downloads\QueueState;
 use App\Models\Chapter;
-use App\Models\Download;
 use App\Models\Manga;
 use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeComponents\Concerns\ShowsTiles;
@@ -111,8 +110,8 @@ class Downloads extends NativeComponent implements HasResumeBar
 
     /**
      * @return list<array{action: string, label: string, icon: string, disabled: bool}>
-     *   Right-aligned icon buttons for the row. Canceling returns a single disabled
-     *   hourglass marker so the row visibly reflects "work-in-progress, no actions".
+     *                                                                                  Right-aligned icon buttons for the row. Canceling returns a single disabled
+     *                                                                                  hourglass marker so the row visibly reflects "work-in-progress, no actions".
      */
     private static function actionsFor(QueueState $state): array
     {

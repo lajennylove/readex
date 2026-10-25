@@ -14,7 +14,7 @@ use RecursiveIteratorIterator;
 
 /**
  * Where a chapter's pages live (spec §5.4, §11.1). One folder per chapter with `001.jpg`, … and
- * `manifest.json` (chapter details, quality, each page's file and measured size; MangaDex sends no
+ * `manifest.json` (chapter details, quality, each page's file and measured size; the source sends no
  * page sizes). The `stored_chapters` row keeps tier, quality and counts; the files on disk are the
  * truth: iOS may purge the cache tier, and a missing file only means "fetch it again".
  */
@@ -419,7 +419,7 @@ final class PageStore
         return rtrim($this->bridge->cachesPath(), '/');
     }
 
-    /** MangaDex ids are UUIDs; anything else could leave the chapters folder. */
+    /** Source chapter ids are UUIDs; anything else could leave the chapters folder. */
     private function isSafe(string $chapterId): bool
     {
         return preg_match('/^[A-Za-z0-9-]+$/', $chapterId) === 1;

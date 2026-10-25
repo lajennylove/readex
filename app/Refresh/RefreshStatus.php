@@ -10,10 +10,10 @@ enum RefreshStatus: string
     /** Our own request budget is used up (BusyReason::Saturated). */
     case Busy = 'busy';
 
-    /** MangaDex answered 429 or the temporary 403 ban. */
+    /** The source answered 429 or the temporary 403 ban. */
     case Limited = 'limited';
 
-    /** MangaDex answered 5xx: an outage on their side, retried from the screen's poll. */
+    /** The source answered 5xx: an outage on its side, retried from the screen's poll. */
     case Unavailable = 'unavailable';
 
     case Failed = 'failed';

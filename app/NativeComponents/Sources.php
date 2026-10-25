@@ -12,7 +12,7 @@ use Native\Mobile\Facades\Dialog;
 
 /**
  * Settings → Sources (Plan-08 Task 2/3, D45 §2/§6 item 3): list every configured source
- * (built-in MangaDex first, never removable), add a source from a generic name + URL/API
+ * (built-in source first, never removable), add a source from a generic name + URL/API
  * endpoint (never a suggested or pre-filled third-party name), block/unblock any source
  * (simple local block, D45 §6 item 3 — no reporting backend), remove a user-added source, and
  * (Jenny 2026-10-24 18:05 EDT) edit a user source's URL from here later, same health-check

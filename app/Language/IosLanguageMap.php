@@ -4,7 +4,7 @@ namespace App\Language;
 
 final class IosLanguageMap
 {
-    /** Two-letter MangaDex codes accepted as-is (from MangaDex's language list). */
+    /** Two-letter source language codes accepted as-is (from the source's language list). */
     private const TWO_LETTER = [
         'ar', 'az', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'eo', 'et', 'fa', 'fi', 'fr', 'he',
         'hi', 'hr', 'hu', 'id', 'it', 'ja', 'ka', 'kk', 'ko', 'la', 'lt', 'ms', 'my', 'ne', 'nl', 'no',

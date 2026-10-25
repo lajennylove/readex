@@ -27,7 +27,7 @@ use Throwable;
  * Resumes from what's on disk. Works in time-boxed slices of job_budget_seconds: pages left →
  * released at once to continue, behind the other queued jobs. Pages another fetcher is
  * downloading are left to it; when only those are left, the job checks back in 5 s. No slot →
- * release until the controller's retry time; offline → again in a minute; MangaDex answering the
+ * release until the controller's retry time; offline → again in a minute; the source answering the
  * lookup with 5xx / 429 / 403 → again after 1 s, 4 s, 15 s, then every minute. A cache run ends
  * by queueing EnforceCacheCap. A cache chapter that Clear image cache or the cap drops ends the
  * job quietly, also between slices: only the reader or a download begins it again.
@@ -48,7 +48,7 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
     /** Seconds before checking back when the only pages left are being downloaded by another fetcher. */
     public const CLAIMED_RETRY_SECONDS = 5;
 
-    /** Spec §13 backoff while MangaDex has trouble with the lookup; the last one repeats. */
+    /** Spec §13 backoff while the source has trouble with the lookup; the last one repeats. */
     public const TROUBLE_RETRY_SECONDS = [1, 4, 15, 60];
 
     /** Seconds to wait for a request slot before releasing (spec §5.1a). */

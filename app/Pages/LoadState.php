@@ -14,10 +14,10 @@ enum LoadState: string
     /** A DownloadChapter job is queued to continue: there was no request slot or its time budget ran out. */
     case Busy = 'busy';
 
-    /** MangaDex has no @Home pages for this chapter (removed, external). */
+    /** The source has no @Home pages for this chapter (removed, external). */
     case Unavailable = 'unavailable';
 
-    /** MangaDex answered the @Home lookup with 5xx / 429 / 403: a DownloadChapter job is queued and it's asked again on its own. */
+    /** The source answered the @Home lookup with 5xx / 429 / 403: a DownloadChapter job is queued and it's asked again on its own. */
     case Retrying = 'retrying';
 
     /** Unexpected error (reported). */

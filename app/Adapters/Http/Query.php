@@ -2,7 +2,7 @@
 
 namespace App\Adapters\Http;
 
-/** MangaDex query strings: lists as key[]=v, maps as key[sub]=v, booleans as true/false. */
+/** Source query strings: lists as key[]=v, maps as key[sub]=v, booleans as true/false. */
 final class Query
 {
     public static function build(array $params): string

@@ -51,7 +51,7 @@ final class AtHomeRepository
     }
 
     /**
-     * After an image failure: the next server() asks MangaDex again, also within the client's
+     * After an image failure: the next server() asks the source again, also within the client's
      * shared-GET window (which would hand back the same dead server).
      */
     public function forget(string $chapterId): void

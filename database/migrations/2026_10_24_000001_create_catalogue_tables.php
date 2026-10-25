@@ -28,7 +28,7 @@ return new class extends Migration
             $table->json('tag_ids');
             $table->string('cover_file')->nullable();
             $table->timestamp('fetched_at')->nullable();
-            // Set even when MangaDex has no recommendations, so an empty row stays fresh.
+            // Set even when the source has no recommendations, so an empty row stays fresh.
             $table->timestamp('recommendations_fetched_at')->nullable();
         });
 

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 final class ChapterRepository
 {
-    /** MangaDex rejects offset + limit above this. */
+    /** The source rejects offset + limit above this. */
     private const MAX_RESULTS = 10_000;
 
     public function __construct(
@@ -160,7 +160,7 @@ final class ChapterRepository
     }
 
     /**
-     * The series' languages minus those whose fresh feed has no readable chapter: MangaDex keeps
+     * The series' languages minus those whose fresh feed has no readable chapter: the source keeps
      * a language in `availableTranslatedLanguages` after all its uploads become unavailable. Once
      * that feed goes stale the language is offered again, so new uploads still show up.
      *

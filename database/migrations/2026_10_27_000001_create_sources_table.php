@@ -8,10 +8,10 @@ return new class extends Migration
 {
     /**
      * Phase 8 (Plan-08 §2, D45 §2): one row per configured content source. The built-in
-     * MangaDex row is seeded once by SourceRepository::seedBuiltIn(), is never editable and
+     * row is seeded once by SourceRepository::seedBuiltIn(), is never editable and
      * never deletable (a user may only block/enable it). A user-added source's `config` is a
      * generic JSON blob (base URL / API endpoint, optional credentials) — never a pre-filled
-     * or suggested value for any specific non-MangaDex site (D45 §2).
+     * or suggested value for any specific third-party site (D45 §2).
      */
     public function up(): void
     {

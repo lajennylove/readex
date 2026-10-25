@@ -17,7 +17,7 @@ final readonly class BucketDefinition
         return $this->perSeconds > 0 ? $this->capacity / $this->perSeconds : 0.0;
     }
 
-    /** Our budget when MangaDex reports $limit instead of the documented one. */
+    /** Our budget when the source reports $limit instead of the documented one. */
     public function capacityFor(int $limit): float
     {
         if ($this->limit === null || $this->limit === 0) {

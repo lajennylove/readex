@@ -40,7 +40,7 @@ trait RefreshesData
     /** A dropped connection (cellular hand-off, Wi-Fi to 5G) comes back on its own. */
     public const OFFLINE_RETRY_MS = 15_000;
 
-    /** A MangaDex outage that outlasts the first retry is asked about once a minute. */
+    /** A source outage that outlasts the first retry is asked about once a minute. */
     public const UNAVAILABLE_RETRY_MS = 60_000;
 
     private bool $forceRefresh = false;
@@ -116,7 +116,7 @@ trait RefreshesData
         return $this->topProblem()?->statusLine();
     }
 
-    /** MangaDex's outage is what the status line is about: the poll retries it, so there's nothing to offer. */
+    /** The source's outage is what the status line is about: the poll retries it, so there's nothing to offer. */
     protected function retryingOutage(): bool
     {
         return $this->topProblem()?->status === RefreshStatus::Unavailable;
@@ -150,7 +150,7 @@ trait RefreshesData
         return isset($this->refreshing[$refresh->key()]) || isset($this->waiting[$refresh->key()]);
     }
 
-    /** `$emptyIsAnswer`: a fetched, fresh, empty list is MangaDex's answer (no recommendations), not missing data. */
+    /** `$emptyIsAnswer`: a fetched, fresh, empty list is the source's answer (no recommendations), not missing data. */
     protected function keepFresh(Result $result, Refresh $refresh, bool $emptyIsAnswer = false): void
     {
         $key = $refresh->key();

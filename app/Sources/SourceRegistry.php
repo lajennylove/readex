@@ -4,7 +4,7 @@ namespace App\Sources;
 
 /**
  * Where the app looks a source up by key (Plan-08 §2). Task 1 only registers the built-in
- * MangaDex adapter; Task 2 adds the `sources` table and user-added sources to this registry.
+ * HTTP source adapter; Task 2 adds the `sources` table and user-added sources to this registry.
  */
 final class SourceRegistry
 {
@@ -27,7 +27,7 @@ final class SourceRegistry
         return null;
     }
 
-    /** The MangaDex adapter directly, for the call sites that are still MangaDex-only this task (D45 §2). */
+    /** The built-in HTTP source adapter directly, for the call sites that are still single-source only this task (D45 §2). */
     public function mangaDex(): HttpSource
     {
         return $this->mangaDex;

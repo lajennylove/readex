@@ -54,10 +54,20 @@
         <native:text class="px-4 pt-2 pb-2 text-xl font-bold text-theme-on-background">Chapters</native:text>
 
         @if ($switch !== [])
+            {{-- Keyed by the language code (unique, stable across renders): without
+                 native:key each chip's node id is the bare positional $nextId++
+                 counter, shared with the WHOLE screen's tree rather than scoped to
+                 this row. Any unrelated re-render that inserts/removes a sibling
+                 anywhere earlier in the tree (e.g. a Continue button appearing once
+                 reading progress is saved) then shifts every chip's id, and the
+                 native side's per-node selected state (keyed by that id) can land
+                 on the wrong chip after the shift lines up with a scroll-view
+                 re-layout and a tap — more than one chip then shows selected. See
+                 native.partials.row / rating-toggles for the same keying pattern. --}}
             <native:scroll-view axis="horizontal" :shows-indicators="false" class="w-full pb-2">
                 <native:row class="gap-2 px-4">
                     @foreach ($switch as $option)
-                        <native:chip label="{{ $option['name'] }}" :selected="$option['code'] === $language" @change="pickLanguage('{{ $option['code'] }}')" />
+                        <native:chip native:key="chip-{{ $option['code'] }}" label="{{ $option['name'] }}" :selected="$option['code'] === $language" @change="pickLanguage('{{ $option['code'] }}')" />
                     @endforeach
                 </native:row>
             </native:scroll-view>

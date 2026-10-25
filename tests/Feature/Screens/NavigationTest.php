@@ -152,9 +152,10 @@ it('emits the back-arrow flag on a pushed detail screen', function () {
     $tree = Native::visit('/home/manga/abc-123')->tree();
     $tabs = $find($tree);
 
-    // NavBar::make()->back(true) folds into the chrome root as `navBack: true`
-    // (NativeComponent prefixes NavBar's toRootProps with `nav`).
-    expect($tabs['props']['navBack'] ?? null)->toBeTrue();
+    // NavBar::make()->back(true) folds into the chrome root as the `nav_back`
+    // prop (NativeComponent prefixes NavBar's toRootProps with `nav`, then
+    // NativeRootTabs::applyAttributes rewrites it to snake_case for the wire).
+    expect($tabs['props']['nav_back'] ?? null)->toBeTrue();
 });
 
 it('does not show a back arrow on a tab root', function () {
@@ -173,7 +174,7 @@ it('does not show a back arrow on a tab root', function () {
 
     $tabs = $find(Native::visit('/home')->tree());
 
-    expect($tabs['props']['navBack'] ?? null)->toBeFalse();
+    expect($tabs['props']['nav_back'] ?? null)->toBeFalse();
 });
 
 // Edge-swipe back gesture: the handler takes the direction string from the

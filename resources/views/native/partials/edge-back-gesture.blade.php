@@ -6,5 +6,5 @@
      Include this at the TOP of a screen's root container (the gesture area
      needs to lay out before the main content). --}}
 <native:gesture-area
-    class="absolute top-0 left-0 w-5 h-full z-50"
+    class="absolute top-0 left-0 w-5 h-full"
     @swipe="edgeSwipeBack" />

@@ -91,6 +91,10 @@
             @endif
         @endforelse
 
-        <native:column class="w-full h-6" />
+        {{-- 2× the resume bar's height (bar: cover h-12 + outer py-2 ≈ 64 px). The floating bar
+             sits above the tab bar on every HasResumeBar screen, including this one; without
+             this pad the last chapters hide behind it and you have to swipe-up-and-hold just
+             to reach them. h-32 (= 128 px) leaves the last row visible on a normal release. --}}
+        <native:column class="w-full h-32" />
     @endif
 </native:refreshable>

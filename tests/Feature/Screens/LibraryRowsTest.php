@@ -57,7 +57,7 @@ it('shows a favorited series under the Favorites row, and interest tiles under t
 
 it('pins a series via the long-press action sheet', function () {
     lrsManga(1, 'Series One');
-    $this->library->add(lrsId('m', 1));
+    $this->library->setFavorite(lrsId('m', 1), true);
 
     Native::visit('/library')
         ->longPress("askLibraryTileAction('".lrsId('m', 1)."')")
@@ -69,7 +69,7 @@ it('pins a series via the long-press action sheet', function () {
 
 it('unpins a pinned series via the same long-press action sheet', function () {
     lrsManga(1, 'Series One');
-    $this->library->add(lrsId('m', 1));
+    $this->library->setFavorite(lrsId('m', 1), true);
     $this->library->setPinned(lrsId('m', 1), true);
 
     Native::visit('/library')
@@ -82,7 +82,7 @@ it('unpins a pinned series via the same long-press action sheet', function () {
 
 it('removes a series from the Library via the same long-press action sheet', function () {
     lrsManga(1, 'Series One');
-    $this->library->add(lrsId('m', 1));
+    $this->library->setFavorite(lrsId('m', 1), true);
 
     Native::visit('/library')
         ->longPress("askLibraryTileAction('".lrsId('m', 1)."')")

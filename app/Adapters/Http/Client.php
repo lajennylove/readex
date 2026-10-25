@@ -57,7 +57,7 @@ final class Client
     }
 
     /**
-     * Download raw bytes (page images, covers). Results from non-mangadex.org hosts
+     * Download raw bytes (page images, covers). Results from off-source hosts
      * are reported to the @Home network.
      *
      * @throws RequestDeferred|ApiError|ConnectionException

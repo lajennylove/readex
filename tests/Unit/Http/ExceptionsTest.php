@@ -19,9 +19,9 @@ it('uses the MangaDex error detail, then the title, then the HTTP reason', funct
         ->and($error->getCode())->toBe(400)
         ->and($error->getMessage())->toBe($message);
 })->with([
-    'detail' => ['{"result":"error","errors":[{"title":"validation","detail":"limit too big"}]}', 'MangaDex HTTP 400: limit too big'],
-    'title' => ['{"result":"error","errors":[{"title":"validation"}]}', 'MangaDex HTTP 400: validation'],
-    'not json' => ['<html>bad</html>', 'MangaDex HTTP 400: Bad Request'],
+    'detail' => ['{"result":"error","errors":[{"title":"validation","detail":"limit too big"}]}', 'HTTP 400: limit too big'],
+    'title' => ['{"result":"error","errors":[{"title":"validation"}]}', 'HTTP 400: validation'],
+    'not json' => ['<html>bad</html>', 'HTTP 400: Bad Request'],
 ]);
 
 it('carries the Busy answer so jobs know how long to wait', function () {
@@ -29,5 +29,5 @@ it('carries the Busy answer so jobs know how long to wait', function () {
     $e = new RequestDeferred($busy);
 
     expect($e->busy)->toBe($busy)
-        ->and($e->getMessage())->toBe('MangaDex request deferred (banned) until 1792756860');
+        ->and($e->getMessage())->toBe('Source request deferred (banned) until 1792756860');
 });

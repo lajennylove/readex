@@ -1,6 +1,6 @@
 <?php
 
-// Recorded by `php artisan mangadex:record-fixtures` (real API, through the RequestController).
+// Recorded by `php artisan fixtures:record` (real API, through the RequestController).
 // name => [api.mangadex.org path or full https:// URL, query]. Later tasks add their entries here and record them with --only.
 
 $allRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];

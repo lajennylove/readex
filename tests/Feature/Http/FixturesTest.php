@@ -37,13 +37,13 @@ it('treats another sort priority as another request', function () {
         'includes' => ['scanlation_group'],
         'order' => ['chapter' => 'asc', 'volume' => 'asc'],
     ]);
-})->throws(RuntimeException::class, 'No MangaDex fixture');
+})->throws(RuntimeException::class, 'No source fixture');
 
 it('fails loudly for an unrecorded request', function () {
     SourceFixtures::fake('tags');
 
     app(Client::class)->get('/manga/tag', ['limit' => 1]);
-})->throws(RuntimeException::class, 'No MangaDex fixture for GET https://api.mangadex.org/manga/tag?limit=1');
+})->throws(RuntimeException::class, 'No source fixture for GET https://api.mangadex.org/manga/tag?limit=1');
 
 it('keeps empty objects as recorded', function () {
     expect(file_get_contents(SourceFixtures::path('search-one-punch')))->toContain('"description": {}')
@@ -51,7 +51,7 @@ it('keeps empty objects as recorded', function () {
 });
 
 it('has a recording for every listed fixture', function () {
-    $names = array_keys(require base_path('tests/Fixtures/mangadex/fixtures.php'));
+    $names = array_keys(require base_path('tests/Fixtures/http/fixtures.php'));
 
     foreach ($names as $name) {
         expect(SourceFixtures::path($name))->toBeFile();

@@ -22,7 +22,7 @@ it('records the body as sent, kept headers and the request', function () {
         ['X-RateLimit-Limit' => '40', 'X-Request-ID' => 'abc', 'Content-Type' => 'application/json'],
     )]);
 
-    $this->artisan('mangadex:record-fixtures', ['--only' => ['tags'], '--path' => $this->dir])
+    $this->artisan('fixtures:record', ['--only' => ['tags'], '--path' => $this->dir])
         ->expectsOutput('tags: ok')
         ->assertSuccessful();
 
@@ -41,7 +41,7 @@ it('records the body as sent, kept headers and the request', function () {
 it('goes through the request controller', function () {
     Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => []])]);
 
-    $this->artisan('mangadex:record-fixtures', ['--only' => ['tags', 'manga-nova'], '--path' => $this->dir])->assertSuccessful();
+    $this->artisan('fixtures:record', ['--only' => ['tags', 'manga-nova'], '--path' => $this->dir])->assertSuccessful();
 
     expect((int) DB::table('api_usage')->sum('requests'))->toBe(2);
     Http::assertSent(fn (Request $r) => str_starts_with($r->header('User-Agent')[0], 'ReaDex/'));
@@ -52,7 +52,7 @@ it('keeps the old file and fails when a call fails', function () {
     File::put("{$this->dir}/tags.json", 'old');
     Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error'], 503)]);
 
-    $this->artisan('mangadex:record-fixtures', ['--only' => ['tags'], '--path' => $this->dir])->assertFailed();
+    $this->artisan('fixtures:record', ['--only' => ['tags'], '--path' => $this->dir])->assertFailed();
 
     expect(File::get("{$this->dir}/tags.json"))->toBe('old');
 });
@@ -60,7 +60,7 @@ it('keeps the old file and fails when a call fails', function () {
 it('rejects unknown fixture names without calling the API', function () {
     Http::fake();
 
-    $this->artisan('mangadex:record-fixtures', ['--only' => ['nope'], '--path' => $this->dir])
+    $this->artisan('fixtures:record', ['--only' => ['nope'], '--path' => $this->dir])
         ->expectsOutput('Unknown fixture: nope')
         ->assertFailed();
 

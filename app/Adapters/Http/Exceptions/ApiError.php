@@ -16,6 +16,6 @@ final class ApiError extends RuntimeException
     {
         $detail = $response->json('errors.0.detail') ?? $response->json('errors.0.title') ?? $response->reason();
 
-        return new self($response->status(), "MangaDex HTTP {$response->status()}: {$detail}");
+        return new self($response->status(), "HTTP {$response->status()}: {$detail}");
     }
 }

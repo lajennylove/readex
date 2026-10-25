@@ -15,7 +15,7 @@ use App\Repositories\Result;
  */
 interface Source
 {
-    /** Stable identifier, e.g. "mangadex". Used as the `sources.key` / `collections` namespace later. */
+    /** Stable identifier used as the `sources.key` / `collections` namespace later. */
     public function key(): string;
 
     /** Display name shown in Settings → Sources. */

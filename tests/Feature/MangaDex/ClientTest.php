@@ -16,7 +16,7 @@ use Illuminate\Support\Sleep;
 beforeEach(function () {
     Carbon::setTestNow(Carbon::createFromTimestamp(1_792_756_800));
     Sleep::fake(syncWithCarbon: true);
-    config(['mangadex.contact' => null, 'mangadex.app_version' => '0.1.0']);
+    config(['source.contact' => null, 'source.app_version' => '0.1.0']);
     $this->client = app(Client::class);
 });
 
@@ -27,7 +27,7 @@ function usage(string $bucket): int
 
 describe('requests', function () {
     it('sends the app User-Agent and never a Via header', function () {
-        config(['mangadex.contact' => 'jenny@example.com']);
+        config(['source.contact' => 'jenny@example.com']);
         Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => []])]);
 
         $this->client->get('/manga/tag');
@@ -144,7 +144,7 @@ describe('sharing identical GETs', function () {
         Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => ['a second call']])]);
         $url = 'https://api.mangadex.org/manga/abc/feed';
         $key = 'mangadex:get:'.sha1($url);
-        $store = Cache::store(config('mangadex.share_store'));
+        $store = Cache::store(config('source.share_store'));
         $inFlight = $store->lock($key.':lock', 30);
         $inFlight->acquire();
 

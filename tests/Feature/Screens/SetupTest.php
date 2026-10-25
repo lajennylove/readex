@@ -67,7 +67,7 @@ function ratingToggle(string $label, bool $on): Closure
 /** Types MangaDex's own API URL into the source field — the shortest path through Continue in most tests. */
 function withMangaDexSource(TestableComponent $screen): TestableComponent
 {
-    return $screen->call('changeSourceUrl', config('mangadex.api_url'));
+    return $screen->call('changeSourceUrl', config('source.api_url'));
 }
 
 it('labels the rating toggles with theme text, since the iOS toggle label ignores the theme', function () {

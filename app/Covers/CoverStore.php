@@ -121,6 +121,30 @@ final class CoverStore
     }
 
     /**
+     * `$mangas` filtered to those whose cover isn't on disk yet, in order. Read-only (no
+     * `queued_seconds` guard claimed), unlike `fetch()`/`queue()` — for callers that need to
+     * size a budget against actual need (e.g. `ShowsTiles::queueRowCovers()`) without spending
+     * one of the guard's single uses.
+     *
+     * @param  iterable<Manga>  $mangas
+     * @return list<Manga>
+     */
+    public function missingCovers(iterable $mangas): array
+    {
+        $missing = [];
+
+        foreach ($mangas as $manga) {
+            $relative = $this->relative($manga);
+
+            if ($relative !== null && ! is_file($this->absolute($relative))) {
+                $missing[] = $manga;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * Ids in order whose cover isn't on disk, each claimed under `$guard` for `queued_seconds`
      * (screens re-render every few seconds).
      *
@@ -131,12 +155,8 @@ final class CoverStore
     {
         $ids = [];
 
-        foreach ($mangas as $manga) {
+        foreach ($this->missingCovers($mangas) as $manga) {
             $relative = $this->relative($manga);
-
-            if ($relative === null || is_file($this->absolute($relative))) {
-                continue;
-            }
 
             if (Cache::add("readex.cover.{$guard}.".sha1($relative), true, config('readex.covers.queued_seconds'))) {
                 $ids[] = $manga->id;

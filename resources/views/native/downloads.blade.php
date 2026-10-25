@@ -23,7 +23,7 @@
                 </native:pressable>
                 <native:column class="w-full gap-1" native:key="dl-rows-{{ $group['mangaId'] }}">
                     @foreach ($group['rows'] as $row)
-                        <native:row class="w-full items-center justify-between gap-3 py-2" native:key="dl-row-{{ $row['chapterId'] }}">
+                        <native:row class="w-full items-center justify-between gap-3 py-2" native:key="dl-row-{{ $row['chapterId'] }}" a11y-label="{{ $row['a11y'] }}">
                             <native:column class="flex-1 gap-0">
                                 <native:text class="text-base text-theme-on-background">{{ $row['label'] }}</native:text>
                                 <native:text class="text-sm text-theme-on-surface-variant">{{ $row['chip'] }}</native:text>

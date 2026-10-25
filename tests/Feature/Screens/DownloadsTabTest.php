@@ -85,6 +85,39 @@ it('shows a Downloading row with Pause and Cancel actions', function () {
         ->assertSee('Cancel Ch. 2');
 });
 
+it('renders the per-chapter percentage on a Downloading row when stored_chapters has progress', function () {
+    Covers::manga(dtId('m', 70), title: 'Progress Series');
+    dtChapter(70, dtId('m', 70), '7');
+    dtInsertRow(dtId('c', 70), dtId('m', 70), QueueState::Downloading);
+
+    DB::table('stored_chapters')->insert([
+        'chapter_id' => dtId('c', 70),
+        'tier' => 'local',
+        'quality' => 'data',
+        'status' => 'begun',
+        'pages_done' => 3,
+        'page_count' => 10,
+        'bytes' => 0,
+    ]);
+
+    $visit = Native::visit('/downloads')
+        ->assertSee('Downloading · 30%');
+
+    // a11y also carries the percent for screen readers.
+    expect(json_encode($visit->tree()))->toContain('Ch. 7, Downloading, 30 percent');
+});
+
+it('falls back to a plain Downloading chip when no stored_chapters row exists yet', function () {
+    Covers::manga(dtId('m', 71), title: 'Pre-Progress Series');
+    dtChapter(71, dtId('m', 71), '8');
+    dtInsertRow(dtId('c', 71), dtId('m', 71), QueueState::Downloading);
+    // Deliberately no stored_chapters row — the join misses and we fall back.
+
+    Native::visit('/downloads')
+        ->assertSee('Downloading')
+        ->assertDontSee('Downloading ·');
+});
+
 it('shows a Paused row with Resume and Cancel actions', function () {
     Covers::manga(dtId('m', 3), title: 'Paused Series');
     dtChapter(3, dtId('m', 3), '3');

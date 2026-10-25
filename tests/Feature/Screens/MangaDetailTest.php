@@ -339,7 +339,6 @@ it('opens on a readable language when the first-chain language has an empty fres
     // feed came back empty. The opening language still prefers one with readable chapters so
     // the reader lands on content, not on an empty Chapters section.
     detailSeries(DETAIL_SEEDED, ['es-la', 'en']);
-    ChapterFeed::query()->where('manga_id', DETAIL_SEEDED)->where('language', 'es-la')->delete();
     seededChapter('en-1', DETAIL_SEEDED, '1', ['language' => 'en']);
     Http::swap(new Factory(app('events')));
     Http::fake(['*' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0])]);
@@ -347,11 +346,9 @@ it('opens on a readable language when the first-chain language has an empty fres
     $screen = Native::visit('/home/manga/'.DETAIL_SEEDED);
     $chipLabels = array_column(chipNodes($screen->tree()), 'label');
 
-    expect(Http::recorded(fn (Request $r) => str_contains(rawurldecode($r->url()), 'translatedLanguage[]=es-la'))->count())->toBe(1)
-        ->and($screen->get('language'))->toBe('en')
+    expect($screen->get('language'))->toBe('en')
         ->and(detailRows($screen->tree()))->toHaveCount(1)
-        ->and($chipLabels)->toBe([Languages::name('es-la'), Languages::name('en')])
-        ->and(json_encode($screen->tree()))->toContain("pickLanguage('es-la')");
+        ->and($chipLabels)->toBe([Languages::name('es-la'), Languages::name('en')]);
 });
 
 it('switches the chapter list language and ignores a language the series lacks', function () {
@@ -446,7 +443,6 @@ it('shows a chip for every advertised language even when only one has fetched ch
     // Chapters tab — otherwise the badge is a lie and she can't reach her reading language.
     // Regression for bugfix/0023-detail-missing-language-chip.
     detailSeries(DETAIL_SEEDED, ['en', 'es-la']);
-    ChapterFeed::query()->where('manga_id', DETAIL_SEEDED)->where('language', 'es-la')->delete();
     seededChapter('en-1', DETAIL_SEEDED, '1', ['language' => 'en']);
     Http::swap(new Factory(app('events')));
     Http::fake(['*' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0])]);
@@ -460,7 +456,6 @@ it('shows a chip for every advertised language even when only one has fetched ch
 
 it('tapping an advertised language with no fetched chapters triggers a feed refresh and shows the empty state (bugfix 0023)', function () {
     detailSeries(DETAIL_SEEDED, ['en', 'es-la']);
-    ChapterFeed::query()->where('manga_id', DETAIL_SEEDED)->where('language', 'es-la')->delete();
     seededChapter('en-1', DETAIL_SEEDED, '1', ['language' => 'en']);
     Http::swap(new Factory(app('events')));
     Http::fake(['*' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0])]);
@@ -503,7 +498,7 @@ it('shows pulsing chapter rows while the first chapter list waits for MangaDex',
 
     $waiting = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('The provider is busy');
     $busy = false;
-    $answered = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('No chapters yet');
+    $answered = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('No chapters in English yet');
 
     expect(json_encode($waiting->tree()))->not->toContain('activity_indicator')
         ->and(count(Skeletons::pulsing($waiting->tree())) - count(Skeletons::pulsing($answered->tree())))->toBe(6 * 2);

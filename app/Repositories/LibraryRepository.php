@@ -28,6 +28,16 @@ final class LibraryRepository
     }
 
     /**
+     * Takes a series out of the Library (Library tile long-press, confirmed). Only the
+     * `collections` row goes — reading progress and stored chapters stay, so the series picks
+     * up where it left off if it's added back.
+     */
+    public function removeFromLibrary(string $mangaId): void
+    {
+        LibraryEntry::query()->whereKey($mangaId)->delete();
+    }
+
+    /**
      * Reading or downloading a chapter puts its series in the Library. The first such chapter
      * picks the preferred group (§11.3); later ones don't change it.
      */

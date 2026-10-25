@@ -1,7 +1,11 @@
-{{-- $manga (Manga), $title (string), optional $badge ("ES"), $caption (e.g. "Ch. 12"), $chapterId (the tile opens that chapter, else the series). Needs ShowsTiles. --}}
+{{-- $manga (Manga), $title (string), optional $badge ("ES"), $caption (e.g. "Ch. 12"), $chapterId (the tile opens that chapter, else the series), $removable (holding it offers Remove from library). Needs ShowsTiles. --}}
 @php($cover = app(\App\Covers\CoverStore::class)->path($manga))
 @php($press = empty($chapterId) ? "openManga('{$manga->id}')" : "openChapter('{$chapterId}')")
+@if (! empty($removable))
+<native:pressable class="w-28" @press="{{ $press }}" @longPress="askRemoveFromLibrary('{{ $manga->id }}')">
+@else
 <native:pressable class="w-28" @press="{{ $press }}">
+@endif
     <native:column class="w-28 gap-1">
         <native:stack class="w-28 aspect-[2/3] rounded-md bg-[#2C2C2E]">
             @if ($cover)

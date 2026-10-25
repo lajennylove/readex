@@ -11,6 +11,8 @@ use App\NativeLayouts\TabsLayout;
 use App\Repositories\ContinueReading;
 use App\Repositories\LibraryRepository;
 use Illuminate\Support\Collection;
+use Native\Mobile\Events\Alert\ButtonPressed;
+use Native\Mobile\Facades\Dialog;
 
 /**
  * For screens that show `native.partials.tile`. A tile's cover appears on the first render
@@ -36,6 +38,20 @@ trait ShowsTiles
         }
     }
 
+    /**
+     * Library tile hold: confirm before taking the series out of the Library (destructive, so
+     * it asks first — same convention as `ManagesDownloads::askChapterAction()`'s Remove).
+     */
+    public function askRemoveFromLibrary(string $mangaId): void
+    {
+        Dialog::alert(
+            'Remove from library',
+            '',
+            [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Remove', 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === 'Remove'
+            ? app(LibraryRepository::class)->removeFromLibrary($mangaId) : null);
+    }
+
     /** "Ch. 12", or "Oneshot" for a chapter without a number. */
     public static function chapterLabel(Chapter $chapter): string
     {
@@ -59,10 +75,11 @@ trait ShowsTiles
 
     /**
      * What `native.partials.tile` needs; title and badge follow the reading chain (spec §10).
+     * `$removable` offers a long-press "Remove from library" action (Library tiles only).
      *
-     * @return array{manga: Manga, title: string, badge: ?string, caption: ?string, chapterId: ?string}
+     * @return array{manga: Manga, title: string, badge: ?string, caption: ?string, chapterId: ?string, removable: bool}
      */
-    protected function tile(Manga $manga, LanguageChain $chain, ?string $caption = null, ?string $chapterId = null): array
+    protected function tile(Manga $manga, LanguageChain $chain, ?string $caption = null, ?string $chapterId = null, bool $removable = false): array
     {
         return [
             'manga' => $manga,
@@ -70,6 +87,7 @@ trait ShowsTiles
             'badge' => $chain->badge($manga->available_languages ?? []),
             'caption' => $caption,
             'chapterId' => $chapterId,
+            'removable' => $removable,
         ];
     }
 
@@ -79,7 +97,7 @@ trait ShowsTiles
         return app(LibraryRepository::class)->continueReading(config('readex.page_sizes.home_row'));
     }
 
-    /** "Ch. 12 · 40%" while reading, "Ch. 13 · Up next" for the next, unopened chapter; opens that chapter (Kindle style), not the series. */
+    /** "Ch. 12 · 40%" while reading, "Ch. 13 · Up next" for the next, unopened chapter; opens that chapter (Kindle style), not the series. Holding it offers Remove from library, since every Continue reading series is a Library series. */
     protected function continueTile(ContinueReading $next, LanguageChain $chain): array
     {
         $progress = $next->progress;
@@ -87,6 +105,6 @@ trait ShowsTiles
             ? 'Up next'
             : intdiv(($progress->page + 1) * 100, $progress->page_count).'%';
 
-        return $this->tile($next->manga, $chain, self::chapterLabel($next->chapter)." · {$state}", $next->chapter->id);
+        return $this->tile($next->manga, $chain, self::chapterLabel($next->chapter)." · {$state}", $next->chapter->id, removable: true);
     }
 }

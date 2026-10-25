@@ -67,10 +67,19 @@ class Library extends NativeComponent implements HasResumeBar
         });
     }
 
-    /** "You may still be interested" row tile hold: long-press "Remove from this list" (D42). */
-    public function removeFromInterestRow(string $mangaId): void
+    /** "You may still be interested" row tile hold: confirm, then remove from this list (D42). */
+    public function askRemoveFromInterestRow(string $mangaId): void
     {
-        app(ViewedSeriesRepository::class)->remove($mangaId);
+        Dialog::alert(
+            'Remove from your interests?',
+            '',
+            [
+                ['label' => 'Cancel', 'style' => 'cancel'],
+                ['label' => 'Remove', 'style' => 'destructive'],
+            ],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === 'Remove'
+            ? app(ViewedSeriesRepository::class)->remove($mangaId)
+            : null);
     }
 
     public function render(): View
@@ -94,7 +103,7 @@ class Library extends NativeComponent implements HasResumeBar
             'new' => $toTiles($new),
             'downloaded' => $toTiles($downloaded),
             'reading' => $toTiles($reading),
-            'interested' => app(ViewedSeriesRepository::class)->list()->map(fn ($m) => $this->tile($m, $chain, longPress: 'removeFromInterestRow'))->all(),
+            'interested' => app(ViewedSeriesRepository::class)->list()->map(fn ($m) => $this->tile($m, $chain, longPress: 'askRemoveFromInterestRow'))->all(),
         ]);
     }
 

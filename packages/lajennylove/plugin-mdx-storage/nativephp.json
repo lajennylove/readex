@@ -27,26 +27,30 @@
         {
             "name": "MdxStorage.PreferredLanguage",
             "ios": "MdxStorageFunctions.PreferredLanguage",
+            "android": "com.lajennylove.plugins.mdx_storage.MdxStorageFunctions.PreferredLanguage",
             "description": "First entry of Locale.preferredLanguages"
         },
         {
             "name": "MdxStorage.TimeZone",
             "ios": "MdxStorageFunctions.CurrentTimeZone",
+            "android": "com.lajennylove.plugins.mdx_storage.MdxStorageFunctions.TimeZone",
             "description": "TimeZone.current identifier (IANA)"
         },
         {
             "name": "MdxStorage.CachesPath",
             "ios": "MdxStorageFunctions.CachesPath",
+            "android": "com.lajennylove.plugins.mdx_storage.MdxStorageFunctions.CachesPath",
             "description": "Library/Caches/readex path, created if missing"
         },
         {
             "name": "MdxStorage.ExcludeFromBackup",
             "ios": "MdxStorageFunctions.ExcludeFromBackup",
-            "description": "Sets isExcludedFromBackup on a path"
+            "android": "com.lajennylove.plugins.mdx_storage.MdxStorageFunctions.ExcludeFromBackup",
+            "description": "Sets isExcludedFromBackup on a path (no-op on Android; see backup_rules.xml)"
         }
     ],
     "android": {
-        "min_version": 21,
+        "min_version": 24,
         "permissions": [],
         "repositories": [],
         "dependencies": {

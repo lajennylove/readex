@@ -198,7 +198,7 @@ it('says busy and queues the retry job when there is no request slot', function 
 
     $screen = Native::test(RefreshingScreen::class)
         ->assertSet('items', ['saved'])
-        ->assertSee('MangaDex is busy, will update shortly');
+        ->assertSee('The provider is busy, will update shortly');
 
     Queue::assertPushed(RefreshRepository::class, fn (RefreshRepository $job) => $job->refresh->method === 'refresh'
         && $job->refresh->args === ['latest']);
@@ -213,7 +213,7 @@ it('shows when MangaDex stops limiting the phone, in the phone time zone', funct
     FakeRefreshTarget::$script = [deferred($reason)];
 
     Native::test(RefreshingScreen::class)
-        ->assertSee('MangaDex is limiting this phone, try after 14:35');
+        ->assertSee('The provider is limiting this phone, try after 14:35');
 
     Queue::assertPushed(RefreshRepository::class);
 })->with([BusyReason::Throttled, BusyReason::Banned]);
@@ -247,7 +247,7 @@ it('says MangaDex is having trouble on a 503 and retries from the poll after 15 
 
     $screen = Native::test(RefreshingScreen::class)
         ->assertSet('items', ['saved'])
-        ->assertSee('MangaDex is having trouble, retrying')
+        ->assertSee('The provider is having trouble, retrying')
         ->assertDontSee('No server');
     Queue::assertNothingPushed();
 
@@ -256,7 +256,7 @@ it('says MangaDex is having trouble on a 503 and retries from the poll after 15 
     expect(FakeRefreshTarget::$calls)->toHaveCount(1);
 
     $this->travel(1)->seconds();
-    $screen->call('checkWaitingRefreshes')->assertSee('MangaDex is having trouble, retrying');
+    $screen->call('checkWaitingRefreshes')->assertSee('The provider is having trouble, retrying');
     expect(FakeRefreshTarget::$calls)->toHaveCount(2);
 
     foreach ([3, 4] as $calls) {
@@ -284,7 +284,7 @@ it('says MangaDex is having trouble for any 5xx answer, without reporting it', f
 
     $screen = Native::test(RefreshingScreen::class)
         ->assertSet('items', ['saved'])
-        ->assertSee('MangaDex is having trouble, retrying');
+        ->assertSee('The provider is having trouble, retrying');
 
     $this->travel(15)->seconds();
     $screen->call('checkWaitingRefreshes')->assertSee('All good');
@@ -333,7 +333,7 @@ it('does not retry a MangaDex outage while the phone says it has no connection',
     $screen = Native::test(RefreshingScreen::class);
 
     $this->travel(15)->seconds();
-    $screen->call('checkWaitingRefreshes')->assertSee('MangaDex is having trouble, retrying');
+    $screen->call('checkWaitingRefreshes')->assertSee('The provider is having trouble, retrying');
     expect(FakeRefreshTarget::$calls)->toHaveCount(1);
 
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => true]);
@@ -358,9 +358,9 @@ it('forgets every retry on pull to refresh', function () {
 it('picks up the job result on the next poll and reloads', function () {
     staleRow();
     FakeRefreshTarget::$script = [deferred(BusyReason::Saturated)];
-    $screen = Native::test(RefreshingScreen::class)->assertSee('MangaDex is busy');
+    $screen = Native::test(RefreshingScreen::class)->assertSee('The provider is busy');
 
-    $screen->firePoll('checkWaitingRefreshes')->assertSee('MangaDex is busy');
+    $screen->firePoll('checkWaitingRefreshes')->assertSee('The provider is busy');
 
     $this->travel(5)->seconds();
     (new RefreshRepository(Refresh::of([FakeRefreshTarget::class, 'refresh'], 'latest')))->handle();
@@ -383,13 +383,13 @@ it('ignores a job result from before the screen started waiting', function () {
 
     Native::test(RefreshingScreen::class)
         ->firePoll('checkWaitingRefreshes')
-        ->assertSee('MangaDex is busy');
+        ->assertSee('The provider is busy');
 });
 
 it('retries from the poll when the job lands a MangaDex outage', function () {
     staleRow();
     FakeRefreshTarget::$script = [deferred(BusyReason::Saturated), new ApiError(503, 'MangaDex HTTP 503: down')];
-    $screen = Native::test(RefreshingScreen::class)->assertSee('MangaDex is busy');
+    $screen = Native::test(RefreshingScreen::class)->assertSee('The provider is busy');
 
     $this->travel(5)->seconds();
     (new RefreshRepository(Refresh::of([FakeRefreshTarget::class, 'refresh'], 'latest')))->handle();
@@ -397,7 +397,7 @@ it('retries from the poll when the job lands a MangaDex outage', function () {
     $screen->firePoll('checkWaitingRefreshes')
         ->assertSet('waiting', [])
         ->assertSet('items', ['saved'])
-        ->assertSee('MangaDex is having trouble, retrying');
+        ->assertSee('The provider is having trouble, retrying');
 
     $this->travel(14)->seconds();
     $screen->firePoll('checkWaitingRefreshes');
@@ -426,9 +426,9 @@ it('shows offline before limited before busy before unavailable before failed', 
 
     expect($lines)->toBe([
         'Offline, showing saved data',
-        'MangaDex is limiting this phone, try after 14:35',
-        'MangaDex is busy, will update shortly',
-        'MangaDex is having trouble, retrying',
+        'The provider is limiting this phone, try after 14:35',
+        'The provider is busy, will update shortly',
+        'The provider is having trouble, retrying',
         'Something went wrong',
     ]);
 });

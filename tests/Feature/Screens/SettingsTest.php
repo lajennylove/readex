@@ -292,10 +292,10 @@ it('shows the pause time instead of refreshing while MangaDex limits the phone (
     Queue::assertNothingPushed();
 })->with([0, 2]);
 
-it('opens MangaDex in the in-app browser', function () {
+it('opens the active provider URL in the in-app browser', function () {
     Native::test(Settings::class)
-        ->tap('Data from MangaDex')
-        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://mangadex.org');
+        ->tap('Data from your provider')
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://api.mangadex.org');
 });
 
 it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {
@@ -305,10 +305,10 @@ it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {
         ->assertNavigatedTo('/settings/sources');
 });
 
-it('credits MangaDex and the scanlation groups', function () {
+it('credits scanlation groups in the About row', function () {
     Native::test(Settings::class)
-        ->assertSee('Data from MangaDex')
-        ->assertSee('Chapters are translated by the scanlation groups named on each chapter. ReaDex is not affiliated with MangaDex.')
+        ->assertSee('Data from your provider')
+        ->assertSee('Chapters are translated by the scanlation groups credited on each chapter.')
         ->assertSee('ReaDex '.config('mangadex.app_version'));
 });
 

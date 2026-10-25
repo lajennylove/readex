@@ -199,7 +199,7 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
 it('keeps an empty row in place with placeholders while the others load (Review Focus 2)', function () {
     Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
 
-    $screen = Native::test(Home::class)->assertSee('This season')->assertSee('MangaDex is having trouble, retrying');
+    $screen = Native::test(Home::class)->assertSee('This season')->assertSee('The provider is having trouble, retrying');
 
     expect(rowItems($screen->tree(), 'This season'))->toBe(array_fill(0, 4, 'column'))
         ->and(rowItems($screen->tree(), 'Popular new titles'))->each->toBe('pressable')
@@ -227,7 +227,7 @@ it('says MangaDex is having trouble, without Retry, when the first visit meets a
         : null);
 
     $screen = Native::test(Home::class)
-        ->assertSee('MangaDex is having trouble, retrying')
+        ->assertSee('The provider is having trouble, retrying')
         ->assertSee('Retrying on its own.')
         ->assertDontSee('Nothing saved yet')
         ->assertDontSee('This season');
@@ -236,7 +236,7 @@ it('says MangaDex is having trouble, without Retry, when the first visit meets a
 
     Loading::fake();
     Carbon::setTestNow(Carbon::now()->addSeconds(15));
-    $screen->call('checkWaitingRefreshes')->assertDontSee('MangaDex is having trouble')->assertSee('This season');
+    $screen->call('checkWaitingRefreshes')->assertDontSee('The provider is having trouble')->assertSee('This season');
     expect(rowMangas()['season'])->not->toBeEmpty();
 });
 
@@ -253,11 +253,11 @@ it('still says nothing is saved and offers Retry when MangaDex rejects the first
     expect(homeNodes($screen->tree(), 'button'))->toHaveCount(1);
 });
 
-it('waits for the background retry instead of offering Retry when MangaDex is busy', function () {
+it('waits for the background retry instead of offering Retry when The provider is busy', function () {
     Loading::fake(fn () => throw new RequestDeferred(new Busy(Carbon::now()->addMinute()->getTimestampMs() / 1000, BusyReason::Saturated)));
 
     Native::test(Home::class)
-        ->assertSee('MangaDex is busy, will update shortly')
+        ->assertSee('The provider is busy, will update shortly')
         ->assertDontSee('Nothing saved yet')
         ->assertSee('This season');
 

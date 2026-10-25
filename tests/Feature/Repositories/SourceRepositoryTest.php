@@ -19,7 +19,7 @@ it('seeds the built-in MangaDex row once, idempotently', function () {
     expect(SourceConfig::query()->count())->toBe(1);
     $source = SourceConfig::query()->find(MangaDexSource::KEY);
 
-    expect($source->label)->toBe('MangaDex')
+    expect($source->label)->toBe('Built-in example source')
         ->and($source->kind)->toBe('builtin')
         ->and($source->enabled)->toBeTrue()
         ->and($source->blocked)->toBeFalse();

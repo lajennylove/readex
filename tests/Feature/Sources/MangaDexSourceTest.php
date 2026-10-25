@@ -23,7 +23,7 @@ beforeEach(function () {
 it('implements the generic Source interface', function () {
     expect($this->source)->toBeInstanceOf(Source::class)
         ->and($this->source->key())->toBe('mangadex')
-        ->and($this->source->label())->toBe('MangaDex')
+        ->and($this->source->label())->toBe('Built-in example source')
         ->and($this->source->isBuiltIn())->toBeTrue();
 });
 

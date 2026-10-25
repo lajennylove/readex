@@ -33,7 +33,7 @@ final class MangaDexSource implements Source
 
     public function label(): string
     {
-        return 'MangaDex';
+        return 'Built-in example source';
     }
 
     public function isBuiltIn(): bool

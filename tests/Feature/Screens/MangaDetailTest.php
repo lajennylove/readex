@@ -354,7 +354,7 @@ it('shows pulsing chapter rows while the first chapter list waits for MangaDex',
         return Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 500, 'offset' => 0, 'total' => 0]);
     });
 
-    $waiting = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('MangaDex is busy');
+    $waiting = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('The provider is busy');
     $busy = false;
     $answered = Native::visit('/home/manga/'.DETAIL_SEEDED)->assertSee('No chapters yet');
 
@@ -566,7 +566,7 @@ it('leaves the row out for a series nobody recommended anything for, and asks ag
     expect($asked())->toBe(2);
 });
 
-it('keeps the row in place with placeholders while MangaDex is busy, and leaves it out when the call failed', function () {
+it('keeps the row in place with placeholders while The provider is busy, and leaves it out when the call failed', function () {
     $fixtures = MangaDexFixtures::stub('manga-rtw', 'statistics-rtw', 'feed-rtw-es-la-p1', 'feed-rtw-es-la-p2');
     $fail = new RequestDeferred(new Busy(Carbon::now()->addMinute()->getTimestampMs() / 1000, BusyReason::Saturated));
     Http::swap(new Factory(app('events')));

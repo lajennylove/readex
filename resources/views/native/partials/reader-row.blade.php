@@ -39,8 +39,8 @@
         <native:text class="text-sm text-theme-on-surface-variant">Page {{ $row['number'] }} · Waiting for a connection</native:text>
     </native:pressable>
 @elseif ($row['trouble'])
-    <native:pressable native:key="page-{{ $row['number'] }}" class="w-full aspect-[{{ $row['ratio'] }}] items-center justify-center bg-black" @press="toggleBar" a11y-label="Page {{ $row['number'] }}, MangaDex is having trouble, retrying">
-        <native:text class="text-sm text-theme-on-surface-variant">Page {{ $row['number'] }} · MangaDex is having trouble, retrying</native:text>
+    <native:pressable native:key="page-{{ $row['number'] }}" class="w-full aspect-[{{ $row['ratio'] }}] items-center justify-center bg-black" @press="toggleBar" a11y-label="Page {{ $row['number'] }}, source is having trouble, retrying">
+        <native:text class="text-sm text-theme-on-surface-variant">Page {{ $row['number'] }} · The provider is having trouble, retrying</native:text>
     </native:pressable>
 @else
     <native:pressable native:key="page-{{ $row['number'] }}-tap" class="w-full" @press="toggleBar" a11y-label="Page {{ $row['number'] }}, loading">

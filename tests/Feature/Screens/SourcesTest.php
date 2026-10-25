@@ -13,10 +13,10 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-27 12:00:00');
 });
 
-it('lists MangaDex built in, never removable, with a block toggle', function () {
+it('lists the built-in example source, never removable, with a block toggle', function () {
     Native::visit('/settings/sources')
         ->assertScreen(Sources::class)
-        ->assertSee('MangaDex')
+        ->assertSee('Built-in example source')
         ->assertSee('Built in')
         ->assertDontSee('Remove');
 });

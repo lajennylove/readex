@@ -2,7 +2,7 @@
 
 namespace Tests\Support;
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Repositories\Freshness;
 use App\Repositories\Result;
 use Carbon\CarbonImmutable;

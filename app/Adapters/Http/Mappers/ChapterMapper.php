@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex\Mappers;
+namespace App\Adapters\Http\Mappers;
 
 use Carbon\CarbonImmutable;
 

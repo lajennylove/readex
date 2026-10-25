@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\Mappers\TagMapper;
+use App\Adapters\Http\Mappers\TagMapper;
 use Tests\Support\MangaDexFixtures;
 
 it('maps every recorded tag', function () {

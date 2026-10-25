@@ -2,9 +2,9 @@
 
 namespace App\NativeComponents\Concerns;
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Covers\CoverStore;
 use App\Language\LanguageChain;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\Manga;
 use App\NativeLayouts\TabsLayout;

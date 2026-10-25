@@ -1,9 +1,9 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Downloads\Downloads;
 use App\Downloads\DownloadState;
 use App\Jobs\DownloadChapter;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\Collection as LibraryEntry;
 use App\Models\Download;

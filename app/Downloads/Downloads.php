@@ -2,8 +2,8 @@
 
 namespace App\Downloads;
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadChapter;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\Download;
 use App\Models\StoredChapter;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex\Mappers;
+namespace App\Adapters\Http\Mappers;
 
 /** Manga entities → `manga` rows (without `fetched_at`, the repository sets it). */
 final class MangaMapper

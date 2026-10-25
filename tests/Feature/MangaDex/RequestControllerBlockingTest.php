@@ -1,12 +1,12 @@
 <?php
 
-use App\MangaDex\RateLimit\Busy;
-use App\MangaDex\RateLimit\BusyReason;
-use App\MangaDex\RateLimit\Call;
-use App\MangaDex\RateLimit\ConnectionState;
-use App\MangaDex\RateLimit\Priority;
-use App\MangaDex\RateLimit\RequestController;
-use App\MangaDex\RateLimit\Slot;
+use App\Adapters\Http\RateLimit\Busy;
+use App\Adapters\Http\RateLimit\BusyReason;
+use App\Adapters\Http\RateLimit\Call;
+use App\Adapters\Http\RateLimit\ConnectionState;
+use App\Adapters\Http\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\RequestController;
+use App\Adapters\Http\RateLimit\Slot;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;

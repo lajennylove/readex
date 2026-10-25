@@ -2,9 +2,9 @@
 
 namespace App\Refresh;
 
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\BusyReason;
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\BusyReason;
 use App\Storage\StorageBridge;
 use Carbon\CarbonImmutable;
 use Closure;

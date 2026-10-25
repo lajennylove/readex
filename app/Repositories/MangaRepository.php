@@ -2,10 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Adapters\Http\Client;
+use App\Adapters\Http\Mappers\MangaMapper;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Language\LanguageChain;
-use App\MangaDex\Client;
-use App\MangaDex\Mappers\MangaMapper;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Manga;
 use App\Models\MangaListEntry;
 use Illuminate\Support\Carbon;

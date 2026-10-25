@@ -2,7 +2,7 @@
 
 namespace App\Sources;
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Repositories\Result;
 
 /**

@@ -2,10 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Covers\CoverStore;
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Manga;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;

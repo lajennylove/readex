@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\Mappers\MangaMapper;
+use App\Adapters\Http\Mappers\MangaMapper;
 use Tests\Support\MangaDexFixtures;
 
 it('maps a search result with its cover file name', function () {

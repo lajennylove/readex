@@ -1,8 +1,8 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Covers\CoverStore;
 use App\Jobs\DownloadCovers;
-use App\MangaDex\RateLimit\Priority;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;

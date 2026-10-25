@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex\Mappers;
+namespace App\Adapters\Http\Mappers;
 
 /** Localized text maps (`{"en": "…"}`). An empty one arrives as `[]` (sent as `{}` or `[]`). */
 final class Text

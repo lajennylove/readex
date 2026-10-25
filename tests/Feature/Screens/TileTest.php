@@ -1,7 +1,7 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadCovers;
-use App\MangaDex\RateLimit\Priority;
 use App\NativeLayouts\TabsLayout;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Http;

@@ -2,8 +2,8 @@
 
 namespace App\Repositories;
 
-use App\MangaDex\Client;
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\Client;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Statistic;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

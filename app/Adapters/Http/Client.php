@@ -1,13 +1,13 @@
 <?php
 
-namespace App\MangaDex;
+namespace App\Adapters\Http;
 
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\Busy;
-use App\MangaDex\RateLimit\Call;
-use App\MangaDex\RateLimit\Priority;
-use App\MangaDex\RateLimit\RequestController;
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\Busy;
+use App\Adapters\Http\RateLimit\Call;
+use App\Adapters\Http\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\RequestController;
 use Closure;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Client\ConnectionException;

@@ -6,7 +6,6 @@ use App\Language\LanguageChain;
 use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeComponents\Concerns\ShowsTiles;
 use App\NativeLayouts\HasResumeBar;
-use App\Repositories\ContinueReading;
 use App\Repositories\LibraryRepository;
 use App\Repositories\LibraryTile;
 use App\Repositories\SettingsRepository;
@@ -113,7 +112,6 @@ class Library extends NativeComponent implements HasResumeBar
         $grid = $this->grid();
 
         return view('native.library', [
-            'continue' => $this->continueReading()->map(fn (ContinueReading $c) => $this->continueTile($c, $chain))->all(),
             'tiles' => $grid->map(fn (LibraryTile $t) => $this->libraryTile($t, $chain))->all(),
             'interested' => app(ViewedSeriesRepository::class)->list()->map(fn ($m) => $this->tile($m, $chain, longPress: 'removeFromInterestRow'))->all(),
             'filter' => $this->filter,

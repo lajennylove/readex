@@ -2,6 +2,7 @@
 
 use App\Models\Manga;
 use App\Models\ViewedSeries;
+use App\Repositories\LibraryRepository;
 use App\Repositories\ViewedSeriesRepository;
 use Illuminate\Support\Carbon;
 
@@ -116,6 +117,26 @@ it('removes a row manually ("Remove from this list"), and a later Detail visit r
 
     $row = ViewedSeries::query()->find(vsId(1));
     expect($row->first_viewed_at->toDateTimeString())->toBe('2026-10-25 15:00:00');
+});
+
+it('list() excludes any viewed series the user already committed to (collections row exists), regardless of event order (bugfix/0020)', function () {
+    vsManga(1);
+    vsManga(2);
+    vsManga(3);
+    $this->viewed->recordView(vsId(1));
+    $this->viewed->recordView(vsId(2));
+    $this->viewed->recordView(vsId(3));
+
+    // The user favorites #1 directly (bypassing MangaDetail → removeOnFavorite still fires),
+    // then opens Detail of #2 again after already being in collections from somewhere else, and
+    // downloads a chapter of #3. All three end up in collections; list() must exclude them.
+    app(LibraryRepository::class)->add(vsId(1));
+    app(LibraryRepository::class)->add(vsId(2));
+    app(LibraryRepository::class)->add(vsId(3));
+
+    expect($this->viewed->list())->toBeEmpty();
+    // The underlying rows stay (CAP keeps the table small): the filter is at read time.
+    expect(ViewedSeries::query()->count())->toBe(3);
 });
 
 it('leaves a row out when its manga is missing', function () {

@@ -65,14 +65,23 @@ final class ViewedSeriesRepository
     }
 
     /**
-     * Most-recently-viewed first (D41). A manga row that's gone (deleted series) is left out, so
-     * the remaining tiles reflow with no gap.
+     * Most-recently-viewed first (D41), excluding any series the user has already committed to:
+     * anything in `collections` (favorited, pinned, read, or downloaded all route through
+     * `LibraryRepository::add`) is dropped. A series the user glanced at before favoriting from
+     * somewhere else — or downloaded a chapter of without ever visiting Detail again — is still
+     * in `viewed_series` as a stale row; it's filtered at read time rather than racing the
+     * removeOn* events, so the row is correct regardless of event order. The stale rows are
+     * harmless (CAP of 10 keeps the table small). Also drops any manga whose row is gone.
      *
      * @return Collection<int, Manga>
      */
     public function list(): Collection
     {
-        $ids = ViewedSeries::query()->orderByDesc('last_viewed_at')->orderByDesc('manga_id')->pluck('manga_id');
+        $ids = ViewedSeries::query()
+            ->whereNotIn('manga_id', DB::table('collections')->select('manga_id'))
+            ->orderByDesc('last_viewed_at')
+            ->orderByDesc('manga_id')
+            ->pluck('manga_id');
         $manga = Manga::query()->whereIn('id', $ids)->get()->keyBy('id');
 
         return $ids->map(fn (string $id) => $manga->get($id))->filter()->values();

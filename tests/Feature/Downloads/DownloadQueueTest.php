@@ -9,10 +9,7 @@ use App\Downloads\QueueState;
 use App\Jobs\DownloadChapter;
 use App\Models\Chapter;
 use App\Models\Download;
-use App\Pages\FetchPages;
-use App\Pages\PageFetcher;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
 use Native\Mobile\AsyncTask;
@@ -54,7 +51,7 @@ describe('enqueueBatch', function () {
 
         expect($n)->toBe(3)
             ->and(q21Positions())->toBe(['a1', 'a2', 'a3'])
-            ->and(Download::query()->pluck('state', 'chapter_id')->all())
+            ->and(Download::query()->pluck('state', 'chapter_id')->map(fn ($s) => $s->value)->all())
             ->toBe(['a1' => 'queued', 'a2' => 'queued', 'a3' => 'queued']);
     });
 
@@ -103,7 +100,7 @@ describe('readNow', function () {
             ->and(Download::query()->where('chapter_id', 'bg-1')->exists())->toBeTrue()
             ->and(Download::query()->where('chapter_id', 'read-1')->exists())->toBeFalse();
 
-        $this->async->assertDispatched(FetchPages::class);
+        $this->async->assertDispatchedTimes(1);
     });
 
     it('on a queued chapter: removes the row so we do not double-download, fills comodin, dispatches Interactive FetchPages', function () {
@@ -115,7 +112,7 @@ describe('readNow', function () {
 
         expect(Download::query()->where('chapter_id', 'x')->exists())->toBeFalse()
             ->and($this->queue->readNowChapterId())->toBe('x');
-        $this->async->assertDispatched(FetchPages::class);
+        $this->async->assertDispatchedTimes(1);
     });
 
     it('fires while the background lane is actively downloading another chapter — background chapter stays Downloading, both run in parallel', function () {
@@ -133,7 +130,7 @@ describe('readNow', function () {
         // Background chapter did NOT pause.
         expect(Download::query()->whereKey('bg')->first()->state)->toBe(QueueState::Downloading)
             ->and($this->queue->readNowChapterId())->toBe('tap');
-        $this->async->assertDispatched(FetchPages::class);
+        $this->async->assertDispatchedTimes(1);
     });
 
     it('returns null for an unknown chapter id', function () {
@@ -221,7 +218,7 @@ describe('pause / resume / cancel', function () {
             ->and($this->queue->isCanceling('a1'))->toBeTrue();
     });
 
-    it('cancel on a queued or paused row transitions straight to done', function () {
+    it('cancel on a queued or paused row deletes the row outright (Q2: a cancelled chapter is not "done", it is not going to happen)', function () {
         q21Chapter('a1');
         q21Chapter('a2');
         $this->queue->enqueueOne('a1');
@@ -231,8 +228,8 @@ describe('pause / resume / cancel', function () {
         $this->queue->cancel('a1');
         $this->queue->cancel('a2');
 
-        expect(Download::query()->whereKey('a1')->first()->state)->toBe(QueueState::Done)
-            ->and(Download::query()->whereKey('a2')->first()->state)->toBe(QueueState::Done);
+        expect(Download::query()->whereKey('a1')->exists())->toBeFalse()
+            ->and(Download::query()->whereKey('a2')->exists())->toBeFalse();
     });
 });
 

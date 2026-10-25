@@ -10,6 +10,8 @@ use App\Models\Chapter;
 use App\Models\Download;
 use App\Pages\FetchPages;
 use App\Pages\PageFetcher;
+use App\Storage\DiskSpaceGuard;
+use App\Storage\Exceptions\DiskSpaceLow;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +44,7 @@ final class DownloadQueue
 {
     public function __construct(
         private readonly PageFetcher $fetcher,
+        private readonly DiskSpaceGuard $diskSpace,
     ) {}
 
     /**
@@ -205,9 +208,11 @@ final class DownloadQueue
     }
 
     /**
-     * Flip the row to `canceling`; the worker observes this between pages and halts,
-     * then flips to `done` so the chain moves on. A queued/paused row with no running
-     * worker can be transitioned straight to `done` and the chain kicked.
+     * Cancelled chapters are **deleted** from the queue (not kept as `done`), per Jenny's
+     * call: a cancelled chapter isn't "done", it's "not going to happen", so excluding it
+     * from the denominator ("3 / 54" → "3 / 53") is more honest. A `downloading` row is
+     * flagged `canceling` first so the running worker halts between pages; the worker
+     * then deletes the row rather than marking it done.
      */
     public function cancel(string $chapterId): void
     {
@@ -225,12 +230,7 @@ final class DownloadQueue
             return;
         }
 
-        Download::query()
-            ->whereKey($chapterId)
-            ->update([
-                'state' => QueueState::Done->value,
-                'finished_at' => Carbon::now(),
-            ]);
+        Download::query()->whereKey($chapterId)->delete();
     }
 
     /**
@@ -300,9 +300,23 @@ final class DownloadQueue
      * Claim the next runnable row for the background lane. Flips `queued → downloading`
      * atomically so two workers never both claim the same row. Returns the row the
      * caller is now responsible for finishing (or releasing back to `queued`).
+     *
+     * `DiskSpaceGuard::ensure()` is called at this chapter boundary, matching
+     * `CoverStore::download`. If the device is nearly full, we leave the row at
+     * `queued` and bail — the next kick retries, and the user sees the
+     * "waiting on disk space" state through the DiskSpaceLow handling path.
+     *
+     * @throws DiskSpaceLow when the device is nearly full; the caller should release
+     *                      the job back for retry (same contract as CoverStore::download).
      */
     public function claimNext(): ?Download
     {
+        if ($this->nextRunnable() === null) {
+            return null;
+        }
+
+        $this->diskSpace->ensure();
+
         return DB::transaction(function () {
             $next = $this->nextRunnable();
 
@@ -360,9 +374,19 @@ final class DownloadQueue
             ->exists();
     }
 
-    /** Dispatch a DownloadChapter to drain the next runnable row, if any. */
+    /**
+     * Dispatch a DownloadChapter to drain the next runnable row — but ONLY when the
+     * background lane is idle. If a chapter is already `downloading`, that job will
+     * chain-kick the next one itself when it finishes; a second dispatch here would
+     * double-pick the queue and surface as spurious extra jobs in tests that count
+     * `Queue::assertPushed(DownloadChapter::class, N)`.
+     */
     public function kick(): void
     {
+        if (Download::query()->where('state', QueueState::Downloading->value)->exists()) {
+            return;
+        }
+
         $next = $this->nextRunnable();
 
         if ($next === null) {

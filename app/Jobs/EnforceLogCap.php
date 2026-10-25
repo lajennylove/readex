@@ -22,6 +22,16 @@ class EnforceLogCap implements ShouldBeUniqueUntilProcessing, ShouldQueue
 
     public int $uniqueFor = 3600;
 
+    /**
+     * Keeps this job itself from retriggering AppServiceProvider's Queue::after()/
+     * exceptionOccurred()/failing() hooks — those fire after every queue job attempt, including
+     * this one's own, which would otherwise recurse (infinitely under the sync driver tests use).
+     */
+    public function uniqueId(): string
+    {
+        return self::class;
+    }
+
     public function handle(LogCap $cap): void
     {
         $cap->enforce();

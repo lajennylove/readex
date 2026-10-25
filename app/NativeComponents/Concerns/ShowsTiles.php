@@ -11,6 +11,7 @@ use App\NativeLayouts\TabsLayout;
 use App\Repositories\ContinueReading;
 use App\Repositories\LibraryRepository;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Facades\Dialog;
 
@@ -93,8 +94,20 @@ trait ShowsTiles
             return;
         }
 
+        $screen = class_basename(static::class);
         $missingByRow = array_map(fn (array $row) => $covers->missingCovers($row), $rows);
-        $budgets = self::allocateFetchBudget(array_map(fn (array $missing) => count($missing), $missingByRow), (int) config('readex.covers.visible'));
+        $needs = array_map(fn (array $missing) => count($missing), $missingByRow);
+        $budget = (int) config('readex.covers.visible');
+        $budgets = self::allocateFetchBudget($needs, $budget);
+
+        Log::channel('covers')->info('queueRowCovers', [
+            'screen' => $screen,
+            'row_sizes' => array_map(fn (array $r) => count($r), $rows),
+            'needs' => $needs,
+            'budget' => $budget,
+            'allocated' => $budgets,
+        ]);
+
         $background = [];
 
         foreach ($rows as $index => $row) {
@@ -105,6 +118,7 @@ trait ShowsTiles
             $background = [...$background, ...array_values(array_filter($row, fn (Manga $m) => ! isset($fetchNowIds[$m->id])))];
         }
 
+        Log::channel('covers')->info('queueRowCovers: background queue', ['count' => count($background)]);
         $covers->queue($background, Priority::Prefetch);
     }
 

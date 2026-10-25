@@ -65,11 +65,22 @@ return [
             'replace_placeholders' => true,
         ],
 
+        /**
+         * Diagnostic trace of the Home-tile cover-fetch pipeline. Separate file so the signal
+         * isn't drowned in `laravel.log`. Tail with: tail -f storage/logs/covers.log
+         */
+        'covers' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/covers.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'max_files' => env('LOG_DAILY_DAYS', 14),
+            'max_files' => env('LOG_DAILY_DAYS', 7),
             'replace_placeholders' => true,
         ],
 

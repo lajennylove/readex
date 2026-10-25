@@ -4,6 +4,7 @@ use App\Repositories\FactoryReset;
 use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
 use App\Repositories\SourceRepository;
+use App\Repositories\ViewedSeriesRepository;
 use App\Storage\PageStore;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -32,17 +33,19 @@ it('deletes every table\'s rows', function () {
     Stored::chapter('fr-a');
     app(LibraryRepository::class)->addChapter('fr-a');
     app(LibraryRepository::class)->saveProgress('fr-a', 0, 2);
+    app(ViewedSeriesRepository::class)->recordView('fr-a');
 
     expect(DB::table('settings')->count())->toBeGreaterThan(0)
         ->and(DB::table('sources')->count())->toBeGreaterThan(0)
         ->and(DB::table('collections')->count())->toBeGreaterThan(0)
         ->and(DB::table('reading_progress')->count())->toBeGreaterThan(0)
         ->and(DB::table('stored_chapters')->count())->toBeGreaterThan(0)
+        ->and(DB::table('viewed_series')->count())->toBeGreaterThan(0)
         ->and(DB::table('chapters')->count())->toBeGreaterThan(0);
 
     app(FactoryReset::class)->wipe();
 
-    foreach (['settings', 'sources', 'collections', 'reading_progress', 'stored_chapters', 'chapters', 'manga', 'manga_lists', 'tags', 'statistics', 'recommendations', 'at_home', 'chapter_feeds', 'downloads', 'rate_buckets', 'api_usage'] as $table) {
+    foreach (['settings', 'sources', 'collections', 'reading_progress', 'stored_chapters', 'viewed_series', 'chapters', 'manga', 'manga_lists', 'tags', 'statistics', 'recommendations', 'at_home', 'chapter_feeds', 'downloads', 'rate_buckets', 'api_usage'] as $table) {
         expect(DB::table($table)->count())->toBe(0, "{$table} should be empty after a factory reset");
     }
 });

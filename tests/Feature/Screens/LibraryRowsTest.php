@@ -115,6 +115,17 @@ it('cancelling the prompt leaves the series in the interest row', function () {
     expect(app(ViewedSeriesRepository::class)->list())->not->toBeEmpty();
 });
 
+it('includes the current resume-bar series in the Reading row so it is still visible in the full list', function () {
+    lrsManga(1, 'In-progress series');
+    lrsChapter(1, 1, '1');
+    $this->library->add(lrsId('m', 1));
+    $this->library->saveProgress(lrsId('c', 1), 3, 20);
+
+    Native::visit('/library')
+        ->assertSee('Reading')
+        ->assertSee('In-progress series');
+});
+
 it('shows a downloaded series under the Downloaded row with its status chip', function () {
     lrsManga(1, 'Finished series');
     lrsChapter(1, 1, '1');

@@ -408,7 +408,7 @@ it('renders Home and Library without dropped Tailwind classes', function () {
     fillHome();
     app(LibraryRepository::class)->saveProgress(app(HomeRepository::class)->latest()->data->first()->chapter->id, 0, 10);
     Native::test(Home::class)->assertSee('This season');
-    Native::test(Library::class)->assertSee('Your series will show up here');
+    Native::test(Library::class)->assertSee('Reading');
 
     expect($dropped)->toBe([]);
 });

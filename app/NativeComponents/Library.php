@@ -24,8 +24,7 @@ use Native\Mobile\Facades\Dialog;
  *   - Favorites        — every favorited series, latest favorite first.
  *   - New              — fully downloaded + no chapter opened yet, latest download first.
  *   - Downloaded       — every fully-downloaded series, latest download first.
- *   - Reading          — every series with any reading progress, latest read first,
- *                        excluding the one currently in the resume bar.
+ *   - Reading          — every series with any reading progress, latest read first.
  *   - Interested       — "You may still be interested" row (D42), kept as-is.
  */
 class Library extends NativeComponent implements HasResumeBar
@@ -87,14 +86,10 @@ class Library extends NativeComponent implements HasResumeBar
         $chain = app(SettingsRepository::class)->chain();
         $library = app(LibraryRepository::class);
 
-        $resumeBarMangaId = $library->lastOpened()?->manga->id;
-
         $favorites = $library->grid('added', '', 'favorites');
         $downloaded = $library->grid('downloaded', '', 'downloaded');
         $new = $downloaded->filter(fn (LibraryTile $t) => $t->chips->new);
-        $reading = $library->grid('opened', '', 'reading')
-            ->reject(fn (LibraryTile $t) => $t->manga->id === $resumeBarMangaId)
-            ->values();
+        $reading = $library->grid('opened', '', 'reading');
 
         $toTiles = fn (Collection $rows) => $rows->map(fn (LibraryTile $t) => $this->libraryTile($t, $chain))->values()->all();
 
@@ -128,14 +123,10 @@ class Library extends NativeComponent implements HasResumeBar
     private function queueTileCovers(): void
     {
         $library = app(LibraryRepository::class);
-        $resumeBarMangaId = $library->lastOpened()?->manga->id;
 
         $favorites = $library->grid('added', '', 'favorites')->map(fn (LibraryTile $t) => $t->manga)->all();
         $downloaded = $library->grid('downloaded', '', 'downloaded')->map(fn (LibraryTile $t) => $t->manga)->all();
-        $reading = $library->grid('opened', '', 'reading')
-            ->reject(fn (LibraryTile $t) => $t->manga->id === $resumeBarMangaId)
-            ->map(fn (LibraryTile $t) => $t->manga)
-            ->all();
+        $reading = $library->grid('opened', '', 'reading')->map(fn (LibraryTile $t) => $t->manga)->all();
         $interested = app(ViewedSeriesRepository::class)->list()->all();
 
         $this->queueRowCovers([$favorites, $downloaded, $reading, $interested]);

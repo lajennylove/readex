@@ -206,7 +206,9 @@ Merging to `main` is blocked unless every step is green.
 
 ## 6. Copy neutrality (non-negotiable)
 
-ReaDex is content-source agnostic. **No view, string file, screen, button, placeholder, help text, error message, or comment may name a specific third-party content site** (manga aggregator, piracy host, streaming service, etc.). The only named external service permitted is MangaDex, because it is a documented, credited API integration with its own adapter.
+ReaDex is content-source agnostic. **No view, string file, screen, button, placeholder, help text, error message, or comment may name a specific third-party content site** (manga aggregator, piracy host, streaming service, etc.).
+
+The reference adapter in `app/MangaDex/` + `app/Sources/MangaDexSource.php` currently names its upstream in namespaces, config keys, class names, and some user-facing refresh / Settings / EULA copy. A generic-rename pass (planned separately in Obsidian under `Plan-08b-Generic-Adapter-Rename.md`) will land those changes end-to-end, after which no brand name is permitted anywhere in the codebase. Until that lands, do not **add** new MangaDex mentions; do not **widen** the exemption.
 
 This is enforced by `tests/Feature/CopyNeutralityTest.php`, which scans Blade views **and** `app/NativeComponents/` + `app/NativeLayouts/` (strings, titles, placeholders, and code comments). Do not weaken, skip, or mark that test as risky. If it fails on your branch, fix the copy — do not edit the test's banned-term list to make the failure go away. See [`docs/COPY-NEUTRALITY.md`](./docs/COPY-NEUTRALITY.md) for the full policy and rationale.
 
@@ -223,4 +225,4 @@ Rule of thumb when writing UI copy: say **"your content source"**, **"the config
 - Keep diffs focused. No drive-by reformatting of untouched files.
 - When unsure which of two reasonable approaches to take, state the trade-off in one sentence and ask.
 - Never bypass pre-commit hooks, PR checks, or branch protection.
-- Never generate marketing copy, landing-page text, or App Store descriptions that name a non-MangaDex content site (see §6).
+- Never generate marketing copy, landing-page text, or any other user-facing text that names a specific third-party content site (see §6).

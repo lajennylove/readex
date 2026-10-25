@@ -42,7 +42,7 @@ final class Client
     /** Drop the shared response of get($path, $query), so the next identical GET really asks MangaDex. */
     public function forget(string $path, array $query = []): void
     {
-        Cache::store(config('mangadex.share_store'))->forget($this->shareKey($this->apiUrl($path, $query)));
+        Cache::store(config('source.share_store'))->forget($this->shareKey($this->apiUrl($path, $query)));
     }
 
     /** @throws RequestDeferred|ApiError|ConnectionException */
@@ -88,8 +88,8 @@ final class Client
 
     public function userAgent(): string
     {
-        $agent = 'ReaDex/'.config('mangadex.app_version');
-        $contact = config('mangadex.contact');
+        $agent = 'ReaDex/'.config('source.app_version');
+        $contact = config('source.contact');
 
         return $contact ? "{$agent} (+{$contact})" : $agent;
     }
@@ -122,7 +122,7 @@ final class Client
     /** Identical GETs in flight or finished within share_seconds get one response. */
     private function shared(string $url, float $maxWait, Closure $fetch): string
     {
-        $store = Cache::store(config('mangadex.share_store'));
+        $store = Cache::store(config('source.share_store'));
         $key = $this->shareKey($url);
 
         if (is_string($body = $store->get($key))) {
@@ -143,7 +143,7 @@ final class Client
             }
 
             $body = $fetch();
-            $store->put($key, $body, config('mangadex.share_seconds'));
+            $store->put($key, $body, config('source.share_seconds'));
 
             return $body;
         } finally {
@@ -153,7 +153,7 @@ final class Client
 
     private function apiUrl(string $path, array $query): string
     {
-        $url = rtrim(config('mangadex.api_url'), '/').'/'.ltrim($path, '/');
+        $url = rtrim(config('source.api_url'), '/').'/'.ltrim($path, '/');
 
         return $query === [] ? $url : $url.'?'.Query::build($query);
     }
@@ -174,7 +174,7 @@ final class Client
             return;
         }
 
-        $call = new Call('POST', config('mangadex.report_url'));
+        $call = new Call('POST', config('source.report_url'));
         $slot = $this->controller->acquire($call, Priority::Bulk, 0);
 
         if ($slot instanceof Busy) {
@@ -183,8 +183,8 @@ final class Client
 
         try {
             $response = $this->http()
-                ->connectTimeout(config('mangadex.report_connect_timeout'))
-                ->timeout(config('mangadex.report_timeout'))
+                ->connectTimeout(config('source.report_connect_timeout'))
+                ->timeout(config('source.report_timeout'))
                 ->asJson()
                 ->post($call->url, [
                     'url' => $url,
@@ -200,15 +200,15 @@ final class Client
         $this->controller->record($slot, $response);
 
         if ($response?->successful() !== true) {
-            Cache::put(self::REPORT_SKIP_KEY, true, config('mangadex.report_skip_seconds'));
+            Cache::put(self::REPORT_SKIP_KEY, true, config('source.report_skip_seconds'));
         }
     }
 
     private function http(): PendingRequest
     {
         return Http::withUserAgent($this->userAgent())
-            ->connectTimeout(config('mangadex.connect_timeout'))
-            ->timeout(config('mangadex.timeout'));
+            ->connectTimeout(config('source.connect_timeout'))
+            ->timeout(config('source.timeout'));
     }
 
     private function isMangaDexHost(string $host): bool

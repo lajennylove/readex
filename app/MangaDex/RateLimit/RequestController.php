@@ -20,7 +20,7 @@ final class RequestController
 
     public function __construct(private readonly LimitsTable $limits)
     {
-        $this->tuning = config('mangadex.controller');
+        $this->tuning = config('source.controller');
     }
 
     public function acquire(Call $call, Priority $priority, float $maxWait): Slot|Busy
@@ -74,7 +74,7 @@ final class RequestController
     {
         $now = $this->now();
         $minute = (int) floor($now / 60);
-        $family = $this->peek('family:'.config('mangadex.status_family'));
+        $family = $this->peek('family:'.config('source.status_family'));
         $global = $this->peek('global');
 
         $lastMinute = (int) DB::table('api_usage')->where('minute', $minute)->sum('requests');

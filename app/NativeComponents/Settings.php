@@ -232,7 +232,7 @@ class Settings extends NativeComponent implements HasResumeBar
     private function providerUrl(): string
     {
         return app(SourceRepository::class)->enabled()->first()?->config['base_url']
-            ?? rtrim(config('mangadex.api_url'), '/');
+            ?? rtrim(config('source.api_url'), '/');
     }
 
     /** "18:52" when the source has paused this phone, else null. */
@@ -304,7 +304,7 @@ class Settings extends NativeComponent implements HasResumeBar
             'refreshBlocked' => $this->refilling() || $paused !== null,
             'lastRefreshed' => $refreshedAt === null ? 'Never refreshed' : 'Last refreshed '.$this->localTime($refreshedAt, 'M j, H:i'),
             'stepLabels' => DataLoader::STEPS,
-            'version' => config('mangadex.app_version'),
+            'version' => config('source.app_version'),
             'providerLabel' => $provider,
             'providerUrl' => $this->providerUrl(),
             'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',

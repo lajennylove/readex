@@ -22,6 +22,7 @@ class Download extends Model
     {
         return [
             'position' => 'integer',
+            'state' => \App\Downloads\QueueState::class,
             'started_at' => 'immutable_datetime',
             'finished_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',

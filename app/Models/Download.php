@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Downloads\QueueState;
 use Illuminate\Database\Eloquent\Model;
 
 class Download extends Model
@@ -22,6 +23,7 @@ class Download extends Model
     {
         return [
             'position' => 'integer',
+            'state' => QueueState::class,
             'started_at' => 'immutable_datetime',
             'finished_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',

@@ -20,7 +20,10 @@ final class LibraryRepository
     /** Library grid sort options (spec section 1), exactly these 4. */
     public const SORTS = ['opened', 'downloaded', 'added', 'title'];
 
-    public function __construct(private readonly SeriesStatusRepository $status) {}
+    public function __construct(
+        private readonly SeriesStatusRepository $status,
+        private readonly ViewedSeriesRepository $viewed,
+    ) {}
 
     public function add(string $mangaId): LibraryEntry
     {
@@ -61,6 +64,12 @@ final class LibraryRepository
     public function setFavorite(string $mangaId, bool $favorite): void
     {
         $this->add($mangaId)->update(['favorite' => $favorite]);
+
+        if ($favorite) {
+            // D42: favoriting makes it a first-class Library entry at once, leaving the
+            // "You may still be interested" row.
+            $this->viewed->removeOnFavorite($mangaId);
+        }
     }
 
     /** Library grid tile long-press "Pin"/"Unpin" (spec §1): pinned series lead the grid. */
@@ -101,6 +110,9 @@ final class LibraryRepository
             }
 
             $progress->save();
+            // D42: opening (reading) any chapter of a series promotes it out of the interest row,
+            // independent of favoriting.
+            $this->viewed->removeOnRead($mangaId);
 
             return $progress;
         });

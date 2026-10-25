@@ -7,6 +7,7 @@ use App\Downloads\DownloadState;
 use App\Jobs\PrefetchNext;
 use App\Models\Chapter;
 use App\Models\StoredChapter;
+use App\NativeComponents\Concerns\EdgeSwipesBack;
 use App\NativeComponents\Concerns\ManagesDownloads;
 use App\NativeComponents\Concerns\OpensChapters;
 use App\NativeLayouts\TabsLayout;
@@ -43,6 +44,7 @@ use Native\Mobile\Facades\Network;
  */
 class Reader extends NativeComponent
 {
+    use EdgeSwipesBack;
     use HasVirtualListWindow;
     use ManagesDownloads;
     use OpensChapters;

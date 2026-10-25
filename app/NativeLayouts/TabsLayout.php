@@ -2,6 +2,11 @@
 
 namespace App\NativeLayouts;
 
+use App\NativeComponents\Downloads;
+use App\NativeComponents\Home;
+use App\NativeComponents\Library;
+use App\NativeComponents\Search;
+use App\NativeComponents\Settings;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavBar;
 use Native\Mobile\Edge\Layouts\Builders\Tab;
@@ -23,11 +28,30 @@ class TabsLayout extends NativeLayout
         return true;
     }
 
+    /** Tab-root screen classes — the five screens whose nav bar never shows a back arrow. */
+    public const TAB_ROOTS = [
+        Home::class,
+        Search::class,
+        Library::class,
+        Downloads::class,
+        Settings::class,
+    ];
+
     public function navBar(NativeComponent $screen): ?NavBar
     {
+        // Native back arrow on anything that isn't a tab root. The chrome
+        // wires the arrow to the screen's own back() method; `->back(true)` on
+        // the NavBar builder is enough — no callback plumbing needed.
         return NavBar::make()
             ->title($screen->navTitle())
-            ->displayMode('automatic');
+            ->displayMode('automatic')
+            ->back(self::showsBackArrow($screen));
+    }
+
+    /** True when the given screen is a pushed detail, not one of the five tab roots. */
+    public static function showsBackArrow(NativeComponent $screen): bool
+    {
+        return ! in_array(get_class($screen), self::TAB_ROOTS, true);
     }
 
     public function tabBar(NativeComponent $screen): ?TabBar

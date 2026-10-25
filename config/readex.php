@@ -115,6 +115,16 @@ return [
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 
+    'refreshes_data' => [
+        // Spec §7 polling cadence (RefreshesData::checkWaitingRefreshes).
+        // iOS keeps the historical 3s tick; Android lengthens it so colour e-ink
+        // devices (e.g. Bigme HiBreak Pro Color) aren't held under the ~700ms
+        // PHP render time of each tick. Patched into the vendor's private
+        // pollDefinitions cache on first fire (see RefreshesData trait).
+        'ios_poll_ms' => 3000,
+        'android_poll_ms' => 15000,
+    ],
+
     'seasonal_url' => 'https://antsylich.github.io/mangadex-seasonal/seasonal-list.json',
 
 ];

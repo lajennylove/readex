@@ -123,6 +123,78 @@ it('builds detail URIs per tab', function () {
         ->and(TabsLayout::tabOf(null))->toBe('home');
 });
 
+// Nav back arrow: TabsLayout flags a native back arrow on anything that isn't
+// one of the five tab roots. The native-chrome rollout wires that flag to the
+// screen's own back() method, so a hand-rolled callback isn't needed.
+it('shows a native back arrow on non-root screens', function () {
+    expect(TabsLayout::showsBackArrow(new MangaDetail))->toBeTrue();
+    foreach ([Home::class, Search::class, Library::class, Settings::class] as $root) {
+        expect(TabsLayout::showsBackArrow(new $root))->toBeFalse();
+    }
+});
+
+// The flag reaches the published tree as the chrome's `back` prop on the
+// native_root_tabs node. Assert on a pushed detail screen.
+it('emits the back-arrow flag on a pushed detail screen', function () {
+    $find = function (array $node) use (&$find): ?array {
+        if (($node['type'] ?? null) === 'native_root_tabs') {
+            return $node;
+        }
+        foreach ($node['children'] ?? [] as $child) {
+            if (is_array($child) && ($found = $find($child)) !== null) {
+                return $found;
+            }
+        }
+
+        return null;
+    };
+
+    $tree = Native::visit('/home/manga/abc-123')->tree();
+    $tabs = $find($tree);
+
+    // NavBar::make()->back(true) folds into the chrome root as `navBack: true`
+    // (NativeComponent prefixes NavBar's toRootProps with `nav`).
+    expect($tabs['props']['navBack'] ?? null)->toBeTrue();
+});
+
+it('does not show a back arrow on a tab root', function () {
+    $find = function (array $node) use (&$find): ?array {
+        if (($node['type'] ?? null) === 'native_root_tabs') {
+            return $node;
+        }
+        foreach ($node['children'] ?? [] as $child) {
+            if (is_array($child) && ($found = $find($child)) !== null) {
+                return $found;
+            }
+        }
+
+        return null;
+    };
+
+    $tabs = $find(Native::visit('/home')->tree());
+
+    expect($tabs['props']['navBack'] ?? null)->toBeFalse();
+});
+
+// Edge-swipe back gesture: the handler takes the direction string from the
+// GestureArea's @swipe recognizer. Only a right-ward swipe (left→right) pops
+// the screen; a vertical scroll on a chapter list must not trigger back.
+it('pops the screen on a left-edge right swipe', function () {
+    Native::visit('/home/manga/abc-123')
+        ->call('edgeSwipeBack', 'right')
+        ->assertWentBack();
+});
+
+it('ignores non-right edge swipes', function () {
+    Native::visit('/home/manga/abc-123')
+        ->call('edgeSwipeBack', 'left')
+        ->assertNoNavigation();
+
+    Native::visit('/home/manga/abc-123')
+        ->call('edgeSwipeBack', 'up')
+        ->assertNoNavigation();
+});
+
 it('renders every screen without dropped Tailwind classes', function () {
     config(['app.debug' => true]);
     // The parser warns once per view per process; earlier tests may have used it up.

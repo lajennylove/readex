@@ -3,6 +3,7 @@
 namespace App\NativeComponents;
 
 use App\Models\SourceConfig;
+use App\NativeComponents\Concerns\EdgeSwipesBack;
 use App\Repositories\SourceRepository;
 use Illuminate\View\View;
 use InvalidArgumentException;
@@ -20,6 +21,8 @@ use Native\Mobile\Facades\Dialog;
  */
 class Sources extends NativeComponent
 {
+    use EdgeSwipesBack;
+
     public const REMOVE = 'Remove';
 
     public const SAVE = 'Save';

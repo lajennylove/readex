@@ -1,5 +1,6 @@
 {{-- Every block is a direct child of refreshable: its LazyVStack only builds the rows on screen, so long chapter lists stay cheap natively. --}}
 <native:refreshable class="w-full h-full bg-theme-background" @refresh="pullToRefresh">
+    @include('native.partials.edge-back-gesture')
     @include('native.partials.status-line', ['line' => $line])
 
     @if ($manga)

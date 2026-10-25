@@ -1,9 +1,9 @@
 <?php
 
-use App\MangaDex\RateLimit\Call;
-use App\MangaDex\RateLimit\Priority;
-use App\MangaDex\RateLimit\RequestController;
-use App\MangaDex\RateLimit\Slot;
+use App\Adapters\Http\RateLimit\Call;
+use App\Adapters\Http\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\RequestController;
+use App\Adapters\Http\RateLimit\Slot;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 

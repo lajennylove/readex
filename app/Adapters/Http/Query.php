@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex;
+namespace App\Adapters\Http;
 
 /** MangaDex query strings: lists as key[]=v, maps as key[sub]=v, booleans as true/false. */
 final class Query

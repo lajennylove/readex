@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Models\AtHome;
 use App\Repositories\AtHomeRepository;
 use Illuminate\Http\Client\Request;

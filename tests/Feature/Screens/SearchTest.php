@@ -1,11 +1,11 @@
 <?php
 
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\Busy;
+use App\Adapters\Http\RateLimit\BusyReason;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadCovers;
 use App\Jobs\RefreshRepository;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\Busy;
-use App\MangaDex\RateLimit\BusyReason;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\MangaListEntry;
 use App\NativeComponents\Search;
 use App\Repositories\MangaRepository;

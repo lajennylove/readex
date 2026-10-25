@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MangaDex\RateLimit;
+namespace App\Adapters\Http\RateLimit;
 
 final readonly class Slot
 {

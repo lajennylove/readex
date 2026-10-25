@@ -1,6 +1,6 @@
 <?php
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Repositories\SettingsRepository;
 use App\Sources\MangaDexSource;
 use App\Sources\Source;

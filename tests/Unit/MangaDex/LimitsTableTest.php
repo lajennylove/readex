@@ -1,8 +1,8 @@
 <?php
 
-use App\MangaDex\RateLimit\Call;
-use App\MangaDex\RateLimit\LimitsTable;
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Call;
+use App\Adapters\Http\RateLimit\LimitsTable;
+use App\Adapters\Http\RateLimit\Priority;
 
 beforeEach(fn () => $this->limits = LimitsTable::fromConfig());
 

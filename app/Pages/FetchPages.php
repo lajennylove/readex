@@ -2,11 +2,11 @@
 
 namespace App\Pages;
 
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadChapter;
 use App\Jobs\EnforceCacheCap;
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Storage\ChapterGone;
 use Illuminate\Http\Client\ConnectionException;

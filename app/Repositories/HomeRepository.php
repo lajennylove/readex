@@ -2,10 +2,10 @@
 
 namespace App\Repositories;
 
-use App\MangaDex\Client;
-use App\MangaDex\Exceptions\ApiError;
-use App\MangaDex\Mappers\ChapterMapper;
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
+use App\Adapters\Http\Mappers\ChapterMapper;
+use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Chapter;
 use App\Models\Manga;
 use App\Models\MangaListEntry;

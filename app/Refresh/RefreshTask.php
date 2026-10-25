@@ -2,7 +2,7 @@
 
 namespace App\Refresh;
 
-use App\MangaDex\RateLimit\Priority;
+use App\Adapters\Http\RateLimit\Priority;
 use Native\Mobile\AsyncTask;
 
 /** A screen's refresh on the async lane. Never throws: the result is an Outcome array. */

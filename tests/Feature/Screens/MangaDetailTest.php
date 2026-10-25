@@ -1,9 +1,9 @@
 <?php
 
+use App\Adapters\Http\Exceptions\RequestDeferred;
+use App\Adapters\Http\RateLimit\Busy;
+use App\Adapters\Http\RateLimit\BusyReason;
 use App\Language\Languages;
-use App\MangaDex\Exceptions\RequestDeferred;
-use App\MangaDex\RateLimit\Busy;
-use App\MangaDex\RateLimit\BusyReason;
 use App\Models\Chapter;
 use App\Models\ChapterFeed;
 use App\Models\Collection as LibraryEntry;

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\MangaDex\RateLimit\LimitsTable;
+use App\Adapters\Http\RateLimit\LimitsTable;
 use App\Sources\SourceRegistry;
 use App\Storage\CacheLink;
 use App\Storage\LocalStorageBridge;

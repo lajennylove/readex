@@ -1,9 +1,9 @@
 <?php
 
+use App\Adapters\Http\RateLimit\Priority;
 use App\Covers\CoverStore;
 use App\Covers\FetchCovers;
 use App\Jobs\DownloadCovers;
-use App\MangaDex\RateLimit\Priority;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;

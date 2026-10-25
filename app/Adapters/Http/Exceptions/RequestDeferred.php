@@ -1,8 +1,8 @@
 <?php
 
-namespace App\MangaDex\Exceptions;
+namespace App\Adapters\Http\Exceptions;
 
-use App\MangaDex\RateLimit\Busy;
+use App\Adapters\Http\RateLimit\Busy;
 use RuntimeException;
 
 /** No request slot within maxWait. Screens keep saved data; jobs release() until $busy->retryAt. */

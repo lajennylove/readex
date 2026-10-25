@@ -158,16 +158,21 @@ final class LibraryRepository
 
     /**
      * The Library grid (spec §1): pinned series lead, then the rest in `$sort` order; `$search`
-     * filters by title substring, case-insensitive. Every tile carries its own chips, chapter
+     * filters by title substring, case-insensitive; `$filter` is the same All/Reading/
+     * Downloaded/Favorites chip `collections()` uses. Every tile carries its own chips, chapter
      * counts and bytes on disk, built from one pass over the series the Library actually has
      * (`SeriesStatusRepository` is reused for the chip facts, so the rules stay in one place).
      *
      * @return Collection<int, LibraryTile>
      */
-    public function grid(string $sort = 'opened', string $search = ''): Collection
+    public function grid(string $sort = 'opened', string $search = '', string $filter = 'all'): Collection
     {
         if (! in_array($sort, self::SORTS, true)) {
             throw new InvalidArgumentException("Unknown Library sort [{$sort}].");
+        }
+
+        if (! in_array($filter, self::FILTERS, true)) {
+            throw new InvalidArgumentException("Unknown Library filter [{$filter}].");
         }
 
         $lastRead = ReadingProgress::query()->selectRaw('manga_id, max(updated_at) as last_read')->groupBy('manga_id');
@@ -176,11 +181,20 @@ final class LibraryRepository
             ->selectRaw('chapters.manga_id, max(stored_chapters.downloaded_at) as last_downloaded')
             ->where('stored_chapters.status', 'done')
             ->groupBy('chapters.manga_id');
+        $downloaded = Chapter::query()->select('manga_id')->whereIn('id', StoredChapter::query()
+            ->select('chapter_id')->where('status', 'done')->whereIn('tier', ['local', 'icloud']));
 
         $entries = LibraryEntry::query()
             ->leftJoinSub($lastRead, 'p', 'p.manga_id', '=', 'collections.manga_id')
             ->leftJoinSub($lastDownloaded, 'd', 'd.manga_id', '=', 'collections.manga_id')
+            ->when($filter === 'reading', fn ($q) => $q->whereNotNull('p.last_read'))
+            ->when($filter === 'downloaded', fn ($q) => $q->whereIn('collections.manga_id', $downloaded))
+            ->when($filter === 'favorites', fn ($q) => $q->where('favorite', true))
             ->get(['collections.*', 'p.last_read', 'd.last_downloaded']);
+
+        if ($filter === 'reading') {
+            $entries = $entries->filter(fn ($e) => $this->resume($e->manga_id) !== null)->values();
+        }
 
         $manga = Manga::query()->whereIn('id', $entries->pluck('manga_id'))->get()->keyBy('id');
 

@@ -128,6 +128,34 @@ it('sorts by recently downloaded, most recent download first', function () {
     expect($titles)->toBe(['Downloaded second', 'Downloaded first', 'Never downloaded']);
 });
 
+it('filters the grid to Reading / Downloaded / Favorites, same chips as collections()', function () {
+    lgManga(1, 'Reading one');
+    lgManga(2, 'Downloaded one');
+    lgManga(3, 'Favorite one');
+    lgManga(4, 'Plain one');
+    lgChapter(1, 1, '1');
+    lgChapter(2, 2, '1');
+    $this->library->add(lgId('m', 2));
+    $this->library->add(lgId('m', 3));
+    $this->library->add(lgId('m', 4));
+    $this->library->saveProgress(lgId('c', 1), 0, 20);
+    StoredChapter::query()->insert([
+        ['chapter_id' => lgId('c', 2), 'tier' => 'local', 'quality' => 'data-saver', 'status' => 'done'],
+    ]);
+    $this->library->setFavorite(lgId('m', 3), true);
+
+    $titles = fn (string $filter) => $this->library->grid(filter: $filter)->map(fn (LibraryTile $t) => $t->manga->title['en'])->all();
+
+    expect($titles('reading'))->toBe(['Reading one'])
+        ->and($titles('downloaded'))->toBe(['Downloaded one'])
+        ->and($titles('favorites'))->toBe(['Favorite one'])
+        ->and($titles('all'))->toHaveCount(4);
+});
+
+it('rejects an unknown filter', function () {
+    expect(fn () => $this->library->grid(filter: 'random'))->toThrow(InvalidArgumentException::class);
+});
+
 it('filters the grid by title search, case-insensitive substring', function () {
     lgManga(1, 'Attack on Titan');
     lgManga(2, 'One Piece');

@@ -20,18 +20,18 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class RecordFixtures extends Command
 {
-    protected $signature = 'mangadex:record-fixtures
+    protected $signature = 'fixtures:record
         {--only=* : Record only these fixture names}
-        {--path= : Output folder (default tests/Fixtures/mangadex)}';
+        {--path= : Output folder (default tests/Fixtures/http)}';
 
-    protected $description = 'Record MangaDex responses for the test suite (real API calls)';
+    protected $description = 'Record source HTTP responses for the test suite (real API calls)';
 
     private const KEEP_HEADERS = '/^(x-ratelimit-.+|retry-in|content-type)$/';
 
     public function handle(Client $client): int
     {
-        $fixtures = require base_path('tests/Fixtures/mangadex/fixtures.php');
-        $dir = $this->option('path') ?: base_path('tests/Fixtures/mangadex');
+        $fixtures = require base_path('tests/Fixtures/http/fixtures.php');
+        $dir = $this->option('path') ?: base_path('tests/Fixtures/http');
         $only = $this->option('only');
 
         if ($unknown = array_diff($only, array_keys($fixtures))) {

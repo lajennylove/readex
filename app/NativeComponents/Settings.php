@@ -35,13 +35,9 @@ use Native\Mobile\Facades\Network;
  *
  * Plan-08 Task “screen audit” (Jenny 2026-10-24 18:29 EDT): section headings and field labels
  * are generic ("Provider data" / "Provider connection" / "Refresh provider data") so the screen
- * doesn't read as hardcoded to one named service — but the actual attribution text below them
- * (`providerLabel()`/`providerUrl()`) stays dynamically accurate to whichever source is really
- * configured and enabled, because it would be dishonest to say "data from your provider" when
- * the real answer is a specific, nameable one. Judgment call, flagged in Plan-08: today that's
- * always MangaDex, since it's still the only source with a real content adapter (Task 1/2 note
- * that user-added sources aren't wired to fetch anything yet) — the moment a second adapter
- * exists this method is the one place that needs to start asking which source actually answered.
+ * doesn't read as hardcoded to one named service. The attribution text below them
+ * (`providerLabel()`/`providerUrl()`) stays generic too; the real source name and host show on
+ * the sources screen, where the user manages what they've added.
  */
 class Settings extends NativeComponent implements HasResumeBar
 {
@@ -60,8 +56,6 @@ class Settings extends NativeComponent implements HasResumeBar
     public const FACTORY_RESET = 'Delete everything';
 
     public const NEEDS_INTERNET = 'Needs internet';
-
-    public const MANGADEX_URL = 'https://mangadex.org';
 
     public string $language = 'en';
 
@@ -229,21 +223,19 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->navigate('/settings/sources');
     }
 
-    /**
-     * The real, nameable provider currently answering content requests — MangaDex today, the
-     * only source with a working adapter (Task 1/2). Not genericized: see the class doc comment.
-     */
+    /** Generic label — the real provider name/host shows on the sources screen. */
     private function providerLabel(): string
     {
-        return app(SourceRepository::class)->mangaDexEnabled() ? 'MangaDex' : 'your source';
+        return 'your provider';
     }
 
     private function providerUrl(): string
     {
-        return self::MANGADEX_URL;
+        return app(SourceRepository::class)->enabled()->first()?->config['base_url']
+            ?? rtrim(config('mangadex.api_url'), '/');
     }
 
-    /** "18:52" when MangaDex has paused this phone, else null. */
+    /** "18:52" when the source has paused this phone, else null. */
     private function paused(?ConnectionStatus $status = null): ?string
     {
         $status ??= app(RequestController::class)->status();
@@ -315,7 +307,7 @@ class Settings extends NativeComponent implements HasResumeBar
             'version' => config('mangadex.app_version'),
             'providerLabel' => $provider,
             'providerUrl' => $this->providerUrl(),
-            'providerCredit' => "Chapters are translated by the scanlation groups named on each chapter. ReaDex is not affiliated with {$provider}.",
+            'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
         ]);
     }
 }

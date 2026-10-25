@@ -14,7 +14,7 @@ use App\Repositories\TagRepository;
 use Closure;
 
 /**
- * The first-run loading steps (spec §9 step 2), reused by "Refresh MangaDex data" (§7.1).
+ * The first-run loading steps (spec §9 step 2), reused by "Refresh provider data" (§7.1).
  * Steps run in order and a failed step doesn't stop the others, except offline: once one
  * step finds no connection, the rest are marked offline without trying.
  */

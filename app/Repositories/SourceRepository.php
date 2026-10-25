@@ -28,13 +28,19 @@ final class SourceRepository
 {
     public function __construct(private readonly SourceHealthCheck $health) {}
 
-    /** Ensures the built-in MangaDex row exists, called once at boot (idempotent). */
+    /** Ensures the built-in row exists, called once at boot (idempotent). Keeps the label in sync with the adapter's current label on existing installs. */
     public function seedBuiltIn(): void
     {
-        SourceConfig::query()->firstOrCreate(
+        $label = app(MangaDexSource::class)->label();
+
+        $row = SourceConfig::query()->firstOrCreate(
             ['key' => MangaDexSource::KEY],
-            ['label' => 'MangaDex', 'kind' => 'builtin', 'enabled' => true, 'blocked' => false, 'created_at' => Carbon::now()],
+            ['label' => $label, 'kind' => 'builtin', 'enabled' => true, 'blocked' => false, 'created_at' => Carbon::now()],
         );
+
+        if ($row->label !== $label) {
+            $row->update(['label' => $label]);
+        }
     }
 
     /** @return Collection<int, SourceConfig> every configured source, built-in first. */

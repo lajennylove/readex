@@ -6,7 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 beforeEach(function () {
     Carbon::setTestNow('2026-10-24 12:00:00');
@@ -23,7 +23,7 @@ it('answers empty and stale before the first refresh', function () {
 });
 
 it('saves every tag, sorted by group then English name', function () {
-    MangaDexFixtures::fake('tags');
+    SourceFixtures::fake('tags');
 
     $this->tags->refresh();
     $result = $this->tags->get();
@@ -42,7 +42,7 @@ it('saves every tag, sorted by group then English name', function () {
 
 it('removes tags MangaDex no longer sends', function () {
     Tag::create(['id' => '00000000-0000-0000-0000-000000000000', 'group' => 'genre', 'name' => ['en' => 'Gone'], 'fetched_at' => Carbon::now()]);
-    MangaDexFixtures::fake('tags');
+    SourceFixtures::fake('tags');
 
     $this->tags->refresh();
 
@@ -51,7 +51,7 @@ it('removes tags MangaDex no longer sends', function () {
 });
 
 it('goes stale after 30 days and keeps the tags when offline', function () {
-    MangaDexFixtures::fake('tags');
+    SourceFixtures::fake('tags');
     $this->tags->refresh();
 
     Carbon::setTestNow(Carbon::now()->addDays(30));

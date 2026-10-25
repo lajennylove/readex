@@ -1,10 +1,10 @@
 <?php
 
 use App\Adapters\Http\Mappers\MangaMapper;
-use Tests\Support\MangaDexFixtures;
+use Tests\Support\SourceFixtures;
 
 it('maps a search result with its cover file name', function () {
-    $rows = MangaMapper::rows(MangaDexFixtures::body('search-one-punch'));
+    $rows = MangaMapper::rows(SourceFixtures::body('search-one-punch'));
     $opm = collect($rows)->firstWhere('id', 'd8a959f7-648e-4c8d-8f23-f1f3f8e129f3');
 
     expect($rows)->toHaveCount(18)
@@ -22,7 +22,7 @@ it('maps a search result with its cover file name', function () {
 });
 
 it('keeps the API order', function () {
-    $ids = array_column(MangaMapper::rows(MangaDexFixtures::body('search-one-punch')), 'id');
+    $ids = array_column(MangaMapper::rows(SourceFixtures::body('search-one-punch')), 'id');
 
     expect(array_slice($ids, 0, 3))->toBe([
         'a1c9cef0-540e-4f71-8891-ff7896cdde01',
@@ -33,7 +33,7 @@ it('keeps the API order', function () {
 
 it('turns an empty description object into an empty map', function () {
     // Recorded as `"description": {}`; PHP decodes it to [].
-    $row = collect(MangaMapper::rows(MangaDexFixtures::body('search-one-punch')))
+    $row = collect(MangaMapper::rows(SourceFixtures::body('search-one-punch')))
         ->firstWhere('id', 'a1c9cef0-540e-4f71-8891-ff7896cdde01');
 
     expect($row['description'])->toBe([])
@@ -41,7 +41,7 @@ it('turns an empty description object into an empty map', function () {
 });
 
 it('maps a detail response with empty lists', function () {
-    $row = MangaMapper::row(MangaDexFixtures::body('manga-nova')['data']);
+    $row = MangaMapper::row(SourceFixtures::body('manga-nova')['data']);
 
     expect($row['title'])->toBe(['zh-ro' => 'Nova'])
         ->and($row['alt_titles'])->toBe([])
@@ -74,8 +74,8 @@ it('drops blank texts, null languages and duplicates', function () {
 });
 
 it('maps author and artist names from a detail response', function () {
-    $rtw = MangaMapper::row(MangaDexFixtures::body('manga-rtw')['data']);
-    $nova = MangaMapper::row(MangaDexFixtures::body('manga-nova')['data']);
+    $rtw = MangaMapper::row(SourceFixtures::body('manga-rtw')['data']);
+    $nova = MangaMapper::row(SourceFixtures::body('manga-nova')['data']);
 
     expect($rtw['authors'])->toBe(['Er Mu (二目)'])
         ->and($rtw['artists'])->toBe(['Yuewen Manhua (阅文漫画)', 'Dr. Woodman'])
@@ -84,7 +84,7 @@ it('maps author and artist names from a detail response', function () {
 });
 
 it('leaves authors and artists out when they were not included, so a list call keeps saved names', function () {
-    $manga = MangaDexFixtures::body('manga-rtw')['data'];
+    $manga = SourceFixtures::body('manga-rtw')['data'];
     $manga['relationships'] = array_map(
         fn (array $relation) => array_diff_key($relation, ['attributes' => true]),
         $manga['relationships'],
@@ -94,7 +94,7 @@ it('leaves authors and artists out when they were not included, so a list call k
 });
 
 it('drops repeated and blank names', function () {
-    $manga = MangaDexFixtures::body('manga-nova')['data'];
+    $manga = SourceFixtures::body('manga-nova')['data'];
     $manga['relationships'] = [
         ['id' => 'p1', 'type' => 'author', 'attributes' => ['name' => 'Ann']],
         ['id' => 'p2', 'type' => 'author', 'attributes' => ['name' => ' ']],
@@ -109,7 +109,7 @@ it('drops repeated and blank names', function () {
 });
 
 it('has no cover file when cover_art was not included', function () {
-    $manga = MangaDexFixtures::body('manga-nova')['data'];
+    $manga = SourceFixtures::body('manga-nova')['data'];
     $manga['relationships'] = [['id' => 'c1', 'type' => 'cover_art']];
 
     expect(MangaMapper::row($manga)['cover_file'])->toBeNull();

@@ -9,8 +9,8 @@ use App\Downloads\Downloads;
 use App\Models\Chapter;
 use App\Pages\ChapterUnavailable;
 use App\Pages\LoadState;
-use App\Pages\MangaDexTrouble;
 use App\Pages\PageFetcher;
+use App\Pages\SourceTrouble;
 use App\Storage\ChapterGone;
 use App\Storage\PageStore;
 use Carbon\CarbonInterface;
@@ -118,7 +118,7 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
             $this->release(self::OFFLINE_RETRY_SECONDS);
 
             return;
-        } catch (MangaDexTrouble) {
+        } catch (SourceTrouble) {
             $fetcher->record($this->chapterId, LoadState::Retrying);
             $this->release($this->troubleRetrySeconds());
 

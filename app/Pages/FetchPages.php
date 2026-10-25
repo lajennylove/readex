@@ -56,7 +56,7 @@ class FetchPages extends AsyncTask
             // The image cache dropped a chapter no longer open: nothing left to fetch for it.
             $state = LoadState::Done;
             $gone = true;
-        } catch (MangaDexTrouble) {
+        } catch (SourceTrouble) {
             $state = LoadState::Retrying;
         } catch (ApiError|ChapterUnavailable) {
             $state = LoadState::Unavailable;

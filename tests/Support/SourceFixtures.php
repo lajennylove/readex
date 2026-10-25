@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /** Recorded MangaDex responses (tests/Fixtures/mangadex). No test reaches the real API. */
-final class MangaDexFixtures
+final class SourceFixtures
 {
     public static function path(string $name): string
     {

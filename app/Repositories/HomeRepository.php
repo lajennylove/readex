@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Mappers\ChapterMapper;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Chapter;
@@ -34,15 +35,27 @@ final class HomeRepository
     /** Most followed series created in the last `popular_new_days` days, any language (reordered in get()). */
     public function refreshPopular(Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get('/manga', [
-            // Start of the day, so the URL (and the shared-GET cache) stays the same all day.
-            'createdAtSince' => Carbon::now()->utc()->subDays(config('readex.popular_new_days'))->startOfDay()->format('Y-m-d\TH:i:s'),
-            'hasAvailableChapters' => true,
-            'limit' => config('readex.page_sizes.home_row'),
-            'contentRating' => $this->settings->contentRatings(),
-            'includes' => ['cover_art'],
-            'order' => ['followedCount' => 'desc'],
-        ], $priority);
+        try {
+            $response = $this->client->get('/manga', [
+                // Start of the day, so the URL (and the shared-GET cache) stays the same all day.
+                'createdAtSince' => Carbon::now()->utc()->subDays(config('readex.popular_new_days'))->startOfDay()->format('Y-m-d\TH:i:s'),
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+                'order' => ['followedCount' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            // Agnostic source may not implement `/manga` as a dynamic query endpoint
+            // (e.g. a static GH-Pages-hosted source). Treat 404/405 as "row not supported":
+            // leave whatever rows the source does serve alone and hide this one.
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::POPULAR, []));
+
+                return;
+            }
+            throw $e;
+        }
 
         DB::transaction(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
     }
@@ -75,15 +88,26 @@ final class HomeRepository
      */
     public function refreshLatest(Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get('/chapter', [
-            'translatedLanguage' => $this->settings->chain()->languages,
-            // Scheduled releases can't be read yet.
-            'includeFutureUpdates' => '0',
-            'limit' => config('readex.page_sizes.latest'),
-            'contentRating' => $this->settings->contentRatings(),
-            'includes' => ['scanlation_group'],
-            'order' => ['readableAt' => 'desc'],
-        ], $priority);
+        try {
+            $response = $this->client->get('/chapter', [
+                'translatedLanguage' => $this->settings->chain()->languages,
+                // Scheduled releases can't be read yet.
+                'includeFutureUpdates' => '0',
+                'limit' => config('readex.page_sizes.latest'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['scanlation_group'],
+                'order' => ['readableAt' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            // Same posture as refreshPopular: an agnostic source may not implement a
+            // dynamic `/chapter` query endpoint; hide the row rather than erroring out.
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::LATEST, []));
+
+                return;
+            }
+            throw $e;
+        }
 
         $newest = [];
 

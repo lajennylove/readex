@@ -1,0 +1,63 @@
+{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    {
+      "id": "ch-cart-1",
+      "type": "chapter",
+      "attributes": {
+        "volume": "1",
+        "chapter": "1",
+        "title": "Tide tables",
+        "translatedLanguage": "en",
+        "pages": 4,
+        "externalUrl": null,
+        "readableAt": "2026-10-26T00:00:00+00:00",
+        "isUnavailable": false
+      },
+      "relationships": [
+        {
+          "id": "demo-cartographer-journal",
+          "type": "manga"
+        },
+        {
+          "id": "demo-group-1",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "Demo Translators"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ch-cart-2",
+      "type": "chapter",
+      "attributes": {
+        "volume": "1",
+        "chapter": "2",
+        "title": "Dead reckoning",
+        "translatedLanguage": "en",
+        "pages": 4,
+        "externalUrl": null,
+        "readableAt": "2026-10-26T00:00:00+00:00",
+        "isUnavailable": false
+      },
+      "relationships": [
+        {
+          "id": "demo-cartographer-journal",
+          "type": "manga"
+        },
+        {
+          "id": "demo-group-1",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "Demo Translators"
+          }
+        }
+      ]
+    }
+  ],
+  "limit": 2,
+  "offset": 0,
+  "total": 2
+}

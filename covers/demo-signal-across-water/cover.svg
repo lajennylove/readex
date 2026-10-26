@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600">
+  <rect width="400" height="600" fill="#7A4A3B"/>
+  <rect x="24" y="24" width="352" height="552" fill="none" stroke="#F1EBD9" stroke-width="2"/>
+  <text x="200" y="280" font-family="Georgia, serif" font-size="28" font-weight="bold" fill="#F1EBD9" text-anchor="middle">Signal Across the Water</text>
+  <text x="200" y="320" font-family="Georgia, serif" font-size="14" fill="#F1EBD9" text-anchor="middle" opacity="0.85">Teodor Vonk</text>
+  <text x="200" y="560" font-family="Georgia, serif" font-size="12" fill="#F1EBD9" text-anchor="middle" opacity="0.6">Demo source · placeholder cover</text>
+</svg>

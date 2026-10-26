@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200" width="800" height="1200">
+  <rect width="800" height="1200" fill="#F7F4EC"/>
+  <rect x="40" y="40" width="720" height="1120" fill="none" stroke="#4A4038" stroke-width="2"/>
+  <text x="400" y="520" font-family="Georgia, serif" font-size="36" fill="#4A4038" text-anchor="middle">Signal Across the Water</text>
+  <text x="400" y="580" font-family="Georgia, serif" font-size="26" fill="#4A4038" text-anchor="middle">Chapter 2 · Page 3</text>
+  <text x="400" y="1130" font-family="Georgia, serif" font-size="14" fill="#4A4038" text-anchor="middle" opacity="0.6">Demo source · placeholder page</text>
+</svg>

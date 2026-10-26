@@ -4,6 +4,10 @@ return [
 
     'api_url' => env('SOURCE_API_URL', 'https://api.mangadex.org'),
 
+    // Build-time hint for sources that serve plain JSON files (e.g. the GH Pages demo).
+    // When true, Client::apiUrl() rewrites `/path` → `/path.json` before appending the query.
+    'static_json' => (bool) env('SOURCE_STATIC_JSON', false),
+
     'report_url' => env('SOURCE_REPORT_URL', 'https://api.mangadex.network/report'),
 
     'covers_url' => env('SOURCE_COVERS_URL', 'https://uploads.mangadex.org/covers'),

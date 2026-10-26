@@ -154,7 +154,13 @@ final class Client
 
     private function apiUrl(string $path, array $query): string
     {
-        $url = rtrim(config('source.api_url'), '/').'/'.ltrim($path, '/');
+        $path = '/'.ltrim($path, '/');
+
+        if (config('source.static_json') && ! str_ends_with($path, '.json')) {
+            $path .= '.json';
+        }
+
+        $url = rtrim(config('source.api_url'), '/').$path;
 
         return $query === [] ? $url : $url.'?'.Query::build($query);
     }

@@ -2,11 +2,9 @@
 
 return [
 
-    'api_url' => env('SOURCE_API_URL', 'https://api.mangadex.org'),
-
-    'report_url' => env('SOURCE_REPORT_URL', 'https://api.mangadex.network/report'),
-
-    'covers_url' => env('SOURCE_COVERS_URL', 'https://uploads.mangadex.org/covers'),
+    // The source URL itself (api_url / covers_url / report_url) is now per-user,
+    // read from SettingsRepository::sourceUrl() via App\Sources\ActiveSource.
+    // ReaDex ships NO default endpoint — the user supplies one at Setup.
 
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 
@@ -28,8 +26,6 @@ return [
     'share_seconds' => 5,
 
     'share_store' => env('SOURCE_SHARE_STORE', 'database'),
-
-    'status_family' => 'mangadex.org',
 
     'controller' => [
         'throttle_default_seconds' => 60,

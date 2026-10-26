@@ -90,8 +90,11 @@ it('never names a specific non-MangaDex content site anywhere in app/ (code iden
     // and semantically-specific method names describing the API's language-code format.
     // New exemptions require explicit sign-off; see docs/COPY-NEUTRALITY.md.
     $exemptions = [
-        'app/Sources/HttpSource.php' => ["KEY = 'mangadex'"],
-        'app/Adapters/Http/Client.php' => ['isMangaDexHost', "'mangadex.org'", "'.mangadex.org'"],
+        // feature/0035 agnostic-source refactor: KEY = 'mangadex' became 'primary',
+        // isMangaDexHost + the two literal host checks were replaced by
+        // isSourceOwnHost reading the user's configured source. Only
+        // toMangaDex (a method name describing the ios-locale → api-locale
+        // code format) remains.
         'app/Language/IosLanguageMap.php' => ['toMangaDex'],
         'app/Language/LanguageChain.php' => ['toMangaDex'],
         'app/NativeComponents/Setup.php' => ['toMangaDex'],
@@ -135,9 +138,9 @@ it('never names a specific non-MangaDex content site anywhere in app/ (code iden
     expect($offenders)->toBe([]);
 });
 
-it('describes ReaDex as a generic reading client, source-neutral, in the Sources screen copy', function () {
+it('describes ReaDex as a generic reading client, source-neutral, in the Source screen copy', function () {
     $contents = file_get_contents(resource_path('views/native/sources.blade.php'));
 
     expect($contents)->toContain('reading client')
-        ->and($contents)->toContain('your own content sources');
+        ->and($contents)->toContain('your own content source');
 });

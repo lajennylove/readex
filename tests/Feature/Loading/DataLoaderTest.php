@@ -83,14 +83,17 @@ it('downloads the first twelve tiles\' covers, row by row in turns', function ()
 
 it('skips a broken cover and keeps going', function () {
     $covers = [];
-    $first = null;
-    Loading::fake(function (Request $request) use (&$first) {
-        if (parse_url($request->url(), PHP_URL_HOST) !== 'uploads.mangadex.org') {
+    $firstCover = null;
+    Loading::fake(function (Request $request) use (&$firstCover) {
+        // Only cover URLs are candidates — pre-feature/0035 the Loading::fake
+        // routed covers through uploads.mangadex.org; now covers are same-origin
+        // under /covers/, so we match on the path rather than the host.
+        if (! str_contains($request->url(), '/covers/')) {
             return null;
         }
-        $first ??= $request->url();
+        $firstCover ??= $request->url();
 
-        return $request->url() === $first ? Http::response('gone', 404) : null;
+        return $request->url() === $firstCover ? Http::response('gone', 404) : null;
     }, $covers);
 
     expect(load()['covers'])->toBe('ok')
@@ -111,7 +114,7 @@ it('does not load tags again when Setup already got them', function () {
 
     load();
 
-    expect($asked)->not->toContain('api.mangadex.org/manga/tag')
+    expect($asked)->not->toContain('api.mangadex.org/api/manga/tag')
         ->and($this->progress[1])->toBe('tags:ok');
 });
 

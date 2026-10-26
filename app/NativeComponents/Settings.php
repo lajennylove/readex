@@ -15,7 +15,7 @@ use App\NativeLayouts\HasResumeBar;
 use App\Repositories\DataReset;
 use App\Repositories\FactoryReset;
 use App\Repositories\SettingsRepository;
-use App\Repositories\SourceRepository;
+use App\Sources\ActiveSource;
 use App\Storage\DiskSpaceGuard;
 use App\Storage\ImageCache;
 use App\Storage\StorageBridge;
@@ -241,8 +241,9 @@ class Settings extends NativeComponent implements HasResumeBar
 
     private function providerUrl(): string
     {
-        return app(SourceRepository::class)->enabled()->first()?->config['base_url']
-            ?? rtrim(config('source.api_url'), '/');
+        $active = app(ActiveSource::class);
+
+        return $active->isConfigured() ? $active->baseUrl() : '';
     }
 
     /** "18:52" when the source has paused this phone, else null. */

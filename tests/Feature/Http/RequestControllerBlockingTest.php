@@ -34,7 +34,7 @@ describe('429', function () {
         $this->rc->record($slot, ($this->reply)(429, ['X-RateLimit-Retry-After' => (string) (B0 + 20)]));
 
         $api = $this->rc->acquire(($this->api)('/manga/abc'), Priority::Interactive, 0);
-        $cover = $this->rc->acquire(Call::get('https://uploads.mangadex.org/covers/m/c.jpg.256.jpg'), Priority::Interactive, 0);
+        $cover = $this->rc->acquire(Call::get('https://api.mangadex.org/covers/m/c.jpg.256.jpg'), Priority::Interactive, 0);
         $image = $this->rc->acquire(Call::get('https://node.mangadex.network/data/h/1.png'), Priority::Interactive, 0);
 
         expect($api)->toBeInstanceOf(Busy::class)
@@ -125,7 +125,7 @@ describe('403 ban', function () {
 
     it('caps the ban at 2 hours', function () {
         DB::table('rate_buckets')->insert([
-            'key' => 'family:mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+            'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
             'updated_at' => B0, 'blocked_until' => null, 'learned_limit' => null, 'strikes' => 5, 'probing' => true, 'adjusted_at' => B0,
         ]);
         $slot = $this->rc->acquire(($this->api)(), Priority::Interactive, 0);
@@ -145,7 +145,7 @@ describe('403 ban', function () {
 
         expect($this->rc->acquire(($this->api)(), Priority::Interactive, 0))->toBeInstanceOf(Slot::class)
             ->and($this->rc->status()->state)->toBe(ConnectionState::Ok)
-            ->and((int) DB::table('rate_buckets')->where('key', 'family:mangadex.org')->value('strikes'))->toBe(0);
+            ->and((int) DB::table('rate_buckets')->where('key', 'family:api.mangadex.org')->value('strikes'))->toBe(0);
     });
 
     it('sends another single probe when the first one never reports back (lost probe)', function () {
@@ -201,7 +201,7 @@ describe('usage and status', function () {
     });
 
     it('drops reports first: the report bucket never waits', function () {
-        $report = Call::get('https://api.mangadex.network/report');
+        $report = new Call('POST', 'https://api.mangadex.org/report');
         $this->rc->acquire($report, Priority::Prefetch, 0);
         $this->rc->acquire($report, Priority::Prefetch, 0);
 

@@ -188,7 +188,7 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
     Native::test(Home::class);
 
     $asked = implode("\n", $this->asked);
-    expect($asked)->toContain('api.mangadex.org/chapter')
+    expect($asked)->toContain('api.mangadex.org/api/chapter')
         ->not->toContain('antsylich.github.io')
         ->not->toContain('createdAtSince');
 });
@@ -297,7 +297,7 @@ it('refreshes every row on pull to refresh, fresh or not', function () {
     $asked = implode("\n", $this->asked);
     expect($asked)->toContain('antsylich.github.io')
         ->toContain('createdAtSince')
-        ->toContain('api.mangadex.org/chapter')
+        ->toContain('api.mangadex.org/api/chapter')
         ->and(homeNodes($screen->tree(), 'refreshable')[0]['props'])->toHaveKey('on_refresh');
 });
 

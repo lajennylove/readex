@@ -22,18 +22,18 @@ beforeEach(function () {
 
 it('implements the generic Source interface', function () {
     expect($this->source)->toBeInstanceOf(Source::class)
-        ->and($this->source->key())->toBe('mangadex')
+        ->and($this->source->key())->toBe('primary')
         ->and($this->source->label())->toBe('Built-in example source')
         ->and($this->source->isBuiltIn())->toBeTrue();
 });
 
-it('registers MangaDex as the only source and finds it by key', function () {
+it('registers the one primary source and finds it by key', function () {
     $registry = app(SourceRegistry::class);
 
     expect($registry->all())->toHaveCount(1)
         ->and($registry->all()[0])->toBeInstanceOf(HttpSource::class)
-        ->and($registry->find('mangadex'))->toBeInstanceOf(HttpSource::class)
-        ->and($registry->find('mangadex'))->toBe($registry->builtIn())
+        ->and($registry->find('primary'))->toBeInstanceOf(HttpSource::class)
+        ->and($registry->find('primary'))->toBe($registry->builtIn())
         ->and($registry->find('unknown'))->toBeNull();
 });
 

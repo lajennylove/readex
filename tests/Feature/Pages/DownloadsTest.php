@@ -177,7 +177,7 @@ it('ends with the chapter downloaded when a cache job of the reader already hold
 it('ends with the chapter downloaded when Download is tapped while the reader\'s cache job looks up the chapter', function () {
     Pages::fake(count: 4);
     $tapped = false;
-    Http::fake(['https://api.mangadex.org/at-home/server/*' => function () use (&$tapped) {
+    Http::fake(['https://api.mangadex.org/api/at-home/server/*' => function () use (&$tapped) {
         if (! $tapped) {
             $tapped = true;
             app(Downloads::class)->download('t7-mid');

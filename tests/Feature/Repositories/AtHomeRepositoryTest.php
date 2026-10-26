@@ -3,6 +3,7 @@
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\AtHome;
 use App\Repositories\AtHomeRepository;
+use App\Repositories\SettingsRepository;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -63,7 +64,7 @@ describe('refresh', function () {
         // The demo tree sits under <base>/demo-source/{api,data,covers,...}; stripping the
         // last /api segment of source.api_url points at <base>/demo-source so pageUrls()
         // composes <base>/demo-source/data/<hash>/<file>.
-        config(['source.api_url' => 'https://pages.example.test/demo-source/api']);
+        app(SettingsRepository::class)->setSourceUrl('https://pages.example.test/demo-source');
 
         Http::fake([
             '*' => Http::sequence()
@@ -172,5 +173,5 @@ it('asks the at-home endpoint for the chapter', function () {
 
     $this->atHome->refresh('c1');
 
-    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.mangadex.org/at-home/server/c1');
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.mangadex.org/api/at-home/server/c1');
 });

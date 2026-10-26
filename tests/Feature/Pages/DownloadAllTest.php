@@ -154,7 +154,7 @@ describe('Download all', function () {
     });
 
     it('moves on when a chapter is not available', function () {
-        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
+        Http::fake(['https://api.mangadex.org/api/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
         t7aBatch(2);
         $this->downloads->downloadAll(T7_ALL, 'es-la');
 
@@ -197,7 +197,7 @@ describe('Download all', function () {
     });
 
     it('waits while MangaDex is having trouble: the job is released and nothing else starts', function () {
-        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
+        Http::fake(['https://api.mangadex.org/api/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
         t7aBatch(3);
         $this->downloads->downloadAll(T7_ALL, 'es-la');
 

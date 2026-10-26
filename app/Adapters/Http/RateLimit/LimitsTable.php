@@ -2,6 +2,7 @@
 
 namespace App\Adapters\Http\RateLimit;
 
+use App\Sources\ActiveSource;
 use InvalidArgumentException;
 
 final class LimitsTable
@@ -38,7 +39,7 @@ final class LimitsTable
 
     public function resolve(Call $call, Priority $priority): Resolution
     {
-        [$hostBucket, $family] = $this->config['hosts'][$call->host()] ?? $this->config['hosts']['*'];
+        [$hostBucket, $family] = $this->resolveHost($call->host());
 
         $buckets = [$hostBucket];
         $endpoint = null;
@@ -47,7 +48,11 @@ final class LimitsTable
             foreach ($this->rules as $rule) {
                 if ($rule['method'] === $call->method && preg_match($rule['regex'], $call->path())) {
                     $endpoint = $rule['bucket'];
-                    $buckets[] = $endpoint;
+                    // feature/0035: covers and report are same-origin now; keep
+                    // them exclusive to their own bucket (they used to live on
+                    // separate hosts). Everything else layers endpoint on top
+                    // of global.
+                    $buckets = in_array($endpoint, ['covers', 'report'], true) ? [$endpoint] : [$hostBucket, $endpoint];
                     break;
                 }
             }
@@ -62,6 +67,31 @@ final class LimitsTable
         }
 
         return new Resolution($buckets, $endpoint, $family);
+    }
+
+    /**
+     * ReaDex is agnostic — the API/covers/report host is whatever the user
+     * configured in Setup. Match the URL's host against the active source's
+     * host at runtime; a match means "primary source traffic" (global bucket
+     * + path rules), anything else falls to '*' (off-source @Home images).
+     *
+     * @return array{0: string, 1: ?string}
+     */
+    private function resolveHost(string $host): array
+    {
+        $active = app(ActiveSource::class);
+
+        if ($active->isConfigured()) {
+            $sourceHost = parse_url($active->baseUrl(), PHP_URL_HOST) ?: '';
+
+            if ($host === $sourceHost) {
+                // Family tracks per-source ban state so a 429/403 against one
+                // configured source doesn't bleed over if the user swaps sources.
+                return ['global', $sourceHost];
+            }
+        }
+
+        return $this->config['hosts']['*'];
     }
 
     public function bucket(string $key): BucketDefinition

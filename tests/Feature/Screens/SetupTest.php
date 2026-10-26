@@ -6,7 +6,7 @@ use App\NativeComponents\Setup;
 use App\Refresh\RefreshTask;
 use App\Repositories\HomeRepository;
 use App\Repositories\SettingsRepository;
-use App\Repositories\SourceRepository;
+use App\Sources\ActiveSource;
 use App\Storage\LocalStorageBridge;
 use App\Storage\NativeStorageBridge;
 use App\Storage\StorageBridge;
@@ -67,7 +67,7 @@ function ratingToggle(string $label, bool $on): Closure
 /** Types MangaDex's own API URL into the source field — the shortest path through Continue in most tests. */
 function withBuiltInSource(TestableComponent $screen): TestableComponent
 {
-    return $screen->call('changeSourceUrl', config('source.api_url'));
+    return $screen->call('changeSourceUrl', app(ActiveSource::class)->baseUrl());
 }
 
 it('labels the rating toggles with theme text, since the iOS toggle label ignores the theme', function () {
@@ -172,7 +172,7 @@ it('saves the choices, loads everything and opens Home', function () {
         ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
     $this->async->assertDispatched(fn (array $d) => $d['work']['task'] === LoadTask::class);
 
-    expect(app(SourceRepository::class)->builtInEnabled())->toBeTrue();
+    expect(app(SettingsRepository::class)->sourceUrl())->not->toBeNull();
 });
 
 it('saves the content rating the reader picked', function () {
@@ -184,40 +184,44 @@ it('saves the content rating the reader picked', function () {
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe']);
 });
 
-it('keeps the reader on Setup with an error when the source field is left empty (Jenny: you need to add your API source)', function () {
+it('keeps the reader on Setup with an error when the source field is left empty', function () {
+    app(SettingsRepository::class)->clearSourceUrl();
+
     Native::test(Setup::class)
         ->tap('Continue')
         ->assertSet('phase', Setup::SETTINGS)
-        ->assertSee('Not a valid URL.')
+        ->assertSee('That URL does not look right. Check for typos and try again.')
         ->assertNoNavigation();
 
-    expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
+    expect(app(SettingsRepository::class)->setupDone())->toBeFalse()
+        ->and(app(SettingsRepository::class)->sourceUrl())->toBeNull();
 });
 
 it('keeps the reader on Setup with an error when the source URL fails its health check', function () {
-    Loading::fake(fn (Request $request) => $request->url() === 'https://down.example.test' ? Http::response('', 503) : null);
+    Loading::fake(fn (Request $request) => str_starts_with($request->url(), 'https://down.example.test') ? Http::response('', 503) : null);
 
     Native::test(Setup::class)
         ->call('changeSourceUrl', 'https://down.example.test')
         ->tap('Continue')
         ->assertSet('phase', Setup::SETTINGS)
-        ->assertSee("Couldn't connect to that source. Check the URL and try again.")
+        ->assertSee('That source did not respond. Check the URL and your connection and try again.')
         ->assertNoNavigation();
 
     expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
 });
 
-it('saves whatever other source URL the reader typed, labeled by its host, not just MangaDex', function () {
-    Loading::fake(fn (Request $request) => $request->url() === 'https://example.test/api' ? Http::response('', 200) : null);
+it('saves whatever source URL the reader typed as the single configured source', function () {
+    $catalog = ['result' => 'ok', 'response' => 'collection', 'data' => []];
+    Loading::fake(fn (Request $request) => str_starts_with($request->url(), 'https://example.test/api/manga/_catalog')
+        ? Http::response($catalog)
+        : null);
 
     Native::test(Setup::class)
-        ->call('changeSourceUrl', 'https://example.test/api')
+        ->call('changeSourceUrl', 'https://example.test')
         ->tap('Continue')
         ->assertReplacedWith('/home');
 
-    $source = app(SourceRepository::class)->all()->firstWhere('kind', 'user');
-    expect($source->label)->toBe('example.test')
-        ->and($source->config['base_url'])->toBe('https://example.test/api');
+    expect(app(SettingsRepository::class)->sourceUrl())->toBe('https://example.test');
 });
 
 it('says "First launch needs internet" and stays in Setup when offline (Review Focus 1)', function () {
@@ -243,7 +247,7 @@ it('also catches no connection when the phone claims to be online', function () 
 
     withBuiltInSource(Native::test(Setup::class))
         ->tap('Continue')
-        ->assertSee("Couldn't connect to that source. Check the URL and try again.")
+        ->assertSee('That source did not respond. Check the URL and your connection and try again.')
         ->assertNoNavigation();
 
     expect(app(SettingsRepository::class)->setupDone())->toBeFalse();

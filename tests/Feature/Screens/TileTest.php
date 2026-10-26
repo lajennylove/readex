@@ -110,7 +110,7 @@ it('opens the series inside the tab the screen belongs to', function () {
 });
 
 it('downloads the first twelve covers right away and queues the rest in the background', function () {
-    Http::fake(['uploads.mangadex.org/*' => Http::response(Covers::jpeg())]);
+    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg())]);
     $ids = array_map(fn (int $i) => sprintf('m%02d', $i), range(1, 14));
     foreach ($ids as $id) {
         Covers::manga($id);

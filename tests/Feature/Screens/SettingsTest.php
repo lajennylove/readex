@@ -11,16 +11,13 @@ use App\NativeComponents\Settings;
 use App\Repositories\HomeRepository;
 use App\Repositories\LibraryRepository;
 use App\Repositories\SettingsRepository;
-use App\Repositories\SourceRepository;
 use App\Storage\OpenChapter;
 use App\Storage\PageStore;
-use Illuminate\Http\Client\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
@@ -68,7 +65,7 @@ function refreshButton(string $label, bool $disabled): Closure
 function settingsPaused(int $strikes = 0): void
 {
     DB::table('rate_buckets')->insert([
-        'key' => 'family:mangadex.org',
+        'key' => 'family:api.mangadex.org',
         'capacity' => 1,
         'refill_per_sec' => 1,
         'tokens' => 1,
@@ -431,8 +428,7 @@ it('wipes every table and file on confirm, and routes back to the real first-run
     settingsSavedData();
     app(SettingsRepository::class)->markSetupDone();
     app(SettingsRepository::class)->acknowledgeEula();
-    Loading::fake(fn (Request $request) => $request->url() === 'https://example.test' ? Http::response('', 200) : null);
-    app(SourceRepository::class)->add('Mine', 'https://example.test');
+    app(SettingsRepository::class)->setSourceUrl('https://example.test');
 
     Native::test(Settings::class)
         ->tap('Delete everything')
@@ -445,7 +441,7 @@ it('wipes every table and file on confirm, and routes back to the real first-run
     expect(DB::table('manga_lists')->count())->toBe(0)
         ->and(DB::table('collections')->count())->toBe(0)
         ->and(DB::table('settings')->count())->toBe(0)
-        ->and(DB::table('sources')->where('kind', 'user')->count())->toBe(0)
+        ->and(app(SettingsRepository::class)->sourceUrl())->toBeNull()
         ->and(app(SettingsRepository::class)->eulaAcknowledged())->toBeFalse()
         ->and(app(SettingsRepository::class)->setupDone())->toBeFalse();
 });

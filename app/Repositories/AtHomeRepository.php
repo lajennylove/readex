@@ -7,6 +7,7 @@ use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Exceptions\RequestDeferred;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\AtHome;
+use App\Sources\ActiveSource;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
@@ -56,7 +57,7 @@ final class AtHomeRepository
             return $trimmed;
         }
 
-        $apiUrl = rtrim((string) config('source.api_url'), '/');
+        $apiUrl = rtrim(app(ActiveSource::class)->apiUrl(), '/');
         $parent = preg_replace('#/[^/]+$#', '', $apiUrl);
 
         return $parent === '' ? $apiUrl : $parent;

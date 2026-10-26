@@ -45,7 +45,7 @@ beforeEach(function () {
         $fixtures = SourceFixtures::stub('tags', 'search-one-punch', 'search-one-punch-p1', 'search-one-punch-p2', 'browse-cooking');
 
         Http::fake(function (Request $request) use ($override, $fixtures) {
-            if (! str_contains($request->url(), 'uploads.mangadex.org/covers/')) {
+            if (! str_contains($request->url(), 'api.mangadex.org/covers/')) {
                 $this->asked[] = rawurldecode($request->url());
             }
 

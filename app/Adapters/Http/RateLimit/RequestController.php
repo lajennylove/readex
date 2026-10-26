@@ -2,6 +2,7 @@
 
 namespace App\Adapters\Http\RateLimit;
 
+use App\Sources\ActiveSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
@@ -74,7 +75,7 @@ final class RequestController
     {
         $now = $this->now();
         $minute = (int) floor($now / 60);
-        $family = $this->peek('family:'.config('source.status_family'));
+        $family = $this->peek('family:'.$this->sourceFamily());
         $global = $this->peek('global');
 
         $lastMinute = (int) DB::table('api_usage')->where('minute', $minute)->sum('requests');
@@ -134,6 +135,23 @@ final class RequestController
         }
 
         return new Slot($call, $priority, $resolution->buckets, $resolution->endpoint, $resolution->family, $isProbe);
+    }
+
+    /**
+     * Rate-limit family bucket key. ReaDex is agnostic — the family tracks
+     * the user's configured source host so bans/throttles don't leak across
+     * reconfigurations. Falls back to a fixed string when no source is set
+     * (Setup phase, where no rate-limited calls happen yet).
+     */
+    private function sourceFamily(): string
+    {
+        $active = app(ActiveSource::class);
+
+        if (! $active->isConfigured()) {
+            return 'unconfigured';
+        }
+
+        return parse_url($active->baseUrl(), PHP_URL_HOST) ?: 'unknown';
     }
 
     private function ban(string $family, float $now): void

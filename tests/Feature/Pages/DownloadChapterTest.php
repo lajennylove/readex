@@ -163,7 +163,7 @@ it('waits for the controller when MangaDex is limiting the phone', function () {
     Pages::fake();
     Pages::chapter('c1');
     DB::table('rate_buckets')->insert([
-        'key' => 'family:mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+        'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
         'updated_at' => now()->timestamp, 'blocked_until' => now()->timestamp + 300, 'strikes' => 0, 'probing' => false,
     ]);
 
@@ -197,7 +197,7 @@ it('stops for good when MangaDex no longer serves the chapter, or it is external
 
 it('waits out a MangaDex outage, limit or ban on the lookup: released after 1 s, 4 s, 15 s, then every 60 s, the download still queued', function (int $status, array|string $body) {
     Stored::useTempStorage();
-    Http::fake(['api.mangadex.org/at-home/server/*' => Http::response($body, $status)]);
+    Http::fake(['api.mangadex.org/api/at-home/server/*' => Http::response($body, $status)]);
     Pages::chapter('c1');
     app(Downloads::class)->download('c1');
 

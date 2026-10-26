@@ -110,7 +110,8 @@ it('leaves the Library usable offline and every remote read stale', function () 
         ->and(app(RecommendationRepository::class)->get(RESET_LIBRARY)->isStale)->toBeTrue()
         ->and(app(SettingsRepository::class)->seasonalListId())->toBe('5a7e1b32-0000-4000-8000-000000000000')
         ->and(LibraryEntry::query()->find(RESET_LIBRARY)->favorite)->toBeTrue()
-        ->and(Setting::query()->count())->toBe(3);
+        // feature/0035: source_url is now a Setting row too (seeded by Pest).
+        ->and(Setting::query()->count())->toBe(4);
 });
 
 it('changes nothing when the transaction fails', function () {

@@ -32,7 +32,7 @@ final class Pages
         Http::fake(function (Request $request) use ($servers, $count, $image, &$lookups) {
             $host = (string) parse_url($request->url(), PHP_URL_HOST);
 
-            if (str_starts_with($request->url(), 'https://api.mangadex.org/at-home/server/')) {
+            if (str_starts_with($request->url(), 'https://api.mangadex.org/api/at-home/server/')) {
                 return Http::response(self::atHome($servers[min($lookups++, count($servers) - 1)], $count));
             }
 

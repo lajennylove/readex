@@ -244,7 +244,7 @@ it('waits for the controller when MangaDex has no slot, and queues the chapter',
     Pages::fake();
     Pages::chapter('c1');
     DB::table('rate_buckets')->insert([
-        'key' => 'family:mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+        'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
         'updated_at' => now()->timestamp, 'blocked_until' => now()->timestamp + 300, 'strikes' => 0, 'probing' => false,
     ]);
 
@@ -305,8 +305,8 @@ it('is unavailable for any other 4xx answer to the lookup', function (int $statu
     Queue::assertNothingPushed();
 })->with([400, 410]);
 
-it('is retrying, not unavailable, when the lookup meets a MangaDex outage, limit or ban, and queues the chapter', function (int $status, array|string $body) {
-    Http::fake(['api.mangadex.org/at-home/server/*' => Http::response($body, $status)]);
+it('is retrying, not unavailable, when the lookup meets a source outage, limit or ban, and queues the chapter', function (int $status, array|string $body) {
+    Http::fake(['api.mangadex.org/api/at-home/server/*' => Http::response($body, $status)]);
     Pages::chapter('c1');
 
     $this->fetcher->want('c1', [0]);
@@ -378,7 +378,7 @@ it('begins a chapter the image cache dropped again when the reader asks for it, 
 });
 
 it('is unavailable when the @Home lookup lists no pages, and saves nothing', function () {
-    Http::fake(['api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => [
+    Http::fake(['api.mangadex.org/api/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => [
         'hash' => 'h1', 'data' => [], 'dataSaver' => [],
     ]])]);
     Pages::chapter('c1');

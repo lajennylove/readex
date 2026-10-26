@@ -145,6 +145,29 @@ final class SettingsRepository
         $this->write('last_search', ['query' => $query, 'tag_id' => $tagId]);
     }
 
+    /**
+     * The one content source URL the user configured at first-run Setup.
+     * ReaDex is agnostic — no hardcoded source — so every HTTP call reads
+     * this value (via App\Sources\ActiveSource). null when the user hasn't
+     * finished Setup yet, or after a "Delete everything" factory reset.
+     */
+    public function sourceUrl(): ?string
+    {
+        $url = $this->read('source_url');
+
+        return is_string($url) && $url !== '' ? $url : null;
+    }
+
+    public function setSourceUrl(string $url): void
+    {
+        $this->write('source_url', rtrim(trim($url), '/'));
+    }
+
+    public function clearSourceUrl(): void
+    {
+        Setting::query()->whereKey('source_url')->delete();
+    }
+
     private function read(string $key): mixed
     {
         return Setting::find($key)?->value;

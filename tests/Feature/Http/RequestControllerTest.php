@@ -22,7 +22,7 @@ beforeEach(function () {
 
 function api(string $path = '/manga'): Call
 {
-    return Call::get('https://api.mangadex.org'.$path);
+    return Call::get('https://api.mangadex.org/api'.$path);
 }
 
 function clock(): float

@@ -8,6 +8,7 @@ use App\Adapters\Http\Exceptions\RequestDeferred;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadCovers;
 use App\Models\Manga;
+use App\Sources\ActiveSource;
 use App\Storage\DiskSpaceGuard;
 use App\Storage\Exceptions\DiskSpaceLow;
 use App\Storage\StorageBridge;
@@ -117,7 +118,7 @@ final class CoverStore
     {
         $size = config('readex.covers.size');
 
-        return rtrim(config('source.covers_url'), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";
+        return rtrim(app(ActiveSource::class)->coversUrl(), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";
     }
 
     /**

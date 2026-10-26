@@ -8,6 +8,7 @@ use App\Adapters\Http\RateLimit\Busy;
 use App\Adapters\Http\RateLimit\Call;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Adapters\Http\RateLimit\RequestController;
+use App\Sources\ActiveSource;
 use Closure;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Client\ConnectionException;
@@ -65,7 +66,7 @@ final class Client
     public function download(string $url, Priority $priority = Priority::Interactive, float $maxWait = 10.0): string
     {
         $call = Call::get($url);
-        $report = ! $this->isMangaDexHost($call->host());
+        $report = ! $this->isSourceOwnHost($call->host());
         $started = hrtime(true);
 
         try {
@@ -154,7 +155,7 @@ final class Client
 
     private function apiUrl(string $path, array $query): string
     {
-        $url = rtrim(config('source.api_url'), '/').'/'.ltrim($path, '/');
+        $url = rtrim(app(ActiveSource::class)->apiUrl(), '/').'/'.ltrim($path, '/');
 
         return $query === [] ? $url : $url.'?'.Query::build($query);
     }
@@ -175,7 +176,7 @@ final class Client
             return;
         }
 
-        $call = new Call('POST', config('source.report_url'));
+        $call = new Call('POST', app(ActiveSource::class)->reportUrl());
         $slot = $this->controller->acquire($call, Priority::Bulk, 0);
 
         if ($slot instanceof Busy) {
@@ -212,8 +213,17 @@ final class Client
             ->timeout(config('source.timeout'));
     }
 
-    private function isMangaDexHost(string $host): bool
+    /** True when the URL's host matches the configured source — those requests skip @Home reporting. */
+    private function isSourceOwnHost(string $host): bool
     {
-        return $host === 'mangadex.org' || str_ends_with($host, '.mangadex.org');
+        $active = app(ActiveSource::class);
+
+        if (! $active->isConfigured()) {
+            return false;
+        }
+
+        $sourceHost = parse_url($active->baseUrl(), PHP_URL_HOST) ?: '';
+
+        return $host === $sourceHost;
     }
 }

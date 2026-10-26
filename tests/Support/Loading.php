@@ -2,6 +2,7 @@
 
 namespace Tests\Support;
 
+use App\Sources\ActiveSource;
 use Closure;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -29,12 +30,15 @@ final class Loading
                 return $answer;
             }
 
-            if (rtrim($request->url(), '/') === rtrim(config('source.api_url'), '/')) {
-                // Setup's source-URL health check (Plan-08 Task 3): a bare GET of the base URL.
-                return Http::response('', 200);
+            if (str_starts_with($request->url(), rtrim(app(ActiveSource::class)->baseUrl(), '/').'/api/manga/_catalog.json')) {
+                // Setup's source-URL health check (feature/0035): probes the catalog
+                // endpoint, expects an envelope with result/response/data.
+                return Http::response(['result' => 'ok', 'response' => 'collection', 'data' => []]);
             }
 
-            if (parse_url($request->url(), PHP_URL_HOST) === 'uploads.mangadex.org') {
+            // feature/0035 agnostic-source: covers now live same-origin as api,
+            // under /covers/<manga>/<file>, so match the path not the host.
+            if (str_starts_with($request->url(), rtrim(app(ActiveSource::class)->coversUrl(), '/').'/')) {
                 $covers[] = $request->url();
 
                 return Http::response($jpeg, 200, ['Content-Type' => 'image/jpeg']);

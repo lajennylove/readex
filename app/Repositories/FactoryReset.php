@@ -21,7 +21,7 @@ final class FactoryReset
         'rate_buckets', 'api_usage',
         'tags', 'manga', 'manga_lists', 'chapters', 'chapter_feeds', 'statistics', 'recommendations', 'at_home',
         'settings', 'collections', 'reading_progress', 'stored_chapters', 'viewed_series',
-        'downloads', 'sources',
+        'downloads',
     ];
 
     public function __construct(private readonly StorageBridge $bridge) {}

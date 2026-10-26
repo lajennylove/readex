@@ -12,13 +12,12 @@ use App\Refresh\Refresh;
 use App\Refresh\RefreshStatus;
 use App\Refresh\RefreshTask;
 use App\Repositories\SettingsRepository;
-use App\Repositories\SourceRepository;
 use App\Repositories\TagRepository;
+use App\Sources\SourceHealthCheck;
 use App\Storage\StorageBridge;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use InvalidArgumentException;
 use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Facades\Network;
@@ -94,15 +93,16 @@ class Setup extends NativeComponent
     {
         $this->sourceError = null;
 
-        try {
-            app(SourceRepository::class)->addFromSetup($this->sourceUrl);
-        } catch (InvalidArgumentException $e) {
-            $this->sourceError = $e->getMessage();
+        $result = app(SourceHealthCheck::class)->check($this->sourceUrl);
+
+        if (! $result->ok) {
+            $this->sourceError = $result->error;
 
             return;
         }
 
         $settings = app(SettingsRepository::class);
+        $settings->setSourceUrl($this->sourceUrl);
 
         if (Network::status()?->connected === false) {
             $this->phase = self::OFFLINE;

@@ -19,5 +19,6 @@ abstract class TestCase extends BaseTestCase
         Http::preventStrayRequests();
         // Unscripted bridge calls answer null here instead of reaching a Jump session on 127.0.0.1:3002.
         Native::fakeBridge();
+
     }
 }

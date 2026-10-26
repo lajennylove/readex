@@ -10,7 +10,6 @@ use App\Pages\PageFetcher;
 use App\Repositories\LibraryChapter;
 use App\Repositories\LibraryRepository;
 use App\Storage\PageStore;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -178,7 +177,7 @@ final class Downloads
             ->values();
         $ids = $readable->pluck('id');
         $downloaded = StoredChapter::query()->whereIn('chapter_id', $ids)->where('tier', 'local')->where('status', 'done')->pluck('chapter_id');
-        $queued = Download::query()->whereIn('chapter_id', $ids)->whereNull('finished_at')->pluck('chapter_id');
+        $queued = Download::query()->whereIn('chapter_id', $ids)->where('state', '!=', QueueState::Done->value)->pluck('chapter_id');
 
         return [
             'readable' => $readable->count(),
@@ -195,7 +194,7 @@ final class Downloads
      */
     public function running(string $mangaId): ?array
     {
-        $batch = Download::query()->where('manga_id', $mangaId)->whereNotNull('batch')->whereNull('finished_at')->value('batch');
+        $batch = Download::query()->where('manga_id', $mangaId)->whereNotNull('batch')->where('state', '!=', QueueState::Done->value)->value('batch');
 
         if ($batch === null) {
             return null;
@@ -204,11 +203,11 @@ final class Downloads
         $rows = DB::table('downloads')->where('batch', $batch)
             ->leftJoin('stored_chapters', 'stored_chapters.chapter_id', '=', 'downloads.chapter_id')
             ->leftJoin('chapters', 'chapters.id', '=', 'downloads.chapter_id')
-            ->get(['downloads.finished_at', 'stored_chapters.tier', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'chapters.pages']);
+            ->get(['downloads.state', 'stored_chapters.tier', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'chapters.pages']);
         $pages = $rows->sum(fn (object $row) => self::pageCount($row));
 
         return [
-            'done' => $rows->whereNotNull('finished_at')->count(),
+            'done' => $rows->where('state', QueueState::Done->value)->count(),
             'total' => $rows->count(),
             'percent' => $pages > 0 ? intdiv((int) $rows->sum('pages_done') * 100, $pages) : 0,
         ];
@@ -234,7 +233,7 @@ final class Downloads
     /** Stop a Download all: the chapters not started go, the ended ones stay, the current one stays partial. */
     public function stopAll(string $mangaId): void
     {
-        Download::query()->where('manga_id', $mangaId)->whereNotNull('batch')->whereNull('finished_at')->delete();
+        Download::query()->where('manga_id', $mangaId)->whereNotNull('batch')->where('state', '!=', QueueState::Done->value)->delete();
     }
 
     /** Remove download (D35 11): back to the cache tier, progress untouched. Not while it's in the queue. */
@@ -255,24 +254,23 @@ final class Downloads
         $this->ended($chapterId);
     }
 
-    /** Done, unavailable or failed for good: the entry ends; a batch's current chapter starts the next one. */
+    /**
+     * Done, unavailable or failed for good: close the row through DownloadQueue::markDone()
+     * so `state` is the single source of truth (chore/0025). markDone() also chain-kicks
+     * the next runnable row for both the classic batch flow and enqueueOne/enqueueBatch.
+     */
     public function ended(string $chapterId): void
     {
-        $entry = $this->entry($chapterId);
-
-        if ($entry === null || ! $this->finish($chapterId)) {
+        if (! $this->isQueued($chapterId)) {
             return;
         }
 
-        // Plan 25: unified queue — DownloadQueue::kick() drains the next runnable
-        // row for both the classic batch flow and the new enqueueOne/enqueueBatch
-        // paths. No more startNext() shortcut (it bypassed claimNext()).
-        $this->queue->kick();
+        $this->queue->markDone($chapterId);
     }
 
     public function isQueued(string $chapterId): bool
     {
-        return Download::query()->whereKey($chapterId)->whereNull('finished_at')->exists();
+        return Download::query()->whereKey($chapterId)->where('state', '!=', QueueState::Done->value)->exists();
     }
 
     public function status(string $chapterId): DownloadStatus
@@ -290,9 +288,9 @@ final class Downloads
     {
         $rows = DB::table('chapters')->whereIn('chapters.id', $chapterIds)
             ->leftJoin('stored_chapters', 'stored_chapters.chapter_id', '=', 'chapters.id')
-            ->leftJoin('downloads', fn ($join) => $join->on('downloads.chapter_id', '=', 'chapters.id')->whereNull('downloads.finished_at'))
+            ->leftJoin('downloads', fn ($join) => $join->on('downloads.chapter_id', '=', 'chapters.id')->where('downloads.state', '!=', QueueState::Done->value))
             ->where(fn ($q) => $q->where('stored_chapters.tier', 'local')->orWhereNotNull('downloads.chapter_id'))
-            ->get(['chapters.id', 'stored_chapters.tier', 'stored_chapters.status', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'downloads.chapter_id as queued', 'downloads.started_at'])
+            ->get(['chapters.id', 'stored_chapters.tier', 'stored_chapters.status', 'stored_chapters.pages_done', 'stored_chapters.page_count', 'downloads.chapter_id as queued', 'downloads.state as queue_state'])
             ->keyBy('id');
 
         $statuses = [];
@@ -314,7 +312,7 @@ final class Downloads
         $percent = fn () => intdiv((int) $row->pages_done * 100, (int) $row->page_count);
 
         return match (true) {
-            $row->queued !== null && $row->started_at !== null && $row->tier === 'local' && $row->pages_done > 0 => new DownloadStatus(DownloadState::Downloading, $percent()),
+            $row->queued !== null && $row->queue_state === QueueState::Downloading->value && $row->tier === 'local' && $row->pages_done > 0 => new DownloadStatus(DownloadState::Downloading, $percent()),
             $row->queued !== null => new DownloadStatus(DownloadState::Queued),
             $row->status === 'done' => new DownloadStatus(DownloadState::Downloaded),
             default => new DownloadStatus(DownloadState::Stopped, $percent()),
@@ -329,11 +327,6 @@ final class Downloads
 
     private function entry(string $chapterId): ?Download
     {
-        return Download::query()->whereKey($chapterId)->whereNull('finished_at')->first();
-    }
-
-    private function finish(string $chapterId): bool
-    {
-        return Download::query()->whereKey($chapterId)->whereNull('finished_at')->update(['finished_at' => Carbon::now(), 'state' => QueueState::Done->value]) === 1;
+        return Download::query()->whereKey($chapterId)->where('state', '!=', QueueState::Done->value)->first();
     }
 }

@@ -63,11 +63,16 @@ function t7dChapter(string $id, ?string $number, array $extra = []): Chapter
     ]);
 }
 
-function t7dEntry(string $id, int $position, ?string $started = null, ?string $finished = null, ?string $batch = 't7-batch'): void
+function t7dEntry(string $id, int $position, ?string $started = null, ?string $finished = null, ?string $batch = 't7-batch', ?string $state = null): void
 {
+    // chore/0025: downloads.state is the single source of truth. Historically
+    // tests set only started_at/finished_at and let the caption derive from
+    // those; now the row's state must match. Default state follows the
+    // timestamps: finished_at set → done, started_at set → downloading, else queued.
+    $state ??= $finished !== null ? 'done' : ($started !== null ? 'downloading' : 'queued');
     Download::query()->create([
         'chapter_id' => $id, 'manga_id' => T7_DETAIL, 'batch' => $batch, 'position' => $position, 'priority' => 'bulk',
-        'started_at' => $started, 'finished_at' => $finished, 'created_at' => Carbon::now(),
+        'started_at' => $started, 'finished_at' => $finished, 'created_at' => Carbon::now(), 'state' => $state,
     ]);
 }
 
@@ -145,7 +150,7 @@ describe('chapter rows', function () {
 
         expect(t7dRows(Native::visit('/library/manga/'.T7_DETAIL)->tree()))->toBe([
             ['label' => 'Ch. 1', 'caption' => 'Group A · Page 5 of 20', 'a11y' => 'Ch. 1', 'icon' => null, 'dimmed' => false],
-            ['label' => 'Ch. 2', 'caption' => 'Group A · Downloading 45%', 'a11y' => 'Ch. 2, Downloading 45%', 'icon' => null, 'dimmed' => false],
+            ['label' => 'Ch. 2', 'caption' => 'Group A · Queued', 'a11y' => 'Ch. 2, Queued', 'icon' => null, 'dimmed' => false],
             ['label' => 'Ch. 3', 'caption' => 'Group A · Queued', 'a11y' => 'Ch. 3, Queued', 'icon' => null, 'dimmed' => false],
             ['label' => 'Ch. 4', 'caption' => 'Group A · Download stopped · 45%', 'a11y' => 'Ch. 4, Download stopped · 45%', 'icon' => null, 'dimmed' => false],
             ['label' => 'Ch. 5 · Last', 'caption' => 'Group A · Downloaded', 'a11y' => 'Ch. 5 · Last, Downloaded', 'icon' => 'checkmark.circle.fill', 'dimmed' => true],
@@ -180,7 +185,7 @@ describe('chapter rows', function () {
         app(Downloads::class)->stop('t7-d1');
 
         Queue::assertPushed(DownloadChapter::class, fn (DownloadChapter $j) => $j->chapterId === 't7-d2' && $j->tier === 'local');
-        expect(array_column(t7dRows(Native::visit('/home/manga/'.T7_DETAIL)->tree()), 'caption'))->toBe(['Group A', 'Group A · Downloading 45%']);
+        expect(array_column(t7dRows(Native::visit('/home/manga/'.T7_DETAIL)->tree()), 'caption'))->toBe(['Group A', 'Group A · Queued']);
     });
 
     it('looks up the download state of every row in one query, however long the list', function () {

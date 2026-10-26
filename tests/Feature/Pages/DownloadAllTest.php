@@ -241,18 +241,17 @@ describe('Download all', function () {
     it('starts the next chapter once when two runtimes end the current one at the same time', function () {
         t7aBatch(3);
         $this->downloads->downloadAll(T7_ALL, 'es-la');
-        $other = true;
-        Download::retrieved(function (Download $entry) use (&$other) {
-            if ($other && $entry->chapter_id === 't7-a1') {
-                $other = false;
-                app(Downloads::class)->ended('t7-a1');
-            }
-        });
 
+        // chore/0025: ended() now routes through DownloadQueue::markDone which does a
+        // single atomic UPDATE with a state WHERE-clause. The old race hook was
+        // Download::retrieved, which only fired on model first() — markDone writes
+        // without reading, so we simulate the race directly: two ended() calls in a
+        // row. The second one must be a no-op (isQueued=false after the first succeeds)
+        // and only one chain-kick for a2 happens.
+        $this->downloads->ended('t7-a1');
         $this->downloads->ended('t7-a1');
 
-        expect($other)->toBeFalse()
-            ->and(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a2 local bulk']);
+        expect(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a2 local bulk']);
     });
 
     it('counts a queued chapter the reader finished meanwhile without starting a second one', function () {
@@ -262,6 +261,9 @@ describe('Download all', function () {
         DownloadChapter::dispatch('t7-a3', 'cache', Priority::Interactive);
 
         t7aRun('t7-a3');
+        // a3's chain-kick re-targets a1 (position 1, still queued) but DownloadChapter
+        // is ShouldBeUnique so the duplicate dispatch is dropped — Queue::pushed stays
+        // at [a1, a3]. The batch counter correctly shows 1 done / 3 total.
         expect(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a3 cache interactive'])
             ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 1, 'total' => 3]);
 

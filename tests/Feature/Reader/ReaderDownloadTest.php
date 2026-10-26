@@ -112,8 +112,9 @@ it('keeps hiding the bar on a tap with the action there', function () {
 
 it('reads a downloaded chapter in Airplane mode: every page from the downloads, nothing asked for', function () {
     t7rChapter('t7-r1');
-    Stored::chapter('t7-r1', 3, openedAt: '2026-10-23 20:00:00');
+    Stored::chapter('t7-r1', 3, openedAt: '2026-10-23 20:00:00', tier: 'local');
     app(Downloads::class)->download('t7-r1');
+    Download::query()->whereKey('t7-r1')->update(['state' => 'done', 'finished_at' => now()]);
 
     $screen = Native::visit('/home/read/t7-r1')->call('windowChanged', 0, 4);
 

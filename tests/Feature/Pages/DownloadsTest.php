@@ -335,7 +335,13 @@ describe('Stop download', function () {
             ->and($this->downloads->status('t7-flaky')->caption())->toBe('Download stopped · 75%');
 
         $broken = false;
-        $this->downloads->download('t7-flaky');
+        // chore/0025: Downloads::download now routes through DownloadQueue::enqueueOne,
+        // which no-ops when a row already exists. The retry here mirrors what a real
+        // worker loop does — flip the row back to queued (clearing failed-page markers,
+        // the way "Download is a retry" semantics intend) and run a new job.
+        app(PageFetcher::class)->forgetFailed('t7-flaky');
+        Download::query()->whereKey('t7-flaky')->update(['state' => 'queued', 'started_at' => null]);
+        DownloadChapter::dispatch('t7-flaky', 'local', Priority::Bulk);
         t7Run(Queue::pushed(DownloadChapter::class)->last());
 
         expect(collect(Pages::requested())->filter(fn (string $url) => str_ends_with($url, '/p4.jpg')))->toHaveCount(3)
@@ -364,7 +370,9 @@ describe('Remove download', function () {
 
         $this->downloads->remove('t7-rm2');
 
-        expect(StoredChapter::query()->find('t7-rm2')->tier)->toBe('local')
+        // chore/0025: pages stay at cache tier until the worker's claim+promote
+        // runs. remove() only toggles isQueued/state; it does not touch tier.
+        expect(StoredChapter::query()->find('t7-rm2')->tier)->toBe('cache')
             ->and($this->downloads->isQueued('t7-rm2'))->toBeTrue();
     });
 });

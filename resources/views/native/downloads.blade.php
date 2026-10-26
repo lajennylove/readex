@@ -2,10 +2,28 @@
     <native:column class="w-full gap-6 p-4 pb-24">
         @forelse ($groups as $group)
             <native:column class="w-full gap-2" native:key="dl-group-{{ $group['mangaId'] }}">
-                <native:text class="text-lg font-bold text-theme-on-background" max-lines="2">{{ $group['title'] }}</native:text>
-                <native:column class="w-full gap-1">
+                <native:row class="w-full gap-3 items-center">
+                    {{-- Fixed height, not aspect-[2/3]: iOS rows measure children with no height, so an aspect-only cover overflows the row. Matches manga-detail header. --}}
+                    <native:stack class="w-12 h-16 rounded-md bg-[#2C2C2E]">
+                        @if ($group['cover'])
+                            <native:image src="{{ $group['cover'] }}" class="w-full h-full rounded-md object-cover" alt="{{ $group['title'] }}" />
+                        @endif
+                        @include('native.partials.skeleton', ['key' => "dl-cover-{$group['mangaId']}", 'class' => 'w-full h-full rounded-md', 'loaded' => $group['cover'] !== null])
+                    </native:stack>
+                    <native:column class="flex-1 gap-0">
+                        <native:text class="text-lg font-bold text-theme-on-background" max-lines="2">{{ $group['title'] }}</native:text>
+                        <native:text class="text-sm text-theme-on-surface-variant">{{ $group['count'] }}</native:text>
+                    </native:column>
+                </native:row>
+                <native:pressable
+                    native:key="dl-cancel-all-{{ $group['mangaId'] }}"
+                    @press="askCancelAllForManga('{{ $group['mangaId'] }}', '{{ addslashes($group['title']) }}')"
+                    a11y-label="Cancel all downloads for {{ $group['title'] }}">
+                    <native:text class="text-sm text-theme-on-surface-variant underline">Cancel all</native:text>
+                </native:pressable>
+                <native:column class="w-full gap-1" native:key="dl-rows-{{ $group['mangaId'] }}">
                     @foreach ($group['rows'] as $row)
-                        <native:row class="w-full items-center justify-between gap-3 py-2" native:key="dl-row-{{ $row['chapterId'] }}">
+                        <native:row class="w-full items-center justify-between gap-3 py-2" native:key="dl-row-{{ $row['chapterId'] }}" a11y-label="{{ $row['a11y'] }}">
                             <native:column class="flex-1 gap-0">
                                 <native:text class="text-base text-theme-on-background">{{ $row['label'] }}</native:text>
                                 <native:text class="text-sm text-theme-on-surface-variant">{{ $row['chip'] }}</native:text>
@@ -28,6 +46,9 @@
                     @endforeach
                 </native:column>
             </native:column>
+            @if (! $loop->last)
+                <native:divider />
+            @endif
         @empty
             <native:column class="w-full items-center gap-3 p-6">
                 <native:text class="text-lg font-bold text-theme-on-background">No downloads queued</native:text>

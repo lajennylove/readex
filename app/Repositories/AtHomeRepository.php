@@ -100,7 +100,13 @@ final class AtHomeRepository
 
         $base = rtrim($server->base_url, '/')."/{$folder}/{$server->hash}/";
 
-        return array_map(fn (string $file) => $base.$file, array_values($files));
+        // A static-file source (e.g. our GH Pages demo) can hand back the full external
+        // image URL in the `data` array when the images live off-origin. Keep absolute
+        // URLs verbatim; the usual relative-filename path still concatenates under $base.
+        return array_map(
+            fn (string $file) => preg_match('#^https?://#i', $file) === 1 ? $file : $base.$file,
+            array_values($files),
+        );
     }
 
     private function path(string $chapterId): string

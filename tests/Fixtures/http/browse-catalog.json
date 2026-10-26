@@ -1,0 +1,52 @@
+{
+    "recorded_at": "2026-10-26T20:00:00+00:00",
+    "method": "GET",
+    "path": "/manga/_catalog",
+    "query": [],
+    "status": 200,
+    "headers": {
+        "content-type": "application/json"
+    },
+    "body": {
+        "result": "ok",
+        "response": "collection",
+        "data": [
+            {
+                "id": "a0000000-0000-0000-0000-000000000001",
+                "type": "manga",
+                "attributes": {
+                    "title": {"en": "Browse One"},
+                    "altTitles": [],
+                    "description": {"en": "Browse row test fixture."},
+                    "status": "ongoing",
+                    "year": 2026,
+                    "contentRating": "safe",
+                    "availableTranslatedLanguages": ["en"],
+                    "originalLanguage": "en",
+                    "tags": []
+                },
+                "relationships": [
+                    {"id": "c0000000-0000-0000-0000-000000000001", "type": "cover_art", "attributes": {"fileName": "cover.png"}}
+                ]
+            },
+            {
+                "id": "a0000000-0000-0000-0000-000000000002",
+                "type": "manga",
+                "attributes": {
+                    "title": {"en": "Browse Two"},
+                    "altTitles": [],
+                    "description": {"en": "Second browse row test fixture."},
+                    "status": "ongoing",
+                    "year": 2026,
+                    "contentRating": "safe",
+                    "availableTranslatedLanguages": ["en"],
+                    "originalLanguage": "en",
+                    "tags": []
+                },
+                "relationships": [
+                    {"id": "c0000000-0000-0000-0000-000000000002", "type": "cover_art", "attributes": {"fileName": "cover.png"}}
+                ]
+            }
+        ]
+    }
+}

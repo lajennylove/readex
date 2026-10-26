@@ -169,7 +169,7 @@ it('saves the choices, loads everything and opens Home', function () {
         ->and($settings->language())->toBe('es-la')
         ->and($settings->contentRatings())->toBe(['safe', 'suggestive'])
         ->and(app(HomeRepository::class)->latest()->isEmpty())->toBeFalse()
-        ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
+        ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'catalog' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
     $this->async->assertDispatched(fn (array $d) => $d['work']['task'] === LoadTask::class);
 
     expect(app(SettingsRepository::class)->sourceUrl())->not->toBeNull();

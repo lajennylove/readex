@@ -132,6 +132,7 @@ it('round-trips @Home file lists and chapter dates', function () {
 it('has refresh ages matching spec §7', function () {
     expect(config('readex.refresh_ages'))->toBe([
         'tags' => 2592000,
+        'home.catalog' => 86400,
         'home.popular' => 21600,
         'home.latest' => 900,
         'list' => 3600,

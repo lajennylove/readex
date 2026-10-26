@@ -42,9 +42,10 @@ function host(Request $request): string
 it('runs the first-run steps in order and fills every Home row', function () {
     Loading::fake();
 
-    expect(load())->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok'])
+    expect(load())->toBe(['tags' => 'ok', 'catalog' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok'])
         ->and($this->progress)->toBe([
             'tags:running', 'tags:ok',
+            'catalog:running', 'catalog:ok',
             'popular:running', 'popular:ok',
             'latest:running', 'latest:ok',
             'covers:running', 'covers:ok',
@@ -118,7 +119,7 @@ it('does not load tags again when Setup already got them', function () {
 it('keeps going when one row fails', function () {
     Loading::fake(fn (Request $request) => str_ends_with(host($request), '/chapter') ? Http::response(['result' => 'error'], 500) : null);
 
-    expect(load())->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'unavailable', 'covers' => 'ok'])
+    expect(load())->toBe(['tags' => 'ok', 'catalog' => 'ok', 'popular' => 'ok', 'latest' => 'unavailable', 'covers' => 'ok'])
         ->and(app(HomeRepository::class)->popular()->isEmpty())->toBeFalse();
 });
 
@@ -132,7 +133,7 @@ it('stops trying once the phone is offline (Review Focus 1)', function () {
 
     expect(load())->toBe(array_fill_keys(array_keys(DataLoader::STEPS), RefreshStatus::Offline->value))
         ->and($asked)->toBe(1)
-        ->and($this->progress)->toBe(['tags:running', 'tags:offline', 'popular:offline', 'latest:offline', 'covers:offline']);
+        ->and($this->progress)->toBe(['tags:running', 'tags:offline', 'catalog:offline', 'popular:offline', 'latest:offline', 'covers:offline']);
 });
 
 it('loads the Home rows interactive and the rest at the given priority (spec §7.1)', function (Priority $rest, ?float $backgroundTokens) {

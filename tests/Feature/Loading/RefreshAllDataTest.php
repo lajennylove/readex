@@ -35,7 +35,7 @@ it('runs the loading steps, records the refresh time and stops running', functio
 
     app()->call([new RefreshAllData('r1'), 'handle']);
 
-    expect(LoadProgress::read('r1'))->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok'])
+    expect(LoadProgress::read('r1'))->toBe(['tags' => 'ok', 'catalog' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok'])
         ->and(app(HomeRepository::class)->latest()->isEmpty())->toBeFalse()
         ->and(app(SettingsRepository::class)->lastDataRefreshAt()?->gte('2026-10-24 12:00:00'))->toBeTrue()
         ->and(RefreshAllData::running())->toBeNull();

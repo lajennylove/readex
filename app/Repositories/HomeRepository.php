@@ -14,9 +14,11 @@ use App\Models\StoredChapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-/** The Home rows: Popular new titles, Latest updates. */
+/** The Home rows: Browse (the source's own catalog), Popular new titles, Latest updates. */
 final class HomeRepository
 {
+    public const CATALOG = 'home.catalog';
+
     public const POPULAR = 'home.popular';
 
     public const LATEST = 'home.latest';
@@ -26,6 +28,30 @@ final class HomeRepository
         private readonly SettingsRepository $settings,
         private readonly MangaRepository $manga,
     ) {}
+
+    /** The source's own catalog, if it serves one (`/manga/_catalog`). Static sources
+     *  that ship a precomputed catalog populate this row; dynamic sources that don't
+     *  implement the endpoint 404 and the row stays hidden silently. */
+    public function catalog(): Result
+    {
+        return $this->manga->readList(self::CATALOG, self::CATALOG);
+    }
+
+    public function refreshCatalog(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga/_catalog', [], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::CATALOG, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        DB::transaction(fn () => $this->replace(self::CATALOG, $this->manga->storeManga($response)));
+    }
 
     public function popular(): Result
     {

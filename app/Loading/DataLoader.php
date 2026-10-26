@@ -23,13 +23,14 @@ final class DataLoader
     /** Step => label shown in the progress list. */
     public const STEPS = [
         'tags' => 'Categories',
+        'catalog' => 'Browse',
         'popular' => 'Popular new titles',
         'latest' => 'Latest updates',
         'covers' => 'Covers',
     ];
 
     /** The steps that fill Home rows. */
-    public const HOME_ROWS = ['popular', 'latest'];
+    public const HOME_ROWS = ['catalog', 'popular', 'latest'];
 
     public function __construct(
         private readonly TagRepository $tags,
@@ -68,6 +69,7 @@ final class DataLoader
     {
         match ($step) {
             'tags' => $this->loadTags($rest),
+            'catalog' => $this->home->refreshCatalog(Priority::Interactive),
             'popular' => $this->home->refreshPopular(Priority::Interactive),
             'latest' => $this->home->refreshLatest(Priority::Interactive),
             'covers' => $this->loadCovers($rest),

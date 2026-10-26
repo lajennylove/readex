@@ -50,6 +50,7 @@ afterEach(fn () => AsyncTask::clearFake());
 function fillHome(): void
 {
     $home = app(HomeRepository::class);
+    $home->refreshCatalog();
     $home->refreshPopular();
     $home->refreshLatest();
 }
@@ -113,6 +114,7 @@ function rowMangas(): array
     $home = app(HomeRepository::class);
 
     return [
+        'catalog' => $home->catalog()->data->values()->all(),
         'popular' => $home->popular()->data->values()->all(),
         'latest' => $home->latest()->data->map(fn (LatestUpdate $u) => $u->manga)->values()->all(),
     ];
@@ -132,9 +134,9 @@ it('fills every row on the first visit', function () {
     expect(homeNodes($screen->tree(), 'pressable'))->toHaveCount(array_sum(array_map('count', $rows)));
 });
 
-it('starts with Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
+it('starts with Browse, Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
     fillHome();
-    $rows = ['Popular new titles', 'Latest updates'];
+    $rows = ['Browse', 'Popular new titles', 'Latest updates'];
     expect(rowLabels(Native::test(Home::class)->tree()))->toBe($rows);
 
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
@@ -245,7 +247,7 @@ it('waits for the background retry instead of offering Retry when The provider i
         ->assertDontSee('Nothing saved yet')
         ->assertSee('Popular new titles');
 
-    Queue::assertPushed(RefreshRepository::class, 2);
+    Queue::assertPushed(RefreshRepository::class, 3);
 });
 
 it('shows empty rows, not "Nothing saved yet", when the provider has nothing', function () {
@@ -307,11 +309,12 @@ it('fetches a fair per-row share of covers right away and queues the rest, witho
     $rows = rowMangas();
     $started = collect(app(HomeRepository::class)->latest()->data)->first(fn (LatestUpdate $u) => $u->manga->id !== $rows['popular'][0]->id);
     app(LibraryRepository::class)->saveProgress($started->chapter->id, 0, 10);
-    // config('readex.covers.visible') (12) split across 2 Home rows: 6 each.
-    $perRow = 6;
+    // config('readex.covers.visible') (12) split across 3 Home rows round-robin: Browse
+    // has 2 covers (consumes 2 slots), Popular + Latest take 5 each from the remaining 10.
     $fetchNow = [
-        ...array_map(fn ($m) => $m->id, array_slice($rows['popular'], 0, $perRow)),
-        ...array_map(fn ($m) => $m->id, array_slice($rows['latest'], 0, $perRow)),
+        ...array_map(fn ($m) => $m->id, $rows['catalog']),
+        ...array_map(fn ($m) => $m->id, array_slice($rows['popular'], 0, 5)),
+        ...array_map(fn ($m) => $m->id, array_slice($rows['latest'], 0, 5)),
     ];
     $continueFirst = [$started->manga->id, ...$fetchNow];
 
@@ -353,9 +356,13 @@ it('gives Latest updates the full visible budget when Popular already has every 
 
     $fetchedIds = Covers::fetched($this->async);
     $visible = config('readex.covers.visible');
-    $expectedLatest = array_map(fn ($m) => $m->id, array_slice($missingLatest, 0, $visible));
+    // The Browse row's 2 covers consume 2 slots; the remaining `$visible - 2` go to Latest
+    // (Popular's covers are fully cached by the setup loop above).
+    $catalogIds = array_map(fn ($m) => $m->id, $rows['catalog']);
+    $expectedLatest = array_map(fn ($m) => $m->id, array_slice($missingLatest, 0, $visible - count($catalogIds)));
+    $expected = [...$catalogIds, ...$expectedLatest];
 
-    expect($fetchedIds)->toBe($expectedLatest)
+    expect($fetchedIds)->toBe($expected)
         ->and($fetchedIds)->toHaveCount($visible);
 });
 

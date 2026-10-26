@@ -9,6 +9,7 @@ use App\Repositories\ChapterRepository;
 use App\Repositories\HomeRepository;
 use App\Repositories\LatestUpdate;
 use App\Repositories\SettingsRepository;
+use App\Sources\ActiveSource;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -162,4 +163,23 @@ it('sends the reader\'s chain and stores nothing for an empty answer', function 
     Http::assertSent(fn (Request $r) => str_contains(rawurldecode($r->url()), 'translatedLanguage[]=pt-br&translatedLanguage[]=pt&translatedLanguage[]=en'));
     Http::assertSentCount(1);
     expect($this->home->latest()->isEmpty())->toBeTrue();
+});
+
+it('populates the Browse row from /manga/_catalog', function () {
+    SourceFixtures::fake('browse-catalog');
+
+    $this->home->refreshCatalog();
+
+    expect($this->home->catalog()->data)->toHaveCount(2)
+        ->and(homeIds($this->home->catalog()->data))->toBe(['a0000000', 'a0000000']);
+});
+
+it('silently hides the Browse row when the source returns 404 on /manga/_catalog', function () {
+    Http::fake([
+        rtrim(app(ActiveSource::class)->apiUrl(), '/').'/manga/_catalog' => Http::response('not found', 404),
+    ]);
+
+    $this->home->refreshCatalog();
+
+    expect($this->home->catalog()->data->isEmpty())->toBeTrue();
 });

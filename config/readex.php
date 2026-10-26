@@ -5,6 +5,7 @@ return [
     // Spec §7. Seconds after fetched_at before get() marks the data stale.
     'refresh_ages' => [
         'tags' => 30 * 86400,
+        'home.catalog' => 24 * 3600,
         'home.popular' => 6 * 3600,
         'home.latest' => 15 * 60,
         'list' => 3600,

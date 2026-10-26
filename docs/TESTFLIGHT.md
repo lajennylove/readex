@@ -95,7 +95,7 @@ Internal testing requires **no App Store review** and supports up to 100 testers
 - **Copy neutrality applies to the store listing.** `CLAUDE.md` section 6 and `docs/COPY-NEUTRALITY.md` describe the in-app policy; the App Store Connect listing must obey the same rule. The app description, promotional text, keywords, screenshots, and screen recordings must not name any specific third-party content site (manga aggregator, streaming service, piracy host). Any such mention is a near-guaranteed App Store rejection and would also contradict the EULA the app shows on first launch.
 - **Suggested description text** (safe default; adapt as you like):
   > ReaDex is a reader client for user-configured content sources. On first launch you provide the URL of a source you choose; ReaDex fetches, caches, and renders what that source returns. The app ships with no catalog, no bundled content, and no suggested sources. All content stays on your device.
-- **No pre-filled catalog explanation.** Because ReaDex has no built-in content, the first screen a reviewer sees is the first-run setup asking for a source URL. Add a note in App Store Connect -> App Review Information -> **Notes** explaining this and provide a demo source URL the reviewer can paste in. Without one, review will likely reject the app as "demo content missing".
+- **No pre-filled catalog explanation.** Because ReaDex has no built-in content, the first screen a normal user sees is first-run Setup asking for a source URL. For App Review we cut a review build that points the app's single API endpoint at a demo GitHub Pages site via `SOURCE_API_URL` / `SOURCE_COVERS_URL`; the reviewer never has to touch Setup. See section 10 for the full flow.
 - **Reviewer demo account.** Not applicable — ReaDex has no accounts. Leave the demo account fields blank and say so in the Notes field.
 - **Age rating.** The questionnaire should be answered honestly for user-generated content: the app does render content from a URL the user supplies, so declare "Unrestricted Web Access = Yes" and "User-generated content = No" (ReaDex does not host or share user content). Expect a 17+ rating as a consequence of unrestricted web access. This is the correct and honest answer.
 - **Privacy nutrition label.** ReaDex collects no data (no accounts, no analytics, no telemetry — see `CLAUDE.md` section 5). Select "Data Not Collected" on every category. If a future release adds opt-in telemetry, update the label.
@@ -134,3 +134,45 @@ Tick these off before Archive.
 
 - Capture App Store Connect's processed build number and tag the commit it was built from: `git tag -a v0.1.0-testflight.1 -m "First TestFlight upload" && git push origin v0.1.0-testflight.1`. Tags on `main` only, per `CLAUDE.md` section 4.5.
 - Open the next planning ticket for Beta App Review feedback (external testing) so you can turn around any requested changes quickly.
+## 10. Demo content source for App Review
+
+Apple's reviewer needs a working endpoint the moment they launch the app, or review will reject with "demo content missing". We serve one from GitHub Pages — a tiny invented catalog (three titles, two chapters each, placeholder SVG pages, no third-party content). The source assets live on an orphan `gh-pages` branch and are intentionally kept out of `main`; the review build points `config('source.api_url')` at the Pages site, so the reviewer never touches Setup — the app just works.
+
+### Where the demo lives
+
+- Branch: `gh-pages` (orphan, root served by Pages). Built from `feature/0034-demo-source-review-pages` via `git subtree push --prefix=demo-source origin gh-pages`.
+- Pages URL: `https://lajennylove.github.io/readex/`.
+- Endpoints: `/api/manga/_catalog.json`, `/api/manga/<id>.json`, `/api/manga/<id>/feed.json`, `/api/at-home/server/<chapter>.json`. Images under `/data/<chapter>/<nnn>.svg` and `/covers/<id>/cover.svg`.
+
+### Cut the review build
+
+In the environment used by the review build (`.env.production`, or whatever you deploy with):
+
+    SOURCE_API_URL=https://lajennylove.github.io/readex/api
+    SOURCE_COVERS_URL=https://lajennylove.github.io/readex/covers
+    SOURCE_REPORT_URL=https://lajennylove.github.io/readex/report
+
+Everything else stays identical to the normal production build. Nothing in the app's UI changes — the reviewer sees the catalog on first launch because the config now points at the demo endpoint.
+
+The regular production build leaves those env vars unset; `config/source.php` falls back to its production defaults.
+
+### Refreshing the demo
+
+If the demo content changes, rebuild `gh-pages` from `feature/0034-demo-source-review-pages`:
+
+    git checkout feature/0034-demo-source-review-pages
+    git subtree push --prefix=demo-source origin gh-pages
+
+Pages rebuilds in ~30 s. Smoke test with `curl -I https://lajennylove.github.io/readex/api/manga/_catalog.json` — expect `HTTP/2 200`.
+
+### What to put in App Review Information
+
+In App Store Connect -> App Information -> App Review Information -> **Notes**:
+
+> This build is configured against a demo content source hosted on GitHub Pages, included so you can exercise the app without any setup. Launch the app, dismiss the EULA on first run, and you will see three placeholder titles. Open any title, tap Download, then Read. The demo exercises the catalog, chapter list, download, and reader flows. No account or login is required. The production build will ask the user to supply their own content source URL on first run; this is explained in the EULA and in the app description.
+
+### How the single-endpoint source works end-to-end
+
+- `source.api_url` is the one hostname the HTTP client talks to. Setting `SOURCE_API_URL` swings every request at the demo origin.
+- The demo's `at-home/server/<chapter>` JSON returns an empty `baseUrl`. `AtHomeRepository::resolveBaseUrl()` falls back to the parent of `source.api_url` when the response is empty or non-absolute, so chapter images resolve to the Pages origin automatically. No deploy-time URL rewriting of the demo JSON needed.
+- Covers come from `source.covers_url`; set that env var to the Pages `/covers` path and the thumbnail pipeline uses them unchanged.

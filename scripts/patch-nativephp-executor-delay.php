@@ -17,10 +17,9 @@ declare(strict_types=1);
  * Composer runs this after every install/update so a vendor refresh doesn't
  * silently reintroduce the bug.
  */
-
 $targets = [
-    __DIR__ . '/../vendor/nativephp/mobile/resources/androidstudio/app/src/main/java/com/nativephp/mobile/ui/MainActivity.kt',
-    __DIR__ . '/../nativephp/android/app/src/main/java/com/nativephp/mobile/ui/MainActivity.kt',
+    __DIR__.'/../vendor/nativephp/mobile/resources/androidstudio/app/src/main/java/com/nativephp/mobile/ui/MainActivity.kt',
+    __DIR__.'/../nativephp/android/app/src/main/java/com/nativephp/mobile/ui/MainActivity.kt',
 ];
 
 $needle = 'private const val WORKER_START_DELAY_MS = 2500L';
@@ -38,11 +37,13 @@ foreach ($targets as $target) {
 
     if (str_contains($contents, 'WORKER_START_DELAY_MS = 100L')) {
         echo "patch-nativephp-executor-delay: already patched — {$target}\n";
+
         continue;
     }
 
     if (! str_contains($contents, $needle)) {
         fwrite(STDERR, "patch-nativephp-executor-delay: anchor not found in {$target}\n");
+
         continue;
     }
 

@@ -34,6 +34,7 @@
             "name": "MdxStorage.TimeZone",
             "ios": "MdxStorageFunctions.CurrentTimeZone",
             "android": "com.lajennylove.plugins.mdx_storage.MdxStorageFunctions.TimeZone",
+            "android_params": [],
             "description": "TimeZone.current identifier (IANA)"
         },
         {
@@ -46,6 +47,7 @@
             "name": "MdxStorage.ExcludeFromBackup",
             "ios": "MdxStorageFunctions.ExcludeFromBackup",
             "android": "com.lajennylove.plugins.mdx_storage.MdxStorageFunctions.ExcludeFromBackup",
+            "android_params": [],
             "description": "Sets isExcludedFromBackup on a path (no-op on Android; see backup_rules.xml)"
         }
     ],

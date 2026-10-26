@@ -52,12 +52,11 @@ beforeEach(function () {
 
     $settings = app(SettingsRepository::class);
     $settings->setLanguage('es-la');
-    $settings->setSeasonalListId('5a7e1b32-0000-4000-8000-000000000000');
     $settings->markSetupDone();
 
     DB::table('tags')->insert(['id' => 'eeeeeeee-0000-4000-8000-000000000000', 'group' => 'genre', 'name' => '{"en":"Action"}', 'fetched_at' => Carbon::now()]);
     DB::table('manga_lists')->insert([
-        ['list_key' => 'home.season', 'batch' => 0, 'position' => 0, 'manga_id' => RESET_LIBRARY, 'fetched_at' => Carbon::now()],
+        ['list_key' => 'home.popular', 'batch' => 0, 'position' => 0, 'manga_id' => RESET_LIBRARY, 'fetched_at' => Carbon::now()],
         ['list_key' => 'search:abc', 'batch' => 0, 'position' => 0, 'manga_id' => RESET_OTHER, 'fetched_at' => Carbon::now()],
     ]);
     DB::table('statistics')->insert(['manga_id' => RESET_LIBRARY, 'follows' => 10, 'fetched_at' => Carbon::now()]);
@@ -108,10 +107,9 @@ it('leaves the Library usable offline and every remote read stale', function () 
         ->and($feed->isEmpty())->toBeTrue()->and($feed->isStale)->toBeTrue()
         ->and(app(MangaRepository::class)->detail(RESET_LIBRARY)->isStale)->toBeTrue()
         ->and(app(RecommendationRepository::class)->get(RESET_LIBRARY)->isStale)->toBeTrue()
-        ->and(app(SettingsRepository::class)->seasonalListId())->toBe('5a7e1b32-0000-4000-8000-000000000000')
         ->and(LibraryEntry::query()->find(RESET_LIBRARY)->favorite)->toBeTrue()
         // feature/0035: source_url is now a Setting row too (seeded by Pest).
-        ->and(Setting::query()->count())->toBe(4);
+        ->and(Setting::query()->count())->toBe(3);
 });
 
 it('changes nothing when the transaction fails', function () {

@@ -94,10 +94,10 @@ it('sets only created_at on collections and only updated_at on reading progress'
 it('rejects a manga twice in the same list but allows it in another list', function () {
     $row = fn (string $key, int $position) => ['list_key' => $key, 'batch' => 1, 'position' => $position, 'manga_id' => 'a1', 'fetched_at' => now()];
 
-    DB::table('manga_lists')->insert($row('home.season', 0));
+    DB::table('manga_lists')->insert($row('home.popular', 0));
     DB::table('manga_lists')->insert($row('tag:t1', 0));
 
-    expect(fn () => DB::table('manga_lists')->insert($row('home.season', 1)))
+    expect(fn () => DB::table('manga_lists')->insert($row('home.popular', 1)))
         ->toThrow(UniqueConstraintViolationException::class);
 });
 
@@ -132,7 +132,6 @@ it('round-trips @Home file lists and chapter dates', function () {
 it('has refresh ages matching spec §7', function () {
     expect(config('readex.refresh_ages'))->toBe([
         'tags' => 2592000,
-        'home.season' => 86400,
         'home.popular' => 21600,
         'home.latest' => 900,
         'list' => 3600,

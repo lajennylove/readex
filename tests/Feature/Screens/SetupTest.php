@@ -169,7 +169,7 @@ it('saves the choices, loads everything and opens Home', function () {
         ->and($settings->language())->toBe('es-la')
         ->and($settings->contentRatings())->toBe(['safe', 'suggestive'])
         ->and(app(HomeRepository::class)->latest()->isEmpty())->toBeFalse()
-        ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
+        ->and($screen->get('steps'))->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok']);
     $this->async->assertDispatched(fn (array $d) => $d['work']['task'] === LoadTask::class);
 
     expect(app(SettingsRepository::class)->sourceUrl())->not->toBeNull();
@@ -254,11 +254,11 @@ it('also catches no connection when the phone claims to be online', function () 
 });
 
 it('opens Home when rows load but one keeps failing', function () {
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
+    Loading::fake(fn (Request $request) => str_contains(rawurldecode($request->url()), 'createdAtSince=') ? Http::response('down', 503) : null);
 
     $screen = withBuiltInSource(Native::test(Setup::class))->tap('Continue')->assertReplacedWith('/home');
 
-    expect($screen->get('steps')['season'])->toBe('unavailable');
+    expect($screen->get('steps')['popular'])->toBe('unavailable');
 });
 
 it('shows progress per step while loading', function () {
@@ -268,7 +268,7 @@ it('shows progress per step while loading', function () {
         ->set('startedAt', Carbon::now()->getTimestampMs());
     LoadProgress::start('r1');
     LoadProgress::record('r1', 'tags', 'ok');
-    LoadProgress::record('r1', 'season', LoadProgress::RUNNING);
+    LoadProgress::record('r1', 'popular', LoadProgress::RUNNING);
 
     $screen->firePoll('checkLoading')
         ->assertSee('Categories')
@@ -284,15 +284,15 @@ it('opens Home after 10 s with what loaded while a row hangs (Review Focus 2)', 
         ->set('run', 'r1')
         ->set('startedAt', Carbon::now()->getTimestampMs());
     LoadProgress::start('r1');
-    foreach (['tags' => 'ok', 'season' => 'running'] as $step => $state) {
+    foreach (['tags' => 'ok', 'popular' => 'running'] as $step => $state) {
         LoadProgress::record('r1', $step, $state);
     }
 
     Carbon::setTestNow(Carbon::now()->addSeconds(12));
     $screen->firePoll('checkLoading')->assertNoNavigation();
 
-    LoadProgress::record('r1', 'season', 'ok');
-    LoadProgress::record('r1', 'popular', LoadProgress::RUNNING);
+    LoadProgress::record('r1', 'popular', 'ok');
+    LoadProgress::record('r1', 'latest', LoadProgress::RUNNING);
     Carbon::setTestNow('2026-10-24 12:00:09');
     $screen->set('startedAt', Carbon::parse('2026-10-24 12:00:00')->getTimestampMs())
         ->firePoll('checkLoading')->assertNoNavigation();
@@ -306,7 +306,7 @@ it('opens Home after 10 s with what loaded while a row hangs (Review Focus 2)', 
 it('opens Home only once when the task finishes after the cut-off', function () {
     $screen = Native::test(Setup::class)->set('phase', Setup::DONE);
 
-    (fn () => $this->loadingFinished(['season' => 'ok']))->call($screen->instance());
+    (fn () => $this->loadingFinished(['popular' => 'ok']))->call($screen->instance());
 
     $screen->assertNoNavigation();
 });

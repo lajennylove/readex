@@ -28,13 +28,11 @@ class Home extends NativeComponent implements HasResumeBar
 
     /** Row key => label, in screen order. */
     public const ROWS = [
-        HomeRepository::SEASON => 'This season',
         HomeRepository::POPULAR => 'Popular new titles',
         HomeRepository::LATEST => 'Latest updates',
     ];
 
     private const REFRESH = [
-        HomeRepository::SEASON => 'refreshSeason',
         HomeRepository::POPULAR => 'refreshPopular',
         HomeRepository::LATEST => 'refreshLatest',
     ];
@@ -70,7 +68,6 @@ class Home extends NativeComponent implements HasResumeBar
         $home = app(HomeRepository::class);
 
         return [
-            HomeRepository::SEASON => $home->season(),
             HomeRepository::POPULAR => $home->popular(),
             HomeRepository::LATEST => $home->latest(),
         ];

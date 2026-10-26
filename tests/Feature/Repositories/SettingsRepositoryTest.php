@@ -28,7 +28,6 @@ it('answers with the defaults when nothing is saved', function () {
         ->and($this->settings->setupDone())->toBeFalse()
         ->and($this->settings->eulaAcknowledged())->toBeFalse()
         ->and($this->settings->lastDataRefreshAt())->toBeNull()
-        ->and($this->settings->seasonalListId())->toBeNull()
         ->and($this->settings->lastSearch())->toBe(['query' => '', 'tag_id' => null]);
 });
 
@@ -39,7 +38,6 @@ it('saves every setting and reads it back', function () {
     $this->settings->markSetupDone();
     $this->settings->acknowledgeEula();
     $this->settings->markDataRefreshed();
-    $this->settings->setSeasonalListId('list-1');
     $this->settings->rememberSearch('one punch', 'tag-1');
 
     $fresh = new SettingsRepository;
@@ -51,7 +49,6 @@ it('saves every setting and reads it back', function () {
         ->and($fresh->setupDone())->toBeTrue()
         ->and($fresh->eulaAcknowledged())->toBeTrue()
         ->and($fresh->lastDataRefreshAt()->toDateTimeString())->toBe('2026-10-24 12:00:00')
-        ->and($fresh->seasonalListId())->toBe('list-1')
         ->and($fresh->lastSearch())->toBe(['query' => 'one punch', 'tag_id' => 'tag-1']);
 });
 
@@ -68,7 +65,7 @@ it('rejects a malformed language code', function (string $code) {
 
 it('marks only Latest updates stale when the language changes', function () {
     DB::table('manga_lists')->insert(listRow('home.latest', 'a1'));
-    DB::table('manga_lists')->insert(listRow('home.season', 'a1'));
+    DB::table('manga_lists')->insert(listRow('home.popular', 'a1'));
     DB::table('manga_lists')->insert(listRow('search:abc', 'a1'));
 
     $this->settings->setLanguage('es-la');
@@ -78,7 +75,7 @@ it('marks only Latest updates stale when the language changes', function () {
     expect($latest)->not->toBeNull()
         ->and($latest->fetched_at)->toBeNull()
         ->and(Freshness::isStale($latest->fetched_at, 'home.latest'))->toBeTrue()
-        ->and(MangaListEntry::where('list_key', 'home.season')->first()->fetched_at)->not->toBeNull()
+        ->and(MangaListEntry::where('list_key', 'home.popular')->first()->fetched_at)->not->toBeNull()
         ->and(MangaListEntry::where('list_key', 'search:abc')->first()->fetched_at)->not->toBeNull();
 });
 
@@ -92,7 +89,7 @@ it('leaves Latest updates alone when the same language is saved again', function
 });
 
 it('clears every saved list, and nothing else, when the content rating changes', function () {
-    DB::table('manga_lists')->insert(listRow('home.season', 'a1'));
+    DB::table('manga_lists')->insert(listRow('home.popular', 'a1'));
     DB::table('manga_lists')->insert(listRow('home.latest', 'a1'));
     DB::table('manga_lists')->insert(listRow('search:abc', 'a1'));
     DB::table('manga_lists')->insert(listRow('tag:t1', 'a1'));
@@ -110,7 +107,7 @@ it('clears every saved list, and nothing else, when the content rating changes',
 });
 
 it('keeps saved lists when the same ratings come back in another order', function () {
-    DB::table('manga_lists')->insert(listRow('home.season', 'a1'));
+    DB::table('manga_lists')->insert(listRow('home.popular', 'a1'));
 
     $this->settings->setContentRatings(['suggestive', 'safe', 'safe']);
 
@@ -125,7 +122,7 @@ it('stores content ratings in MangaDex order', function () {
 });
 
 it('rejects unknown or empty content ratings and clears nothing', function (array $ratings) {
-    DB::table('manga_lists')->insert(listRow('home.season', 'a1'));
+    DB::table('manga_lists')->insert(listRow('home.popular', 'a1'));
 
     expect(fn () => $this->settings->setContentRatings($ratings))->toThrow(InvalidArgumentException::class)
         ->and(DB::table('manga_lists')->count())->toBe(1)

@@ -19,10 +19,9 @@ use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * The only way the app talks to the configured content source, its image servers,
- * upload hosts and seasonal JSON. Every request asks the RequestController for a slot
- * first and hands it the response afterwards; this class holds no rate-limit logic of
- * its own.
+ * The only way the app talks to the configured content source and its image servers.
+ * Every request asks the RequestController for a slot first and hands it the response
+ * afterwards; this class holds no rate-limit logic of its own.
  */
 final class Client
 {

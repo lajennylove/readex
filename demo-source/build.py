@@ -179,12 +179,13 @@ def feed(t: dict) -> dict:
 
 
 def at_home(c_id: str) -> dict:
-    # baseUrl is relative here; the deployed GH Pages URL replaces it at build
-    # or review time. The AtHomeRepository composes `{baseUrl}/data/{hash}/{f}`
-    # so hash + files line up with the generated page SVGs.
+    # baseUrl is intentionally empty: this demo is a single-endpoint source,
+    # not an @Home-style CDN layer. AtHomeRepository::resolveBaseUrl() falls
+    # back to source.api_url when baseUrl is empty or non-absolute, which puts
+    # the images at the Pages origin where they actually live.
     return {
         "result": "ok",
-        "baseUrl": "{BASE}",
+        "baseUrl": "",
         "chapter": {
             "hash": c_id,
             "data": [f"{i:03d}.svg" for i in range(1, 5)],

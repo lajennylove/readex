@@ -95,7 +95,7 @@ Internal testing requires **no App Store review** and supports up to 100 testers
 - **Copy neutrality applies to the store listing.** `CLAUDE.md` section 6 and `docs/COPY-NEUTRALITY.md` describe the in-app policy; the App Store Connect listing must obey the same rule. The app description, promotional text, keywords, screenshots, and screen recordings must not name any specific third-party content site (manga aggregator, streaming service, piracy host). Any such mention is a near-guaranteed App Store rejection and would also contradict the EULA the app shows on first launch.
 - **Suggested description text** (safe default; adapt as you like):
   > ReaDex is a reader client for user-configured content sources. On first launch you provide the URL of a source you choose; ReaDex fetches, caches, and renders what that source returns. The app ships with no catalog, no bundled content, and no suggested sources. All content stays on your device.
-- **No pre-filled catalog explanation.** Because ReaDex has no built-in content, the first screen a reviewer sees is the first-run setup asking for a source URL. Add a note in App Store Connect -> App Review Information -> **Notes** explaining this and provide a demo source URL the reviewer can paste in. Without one, review will likely reject the app as "demo content missing".
+- **No pre-filled catalog explanation.** Because ReaDex has no built-in content, the first screen a normal user sees is first-run Setup asking for a source URL. For App Review we cut a review build that points the app's single API endpoint at a demo GitHub Pages site via `SOURCE_API_URL` / `SOURCE_COVERS_URL`; the reviewer never has to touch Setup. See section 10 for the full flow.
 - **Reviewer demo account.** Not applicable — ReaDex has no accounts. Leave the demo account fields blank and say so in the Notes field.
 - **Age rating.** The questionnaire should be answered honestly for user-generated content: the app does render content from a URL the user supplies, so declare "Unrestricted Web Access = Yes" and "User-generated content = No" (ReaDex does not host or share user content). Expect a 17+ rating as a consequence of unrestricted web access. This is the correct and honest answer.
 - **Privacy nutrition label.** ReaDex collects no data (no accounts, no analytics, no telemetry — see `CLAUDE.md` section 5). Select "Data Not Collected" on every category. If a future release adds opt-in telemetry, update the label.
@@ -137,26 +137,35 @@ Tick these off before Archive.
 
 ## 10. Demo content source for App Review
 
-ReaDex ships with no built-in catalog, so Apple App Review needs a working source URL to paste into first-run Setup. We serve one from GitHub Pages: a tiny invented catalog (three titles, two chapters each, placeholder SVG pages — no third-party content). Lives at `demo-source/` on branch `feature/0034-demo-source-review-pages` (merge target: `main`).
+Apple's reviewer needs a working endpoint the moment they launch the app, or review will reject with "demo content missing". We serve one from GitHub Pages — a tiny invented catalog (three titles, two chapters each, placeholder SVG pages, no third-party content) at `demo-source/` on `feature/0034-demo-source-review-pages`. The review build points `config('source.api_url')` at that site, so the reviewer never touches Setup — the app just works.
 
-### Enable it
+### Enable Pages
 
-1. Push `feature/0034-demo-source-review-pages` to GitHub (already done).
+1. Make sure `feature/0034-demo-source-review-pages` is pushed to GitHub.
 2. GitHub repo -> Settings -> Pages -> Source: "Deploy from a branch". Branch: `feature/0034-demo-source-review-pages`. Folder: `/demo-source`.
-3. Wait for Pages to publish. The site URL will be: `https://<owner>.github.io/<repo>/`.
-4. The demo endpoints then live under `https://<owner>.github.io/<repo>/api` and the assets under `/covers`, `/data`, `/data-saver`.
+3. Wait for Pages to publish. The published root is `https://<owner>.github.io/<repo>/demo-source/`.
+4. The demo endpoints live under `.../demo-source/api` (JSON catalog + chapter responses) and the assets under `/covers`, `/data`, `/data-saver`.
 
-### Paste into App Review Information
+### Cut the review build
 
-In App Store Connect -> App Information -> App Review Information -> **Notes**, include:
+In the environment used by the review build (`.env.production`, or whatever you deploy with):
 
-> ReaDex has no built-in catalog by design — the user supplies their own content source URL in first-run Setup. To exercise the app end-to-end, please paste the following URL into the Setup screen's source URL field and tap Save:
->
-> `https://<owner>.github.io/<repo>/api`
->
-> You can name the source anything (for example "Demo"). After saving, you'll see three invented placeholder titles. Open any title, tap Download, then Read — the demo exercises the catalog, chapter list, download, and reader flows. No account or login is required.
+    SOURCE_API_URL=https://<owner>.github.io/<repo>/demo-source/api
+    SOURCE_COVERS_URL=https://<owner>.github.io/<repo>/demo-source/covers
+    SOURCE_REPORT_URL=https://<owner>.github.io/<repo>/demo-source/report
 
-### Caveats before this is actually usable
+Everything else stays identical to the normal production build. Nothing in the app's UI changes — the reviewer sees the catalog on first launch because the config now points at the demo endpoint.
 
-- The app's base URL for API calls today comes from `config/source.php`, not from each saved user source. A user-added source is stored but not yet routed through. Either finish multi-source routing (saved source's `base_url` is what the Client uses) OR cut a review-only build whose `source.api_url` and `source.covers_url` point at the demo site. See `demo-source/README.md` for the full gap list.
-- At-home JSON responses carry a `{BASE}` placeholder for the deployed URL. Replace with the real Pages URL before enabling (sed in a CI step, or by hand once in the published site).
+The regular production build leaves those env vars unset; `config/source.php` falls back to its production defaults.
+
+### What to put in App Review Information
+
+In App Store Connect -> App Information -> App Review Information -> **Notes**:
+
+> This build is configured against a demo content source hosted on GitHub Pages, included so you can exercise the app without any setup. Launch the app, dismiss the EULA on first run, and you will see three placeholder titles. Open any title, tap Download, then Read. The demo exercises the catalog, chapter list, download, and reader flows. No account or login is required. The production build will ask the user to supply their own content source URL on first run; this is explained in the EULA and in the app description.
+
+### How the single-endpoint source works end-to-end
+
+- `source.api_url` is the one hostname the HTTP client talks to. Setting `SOURCE_API_URL` swings every request at the demo origin.
+- The demo's `at-home/server/<chapter>` JSON returns an empty `baseUrl`. `AtHomeRepository::resolveBaseUrl()` falls back to `source.api_url` when the response is empty or non-absolute, so chapter images resolve to the Pages origin automatically. No deploy-time URL rewriting of the demo JSON needed.
+- Covers come from `source.covers_url`; set that env var to the Pages `/covers` path and the thumbnail pipeline uses them unchanged.

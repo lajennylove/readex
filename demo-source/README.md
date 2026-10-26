@@ -1,9 +1,9 @@
 # ReaDex demo content source
 
-A static GitHub Pages site that serves a tiny, invented catalog shaped like the
-HTTP contract ReaDex's built-in adapter expects. Its only purpose is to give
-Apple App Review (and any first-time user) a working URL to paste into the
-first-run Setup screen so the app can be exercised end-to-end.
+A static GitHub Pages site that serves a tiny, invented catalog shaped like
+the HTTP contract ReaDex's built-in adapter expects. Its only purpose is to
+give Apple App Review a working endpoint so the app can be exercised
+end-to-end without the reviewer touching Setup.
 
 Nothing here is scraped, licensed, or derived from any third-party service.
 
@@ -30,15 +30,22 @@ Expected URL once Pages is enabled on this branch:
 
     https://<owner>.github.io/<repo>/demo-source/
 
-## Use in ReaDex
+## Use
 
-- Open Setup (first launch).
-- Paste `https://<owner>.github.io/<repo>/demo-source/api` as the source URL.
-- Give the source any label.
-- Browse, open, download, read.
+The review build points the app's single API endpoint at this site via
+environment variables. Reviewers don't paste anything into Setup — they
+launch the app and it already fetches from the demo.
 
-See `../docs/TESTFLIGHT.md` for the exact text to paste in App Store Connect
-→ App Review Information.
+For the review build (`.env.production`, or whatever your deploy env uses):
+
+    SOURCE_API_URL=https://<owner>.github.io/<repo>/demo-source/api
+    SOURCE_COVERS_URL=https://<owner>.github.io/<repo>/demo-source/covers
+    SOURCE_REPORT_URL=https://<owner>.github.io/<repo>/demo-source/report
+
+For the normal production build, leave those env vars unset and `config/source.php`
+falls through to its defaults.
+
+See `../docs/TESTFLIGHT.md` for the full App Store Connect checklist.
 
 ## Rebuild
 
@@ -50,27 +57,17 @@ Idempotent. No external dependencies. Generates:
 - Cover SVGs under `covers/<title-id>/`.
 - Page SVGs under `data/<chapter-id>/` and `data-saver/<chapter-id>/`.
 
-The `baseUrl` placeholder in each at-home server JSON is literally the string
-`{BASE}` — a deploy step (or a reviewer config override) must replace it with
-the deployed Pages URL. See the "Open gaps" section below.
+## How single-endpoint sourcing works end-to-end
 
-## Open gaps
+- `config('source.api_url')` is the single hostname everything else hangs
+  off. When the review build sets `SOURCE_API_URL`, every GET goes to the
+  Pages origin.
+- The static JSON for `/at-home/server/<chapter>` returns an empty `baseUrl`.
+  `AtHomeRepository::resolveBaseUrl()` sees that and falls back to
+  `source.api_url`, so page images resolve to the Pages origin too. No
+  deploy-time rewriting of the demo JSON is needed.
+- The demo advertises `en` translations only, which matches the on-disk SVGs.
 
-- The ReaDex app's base URL today comes from `config/source.php` (`api_url`,
-  `covers_url`), not from each saved source's `base_url`. A user-added source
-  in Settings → Sources is stored but not yet routed through for API calls.
-  Shipping this demo through App Review requires either (a) finishing the
-  multi-source routing so a saved source's `base_url` is actually what the
-  Client uses, or (b) a review-only build whose `source.api_url` and
-  `source.covers_url` are set to this site. Flagged in the fork report.
+## Content ratings, tags, languages
 
-- At-home JSON responses here carry a literal `{BASE}` placeholder in the
-  `baseUrl` field. Replace it with the deployed Pages URL (sed in a CI step,
-  or by hand) before the reviewer tries to open a chapter. The alternative
-  is to have the client treat a missing/relative `baseUrl` as "same origin
-  as api_url", which is a reasonable client-side change but out of scope
-  for this build.
-
-- Content ratings, tags, languages: this source advertises `en` and `es`
-  translations but every chapter is only in `en`. That matches the on-disk
-  files and is honest for the demo scope.
+Honest for the demo scope: safe, generic, English-only.

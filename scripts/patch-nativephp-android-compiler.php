@@ -15,8 +15,7 @@ declare(strict_types=1);
  * Composer runs this after every install/update so a vendor refresh doesn't
  * silently reintroduce the bug.
  */
-
-$target = __DIR__ . '/../vendor/nativephp/mobile/src/Plugins/Compilers/AndroidPluginCompiler.php';
+$target = __DIR__.'/../vendor/nativephp/mobile/src/Plugins/Compilers/AndroidPluginCompiler.php';
 
 if (! is_file($target)) {
     return;
@@ -24,7 +23,7 @@ if (! is_file($target)) {
 
 $contents = file_get_contents($target);
 
-if (str_contains($contents, "// Patched for ReaDex: an explicitly empty `android_params: []`")) {
+if (str_contains($contents, '// Patched for ReaDex: an explicitly empty `android_params: []`')) {
     echo "patch-nativephp-android-compiler: already patched\n";
 
     return;

@@ -229,10 +229,35 @@ class MangaDetail extends NativeComponent implements HasResumeBar
 
         $downloads = app(Downloads::class)->statuses(collect($sections)->flatMap(fn (array $s) => $s['chapters']->map(fn (array $pair) => $pair[0]->id))->all());
 
-        return array_map(fn (array $s) => [
+        // Android's Element flat buffer overflows at ~500 chapter rows (seen on
+        // 748-chapter Release That Witch). Cap the rendered list so the tree
+        // still publishes; a trailing "+N more" row flags the truncation.
+        // Proper fix is virtual-list, tracked separately.
+        $cap = config('readex.manga_detail.chapter_cap', 400);
+        $built = array_map(fn (array $s) => [
             'volume' => $s['volume'] === null ? 'No volume yet' : "Volume {$s['volume']}",
             'chapters' => $s['chapters']->map(fn (array $pair) => self::chapterRow($pair[0], $pair[1], $current?->chapter->id === $pair[0]->id, $downloads[$pair[0]->id]))->values()->all(),
         ], $sections);
+
+        $total = array_sum(array_map(fn (array $s) => count($s['chapters']), $built));
+        if ($total <= $cap) {
+            return $built;
+        }
+
+        $kept = 0;
+        $capped = [];
+        foreach ($built as $section) {
+            $room = $cap - $kept;
+            if ($room <= 0) {
+                break;
+            }
+            $slice = array_slice($section['chapters'], 0, $room);
+            $kept += count($slice);
+            $capped[] = ['volume' => $section['volume'], 'chapters' => $slice];
+        }
+        $capped[] = ['volume' => '+'.($total - $kept).' more (open the next language or paginate to see them)', 'chapters' => []];
+
+        return $capped;
     }
 
     /**

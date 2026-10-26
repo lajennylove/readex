@@ -25,10 +25,9 @@ declare(strict_types=1);
  * Composer runs this after every install/update so a vendor refresh doesn't
  * silently reintroduce the bug.
  */
-
 $targets = [
-    __DIR__ . '/../vendor/nativephp/mobile-ui/resources/android/RefreshableRenderer.kt',
-    __DIR__ . '/../nativephp/android/app/src/nativephp/kotlin/com/nativephp/plugins/native_ui/ui/RefreshableRenderer.kt',
+    __DIR__.'/../vendor/nativephp/mobile-ui/resources/android/RefreshableRenderer.kt',
+    __DIR__.'/../nativephp/android/app/src/nativephp/kotlin/com/nativephp/plugins/native_ui/ui/RefreshableRenderer.kt',
 ];
 
 $needle = <<<'KOTLIN'
@@ -65,6 +64,7 @@ KOTLIN;
 foreach ($targets as $target) {
     if (! is_file($target)) {
         fwrite(STDERR, "patch-nativephp-refreshable-tiles: file missing — {$target}\n");
+
         continue;
     }
 
@@ -72,11 +72,13 @@ foreach ($targets as $target) {
 
     if (str_contains($contents, 'Patched for ReaDex: see scripts/patch-nativephp-refreshable-tiles.php')) {
         echo "patch-nativephp-refreshable-tiles: already patched — {$target}\n";
+
         continue;
     }
 
     if (! str_contains($contents, $needle) || ! str_contains($contents, $lazyColumnBlock)) {
         fwrite(STDERR, "patch-nativephp-refreshable-tiles: anchor not found in {$target}\n");
+
         continue;
     }
 

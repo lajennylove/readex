@@ -278,7 +278,7 @@ it('loads the chapter list in the reading language, volumes in order and "No vol
         ->and($texts)->toContain('Chapters')
         ->and($volumes)->not->toBe([])
         ->and(collect($volumes)->reject('No volume yet')->values()->all())->toBe(collect($volumes)->reject('No volume yet')->sort(fn ($a, $b) => strnatcmp($a, $b))->values()->all())
-        ->and(count($rows))->toBe(700)
+        ->and(count($rows))->toBe(400)
         ->and(collect($rows)->every(fn (array $r) => ! $r['current']))->toBeTrue();
 
     if (in_array('No volume yet', $volumes, true)) {

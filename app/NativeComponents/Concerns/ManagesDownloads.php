@@ -6,7 +6,10 @@ use App\Downloads\Downloads;
 use App\Downloads\DownloadState;
 use App\Language\Languages;
 use App\Models\Chapter;
+use App\Models\Manga;
+use App\Models\StoredChapter;
 use App\NativeComponents\MangaDetail;
+use App\Repositories\SettingsRepository;
 use Native\Mobile\Events\Alert\ButtonPressed;
 use Native\Mobile\Facades\Dialog;
 
@@ -71,7 +74,12 @@ trait ManagesDownloads
             ->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::CHOOSE_REMOVE ? app(Downloads::class)->remove($chapterId) : null);
     }
 
-    /** Download all in `$language`: confirms the count first; while the series' batch runs, stops it at once. */
+    /**
+     * Download all in `$language`:
+     *  - while the series' batch runs → stops it at once;
+     *  - fully downloaded already → asks to delete every local copy (progress stays);
+     *  - otherwise → confirms the count before enqueueing.
+     */
     protected function askDownloadAll(string $mangaId, string $language): void
     {
         $downloads = app(Downloads::class);
@@ -82,7 +90,19 @@ trait ManagesDownloads
             return;
         }
 
-        $count = $downloads->plan($mangaId, $language)['chapters']->count();
+        $plan = $downloads->plan($mangaId, $language);
+
+        if ($plan['readable'] === 0) {
+            return;
+        }
+
+        if ($plan['readable'] === $plan['downloaded']) {
+            $this->askDeleteAllDownloads($mangaId, $language);
+
+            return;
+        }
+
+        $count = $plan['chapters']->count();
 
         if ($count === 0) {
             return;
@@ -93,6 +113,48 @@ trait ManagesDownloads
             "Download {$count} ".($count === 1 ? 'chapter' : 'chapters').' in '.Languages::name($language).'?',
             [self::CANCEL, ['label' => self::CHOOSE_DOWNLOAD, 'style' => 'default']],
         )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::CHOOSE_DOWNLOAD ? $downloads->downloadAll($mangaId, $language) : null);
+    }
+
+    /**
+     * Delete every downloaded chapter of a series' language in one tap. Mirrors the
+     * Favorited pattern (Favorite toggle): the Download all CTA shows "Downloaded"
+     * when the plan is already full, and tapping it goes here. Progress stays —
+     * same contract as the per-chapter Remove download.
+     */
+    private function askDeleteAllDownloads(string $mangaId, string $language): void
+    {
+        $manga = Manga::query()->find($mangaId);
+
+        if ($manga === null) {
+            return;
+        }
+
+        $title = app(SettingsRepository::class)->chain()->title($manga->title ?? [], $manga->alt_titles ?? []);
+
+        Dialog::alert(
+            'Delete all downloads?',
+            'All downloaded chapters for "'.$title.'" in '.Languages::name($language).' will be removed from this phone. Your reading progress is kept.',
+            [self::CANCEL, ['label' => 'Delete', 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === 'Delete' ? $this->deleteAllDownloads($mangaId, $language) : null);
+    }
+
+    /** Demote every locally-stored chapter of the series' language back to the cache tier. */
+    private function deleteAllDownloads(string $mangaId, string $language): void
+    {
+        $downloads = app(Downloads::class);
+        $ids = Chapter::query()
+            ->where('manga_id', $mangaId)
+            ->where('language', $language)
+            ->whereNull('external_url')
+            ->pluck('id');
+        $localIds = StoredChapter::query()
+            ->whereIn('chapter_id', $ids)
+            ->where('tier', 'local')
+            ->pluck('chapter_id');
+
+        foreach ($localIds as $chapterId) {
+            $downloads->remove($chapterId);
+        }
     }
 
     /**

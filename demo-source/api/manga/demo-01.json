@@ -82,7 +82,7 @@
         "id": "cover-demo-01",
         "type": "cover_art",
         "attributes": {
-          "fileName": "cover"
+          "fileName": "https://placehold.co/400x600/1a1a2e/eeeeee.png?text=Lorem+Ipsum+Dolor"
         }
       },
       {

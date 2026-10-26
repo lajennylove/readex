@@ -192,6 +192,24 @@ _add(29, "Veritatis Et Quasi",       _LOREM2, "erotica",       ["Slice of Life",
 _add(30, "Architecto Beatae Vitae",  _LOREM3, "pornographic", ["Suspense", "Mature"],                         2024, 1)
 
 
+# A handful of chapters whose images are NOT on this source — the source only
+# tells the reader where to go, and the client opens that URL in its in-app
+# WebView. On the detail screen these show "Opens on <host>" instead of a page
+# count; tapping does not download, just opens the page. The targets live under
+# /external/ next to this generated api/ tree, so they ship from the same
+# GitHub Pages deploy with no extra hosting.
+_EXTERNAL_HOST = "https://lajennylove.github.io/readex/external"
+EXTERNAL_CHAPTERS = {
+    ("demo-02", "ch-02-a"): f"{_EXTERNAL_HOST}/demo-02/ch-a.html",
+    ("demo-07", "ch-07-a"): f"{_EXTERNAL_HOST}/demo-07/ch-a.html",
+}
+for t in TITLES:
+    for c in t["chapters"]:
+        url = EXTERNAL_CHAPTERS.get((t["id"], c["id"]))
+        if url is not None:
+            c["external_url"] = url
+
+
 # ---------- Common bits -----------------------------------------------------
 
 GROUP_ID = "demo-group-1"
@@ -268,7 +286,11 @@ def manga_entity(t: dict, with_people: bool = False) -> dict:
         {
             "id": f"cover-{t['id']}",
             "type": "cover_art",
-            "attributes": {"fileName": "cover"},
+            # Absolute image URL. An agnostic reader can't know a `source.covers_url`
+            # ahead of time (the user types one URL — the API), so the demo embeds the
+            # full image URL in the API response. CoverStore::url() short-circuits on
+            # http(s):// and skips the covers_url concatenation entirely.
+            "attributes": {"fileName": cover_url(t)},
         }
     ]
     if with_people:
@@ -342,6 +364,7 @@ def detail(t: dict) -> dict:
 
 def chapter_entity(t: dict, c: dict) -> dict:
     readable = readable_at_for(t, c)
+    external_url = c.get("external_url")
     return {
         "id": c["id"],
         "type": "chapter",
@@ -350,14 +373,22 @@ def chapter_entity(t: dict, c: dict) -> dict:
             "chapter": c["number"],
             "title": c["title"],
             "translatedLanguage": "en",
-            "externalUrl": None,
+            # A real upstream sends `externalUrl` for chapters hosted off-site (the
+            # upstream has only the metadata, not the images). The client then opens
+            # the URL in its WebView reader instead of fetching page images via
+            # @Home. Demo mirrors that path on a couple of chapters so the review
+            # walkthrough exercises Browser::inApp alongside the normal reader.
+            "externalUrl": external_url,
             "isUnavailable": False,
+            # The real upstream reports 0 pages when the chapter is external
+            # (nothing to serve). Match that so the detail screen renders the
+            # right affordance ("Opens on …").
             "publishAt": readable,
             "readableAt": readable,
             "createdAt": readable,
             "updatedAt": readable,
             "version": 1,
-            "pages": PAGES_PER_CHAPTER,
+            "pages": 0 if external_url else PAGES_PER_CHAPTER,
         },
         "relationships": [
             {

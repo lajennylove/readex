@@ -115,6 +115,14 @@ final class CoverStore
 
     public function url(Manga $manga): string
     {
+        // A source whose API already returns an absolute image URL in `cover_art.attributes.fileName`
+        // (e.g. the GH Pages demo serving placehold.co placeholders) sidesteps the covers-CDN config
+        // entirely: we use what the response gave us, verbatim, instead of forcing a `covers_url` env
+        // on an "agnostic reader" that is supposed to need one URL from the user.
+        if (preg_match('#^https?://#i', $manga->cover_file) === 1) {
+            return $manga->cover_file;
+        }
+
         $size = config('readex.covers.size');
 
         return rtrim(config('source.covers_url'), '/')."/{$manga->id}/{$manga->cover_file}.{$size}.jpg";

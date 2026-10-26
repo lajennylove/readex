@@ -36,7 +36,7 @@ final readonly class LanguageChain
 
     public static function fromIos(?string $iosTag): self
     {
-        return new self(IosLanguageMap::toMangaDex($iosTag));
+        return new self(IosLanguageMap::toSourceCode($iosTag));
     }
 
     /** @param  list<string>  $available */

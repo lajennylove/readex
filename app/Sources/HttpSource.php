@@ -17,7 +17,7 @@ use App\Repositories\SettingsRepository;
  */
 final class HttpSource implements Source
 {
-    public const KEY = 'mangadex';
+    public const KEY = 'builtin';
 
     public function __construct(
         private readonly MangaRepository $manga,

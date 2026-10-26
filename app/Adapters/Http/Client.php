@@ -65,7 +65,7 @@ final class Client
     public function download(string $url, Priority $priority = Priority::Interactive, float $maxWait = 10.0): string
     {
         $call = Call::get($url);
-        $report = ! $this->isMangaDexHost($call->host());
+        $report = ! $this->isSourceOwnHost($call->host());
         $started = hrtime(true);
 
         try {
@@ -218,8 +218,20 @@ final class Client
             ->timeout(config('source.timeout'));
     }
 
-    private function isMangaDexHost(string $host): bool
+    /**
+     * A URL served by the configured source itself (so no inline @Home report).
+     * The host family comes from `config('source.status_family')` — one line of
+     * upstream knowledge the user never types; swap it in the config to run
+     * against a different upstream.
+     */
+    private function isSourceOwnHost(string $host): bool
     {
-        return $host === 'mangadex.org' || str_ends_with($host, '.mangadex.org');
+        $family = (string) config('source.status_family');
+
+        if ($family === '') {
+            return false;
+        }
+
+        return $host === $family || str_ends_with($host, '.'.$family);
     }
 }

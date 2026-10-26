@@ -4,7 +4,7 @@ use App\Language\IosLanguageMap;
 use App\Language\Languages;
 
 it('offers every language the iPhone map can pick', function (string $iosTag) {
-    expect(Languages::NAMES)->toHaveKey(IosLanguageMap::toMangaDex($iosTag));
+    expect(Languages::NAMES)->toHaveKey(IosLanguageMap::toSourceCode($iosTag));
 })->with(['fr-CA', 'es-MX', 'es-ES', 'pt-BR', 'pt-PT', 'zh-Hans-CN', 'zh-Hant-HK', 'ja-JP', 'de-DE', 'tl-PH', 'xx-YY']);
 
 it('offers every two-letter code the iPhone map accepts', function () {

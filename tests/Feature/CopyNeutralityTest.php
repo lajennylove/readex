@@ -30,12 +30,10 @@ function copyNeutralityBannedList(): array
 it('never names a specific manga site anywhere a user could see it', function () {
     $banned = copyNeutralityBannedList();
 
-    // Same identifier-level exemptions as the broader app/ scan: these are not brand
-    // references, they are the `IosLanguageMap::toMangaDex()` method name describing the API's
-    // language-code format. Still called from Setup.php; renaming it is a separate task.
-    $exemptions = [
-        'Setup.php' => ['toMangaDex'],
-    ];
+    // No identifier-level exemptions remain: toMangaDex/isMangaDexHost were renamed to
+    // toSourceCode / isSourceOwnHost, and the only upstream host literal moved into
+    // config('source.status_family').
+    $exemptions = [];
 
     $roots = [
         resource_path('views/native'),
@@ -84,18 +82,11 @@ it('never names a specific manga site anywhere a user could see it', function ()
 it('never names a specific non-MangaDex content site anywhere in app/ (code identifiers aside)', function () {
     $banned = copyNeutralityBannedList();
 
-    // Lines in these files that contain these substrings are exempt — they are not brand
-    // references. They are: a persisted DB identifier (sources.key = "mangadex" at rest in
-    // SQLite), HTTP host literals used by the rate-limit router to tally per-host budgets,
-    // and semantically-specific method names describing the API's language-code format.
-    // New exemptions require explicit sign-off; see docs/COPY-NEUTRALITY.md.
-    $exemptions = [
-        'app/Sources/HttpSource.php' => ["KEY = 'mangadex'"],
-        'app/Adapters/Http/Client.php' => ['isMangaDexHost', "'mangadex.org'", "'.mangadex.org'"],
-        'app/Language/IosLanguageMap.php' => ['toMangaDex'],
-        'app/Language/LanguageChain.php' => ['toMangaDex'],
-        'app/NativeComponents/Setup.php' => ['toMangaDex'],
-    ];
+    // No exemptions remain in app/: the DB key, host match, and language-map method name
+    // were all scrubbed. The one remaining upstream label — `source.status_family` — lives
+    // in config/, which this scan does not cover. New exemptions require explicit sign-off;
+    // see docs/COPY-NEUTRALITY.md.
+    $exemptions = [];
 
     $files = File::allFiles(app_path());
     $offenders = [];

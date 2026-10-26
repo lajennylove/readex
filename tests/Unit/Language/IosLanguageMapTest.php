@@ -3,7 +3,7 @@
 use App\Language\IosLanguageMap;
 
 it('maps iPhone language tags to MangaDex codes', function (?string $tag, string $expected) {
-    expect(IosLanguageMap::toMangaDex($tag))->toBe($expected);
+    expect(IosLanguageMap::toSourceCode($tag))->toBe($expected);
 })->with([
     'Spain' => ['es-ES', 'es'],
     'Mexico' => ['es-MX', 'es-la'],

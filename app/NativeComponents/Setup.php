@@ -66,7 +66,7 @@ class Setup extends NativeComponent
 
     public function mount(SettingsRepository $settings, StorageBridge $bridge): void
     {
-        $this->language = IosLanguageMap::toMangaDex($bridge->preferredLanguage());
+        $this->language = IosLanguageMap::toSourceCode($bridge->preferredLanguage());
         $this->ratings = $settings->contentRatings();
 
         // Tags load while the reader picks; DataLoader skips them if they landed.

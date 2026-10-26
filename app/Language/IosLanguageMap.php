@@ -11,7 +11,7 @@ final class IosLanguageMap
         'pl', 'ro', 'ru', 'sk', 'sr', 'sv', 'ta', 'th', 'tl', 'tr', 'uk', 'vi',
     ];
 
-    public static function toMangaDex(?string $iosTag): string
+    public static function toSourceCode(?string $iosTag): string
     {
         if ($iosTag === null || $iosTag === '') {
             return 'en';

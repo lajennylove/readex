@@ -118,16 +118,6 @@ final class SettingsRepository
         $this->write('last_data_refresh_at', Carbon::now()->toIso8601String());
     }
 
-    public function seasonalListId(): ?string
-    {
-        return $this->read('seasonal_list_id');
-    }
-
-    public function setSeasonalListId(string $id): void
-    {
-        $this->write('seasonal_list_id', $id);
-    }
-
     /**
      * Search keeps its title and tag until the field is emptied or the chip deselected.
      *

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 /** The recorded first-run calls (es-la reader, 2026-10-24) plus cover thumbnails. */
 final class Loading
 {
-    public const FIXTURES = ['tags', 'seasonal-json', 'season-manga', 'popular-new', 'latest-es-la', 'latest-es-la-manga'];
+    public const FIXTURES = ['tags', 'popular-new', 'latest-es-la', 'latest-es-la-manga'];
 
     /**
      * `$override` answers a request first (return null to pass it on), e.g. to make one

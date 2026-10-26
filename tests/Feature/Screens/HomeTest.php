@@ -50,7 +50,6 @@ afterEach(fn () => AsyncTask::clearFake());
 function fillHome(): void
 {
     $home = app(HomeRepository::class);
-    $home->refreshSeason();
     $home->refreshPopular();
     $home->refreshLatest();
 }
@@ -114,7 +113,6 @@ function rowMangas(): array
     $home = app(HomeRepository::class);
 
     return [
-        'season' => $home->season()->data->values()->all(),
         'popular' => $home->popular()->data->values()->all(),
         'latest' => $home->latest()->data->map(fn (LatestUpdate $u) => $u->manga)->values()->all(),
     ];
@@ -134,9 +132,9 @@ it('fills every row on the first visit', function () {
     expect(homeNodes($screen->tree(), 'pressable'))->toHaveCount(array_sum(array_map('count', $rows)));
 });
 
-it('starts with This season, then Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
+it('starts with Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
     fillHome();
-    $rows = ['This season', 'Popular new titles', 'Latest updates'];
+    $rows = ['Popular new titles', 'Latest updates'];
     expect(rowLabels(Native::test(Home::class)->tree()))->toBe($rows);
 
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
@@ -189,18 +187,7 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
 
     $asked = implode("\n", $this->asked);
     expect($asked)->toContain('api.mangadex.org/api/chapter')
-        ->not->toContain('antsylich.github.io')
         ->not->toContain('createdAtSince');
-});
-
-it('keeps an empty row in place with placeholders while the others load (Review Focus 2)', function () {
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
-
-    $screen = Native::test(Home::class)->assertSee('This season')->assertSee('The provider is having trouble, retrying');
-
-    expect(rowItems($screen->tree(), 'This season'))->toBe(array_fill(0, 4, 'column'))
-        ->and(rowItems($screen->tree(), 'Popular new titles'))->each->toBe('pressable')
-        ->and(array_unique(array_map(fn (array $n) => $n['props']['axis'] ?? null, homeNodes($screen->tree(), 'scroll_view'))))->toBe(['horizontal']);
 });
 
 it('says nothing is saved and offers Retry when the first visit is offline (spec §13)', function () {
@@ -210,14 +197,14 @@ it('says nothing is saved and offers Retry when the first visit is offline (spec
         ->assertSee('Offline, showing saved data')
         ->assertSee('Nothing saved yet')
         ->assertSee('Retry')
-        ->assertDontSee('This season');
+        ->assertDontSee('Popular new titles');
 
     Loading::fake();
-    $screen->tap('Retry')->assertDontSee('Nothing saved yet')->assertSee('This season');
-    expect(rowMangas()['season'])->not->toBeEmpty();
+    $screen->tap('Retry')->assertDontSee('Nothing saved yet')->assertSee('Popular new titles');
+    expect(rowMangas()['popular'])->not->toBeEmpty();
 });
 
-it('says MangaDex is having trouble, without Retry, when the first visit meets a MangaDex outage', function () {
+it('says the provider is having trouble, without Retry, when the first visit meets a provider outage', function () {
     Exceptions::fake();
     Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
         ? Http::response('No server is available to handle this request', 503)
@@ -227,14 +214,14 @@ it('says MangaDex is having trouble, without Retry, when the first visit meets a
         ->assertSee('The provider is having trouble, retrying')
         ->assertSee('Retrying on its own.')
         ->assertDontSee('Nothing saved yet')
-        ->assertDontSee('This season');
+        ->assertDontSee('Popular new titles');
     expect(homeNodes($screen->tree(), 'button'))->toBe([]);
     Exceptions::assertNothingReported();
 
     Loading::fake();
     Carbon::setTestNow(Carbon::now()->addSeconds(15));
-    $screen->call('checkWaitingRefreshes')->assertDontSee('The provider is having trouble')->assertSee('This season');
-    expect(rowMangas()['season'])->not->toBeEmpty();
+    $screen->call('checkWaitingRefreshes')->assertDontSee('The provider is having trouble')->assertSee('Popular new titles');
+    expect(rowMangas()['popular'])->not->toBeEmpty();
 });
 
 it('still says nothing is saved and offers Retry when MangaDex rejects the first visit', function () {
@@ -256,14 +243,13 @@ it('waits for the background retry instead of offering Retry when The provider i
     Native::test(Home::class)
         ->assertSee('The provider is busy, will update shortly')
         ->assertDontSee('Nothing saved yet')
-        ->assertSee('This season');
+        ->assertSee('Popular new titles');
 
-    Queue::assertPushed(RefreshRepository::class, 3);
+    Queue::assertPushed(RefreshRepository::class, 2);
 });
 
-it('shows empty rows, not "Nothing saved yet", when MangaDex has nothing', function () {
+it('shows empty rows, not "Nothing saved yet", when the provider has nothing', function () {
     Loading::fake(fn (Request $request) => match (true) {
-        parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' => Http::response(['id' => 'list-1', 'name' => 'Fall 2026', 'manga_ids' => []]),
         parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 20, 'offset' => 0, 'total' => 0]),
         default => null,
     });
@@ -295,15 +281,14 @@ it('refreshes every row on pull to refresh, fresh or not', function () {
     $screen->call('pullToRefresh');
 
     $asked = implode("\n", $this->asked);
-    expect($asked)->toContain('antsylich.github.io')
-        ->toContain('createdAtSince')
+    expect($asked)->toContain('createdAtSince')
         ->toContain('api.mangadex.org/api/chapter')
         ->and(homeNodes($screen->tree(), 'refreshable')[0]['props'])->toHaveKey('on_refresh');
 });
 
 it('opens a tile in the Home tab', function () {
     fillHome();
-    $first = rowMangas()['season'][0];
+    $first = rowMangas()['popular'][0];
     $title = app(SettingsRepository::class)->chain()->title($first->title, $first->alt_titles ?? []);
 
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$first->id}");
@@ -311,7 +296,7 @@ it('opens a tile in the Home tab', function () {
 
 it('opens a Home tile on its series within the Home tab', function () {
     fillHome();
-    $other = rowMangas()['season'][0];
+    $other = rowMangas()['popular'][0];
     $title = app(SettingsRepository::class)->chain()->title($other->title, $other->alt_titles ?? []);
 
     Native::test(Home::class)->tap($title)->assertNavigatedTo("/home/manga/{$other->id}");
@@ -320,12 +305,11 @@ it('opens a Home tile on its series within the Home tab', function () {
 it('fetches a fair per-row share of covers right away and queues the rest, without the started series in front', function () {
     fillHome();
     $rows = rowMangas();
-    $started = collect(app(HomeRepository::class)->latest()->data)->first(fn (LatestUpdate $u) => $u->manga->id !== $rows['season'][0]->id);
+    $started = collect(app(HomeRepository::class)->latest()->data)->first(fn (LatestUpdate $u) => $u->manga->id !== $rows['popular'][0]->id);
     app(LibraryRepository::class)->saveProgress($started->chapter->id, 0, 10);
-    // config('readex.covers.visible') (12) split evenly across the 3 Home rows: 4 each.
-    $perRow = 4;
+    // config('readex.covers.visible') (12) split across 2 Home rows: 6 each.
+    $perRow = 6;
     $fetchNow = [
-        ...array_map(fn ($m) => $m->id, array_slice($rows['season'], 0, $perRow)),
         ...array_map(fn ($m) => $m->id, array_slice($rows['popular'], 0, $perRow)),
         ...array_map(fn ($m) => $m->id, array_slice($rows['latest'], 0, $perRow)),
     ];
@@ -340,13 +324,10 @@ it('fetches a fair per-row share of covers right away and queues the rest, witho
         ->and($jobs[0]->priority)->toBe(Priority::Prefetch);
 });
 
-it('fetches Latest updates\' leading covers right away even though Season + Popular alone exceed the visible budget (bug: Latest was starved by a shared first-come budget)', function () {
+it('fetches Latest updates\' leading covers right away even though Popular alone fills the visible budget (bug: Latest was starved by a shared first-come budget)', function () {
     fillHome();
     $rows = rowMangas();
-    // Season (65) + Popular (20) alone already exceed the shared `covers.visible` budget (12),
-    // so under the old flat-concatenation behaviour every Latest cover landed past the budget
-    // and was only ever queued at Priority::Prefetch, never fetched right away.
-    expect(count($rows['season']) + count($rows['popular']))->toBeGreaterThanOrEqual(config('readex.covers.visible'));
+    expect(count($rows['popular']))->toBeGreaterThanOrEqual(config('readex.covers.visible') / 2);
 
     Native::test(Home::class);
 
@@ -356,18 +337,15 @@ it('fetches Latest updates\' leading covers right away even though Season + Popu
     expect($fetchedIds)->toContain($firstLatestId);
 });
 
-it('gives Latest updates the full visible budget when Season + Popular already have every cover cached (bug: the flat per-row split still wasted slots on rows with nothing missing)', function () {
+it('gives Latest updates the full visible budget when Popular already has every cover cached (bug: the flat per-row split still wasted slots on rows with nothing missing)', function () {
     fillHome();
     $rows = rowMangas();
-    // Season and Popular rarely change (same series most of the week): every one of their
-    // covers is already on disk, so a flat 4-per-row split would still "spend" 8 of the 12
-    // fetch-now slots on rows that have zero genuinely missing covers.
-    foreach ([...$rows['season'], ...$rows['popular']] as $manga) {
+    foreach ($rows['popular'] as $manga) {
         Covers::store($this->caches, $manga);
     }
     // A series can appear in more than one row (e.g. also Latest updates); only Latest's covers
-    // not already cached by the Season/Popular loop above count as genuinely missing.
-    $cachedIds = array_flip([...array_map(fn ($m) => $m->id, $rows['season']), ...array_map(fn ($m) => $m->id, $rows['popular'])]);
+    // not already cached by the Popular loop above count as genuinely missing.
+    $cachedIds = array_flip(array_map(fn ($m) => $m->id, $rows['popular']));
     $missingLatest = array_values(array_filter($rows['latest'], fn ($m) => ! isset($cachedIds[$m->id])));
     expect(count($missingLatest))->toBeGreaterThanOrEqual(config('readex.covers.visible'));
 
@@ -388,7 +366,7 @@ it('keeps Home free of a Continue reading row — the resume bar + Reading filte
 
     Queue::fake();
     Native::test(Library::class)->assertDontSee('Continue reading');
-    Native::test(Home::class)->assertSee('This season')->assertDontSee('Continue reading');
+    Native::test(Home::class)->assertSee('Popular new titles')->assertDontSee('Continue reading');
 });
 
 it('renders Home and Library without dropped Tailwind classes', function () {
@@ -407,7 +385,7 @@ it('renders Home and Library without dropped Tailwind classes', function () {
     Loading::fake();
     fillHome();
     app(LibraryRepository::class)->saveProgress(app(HomeRepository::class)->latest()->data->first()->chapter->id, 0, 10);
-    Native::test(Home::class)->assertSee('This season');
+    Native::test(Home::class)->assertSee('Popular new titles');
     Native::test(Library::class)->assertSee('Reading');
 
     expect($dropped)->toBe([]);

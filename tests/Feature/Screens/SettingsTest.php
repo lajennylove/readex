@@ -45,7 +45,7 @@ function settingsSavedData(): void
 {
     Loading::fake();
     app(SettingsRepository::class)->setLanguage('es-la');
-    app(HomeRepository::class)->refreshSeason();
+    app(HomeRepository::class)->refreshPopular();
     app(HomeRepository::class)->refreshLatest();
     $kept = Manga::query()->firstOrFail();
     LibraryEntry::create(['manga_id' => $kept->id, 'favorite' => true]);
@@ -136,7 +136,7 @@ it('saves erotica after the confirmation and clears the lists so Home reloads (R
 
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe', 'suggestive', 'erotica'])
         ->and(DB::table('manga_lists')->count())->toBe(0)
-        ->and(app(HomeRepository::class)->season()->isEmpty())->toBeTrue();
+        ->and(app(HomeRepository::class)->popular()->isEmpty())->toBeTrue();
 });
 
 it('saves a rating switched off without asking', function () {
@@ -210,7 +210,7 @@ it('disables the button while the refill runs and shows its progress', function 
         ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Refresh']);
     $run = $screen->get('run');
     LoadProgress::record($run, 'tags', 'ok');
-    LoadProgress::record($run, 'season', LoadProgress::RUNNING);
+    LoadProgress::record($run, 'popular', LoadProgress::RUNNING);
 
     $screen->firePoll('checkRefill')
         ->assertElement('button', refreshButton('Refreshing…', true))

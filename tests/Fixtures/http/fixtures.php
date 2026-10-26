@@ -31,10 +31,6 @@ $releaseThatWitch = 'aafb046c-9de4-4c3d-990c-6d75b079c0b9';
 // Each recommendation links the source manga and the recommended one.
 $recommendedIds = array_values(array_diff($mangaIdsOf('recommendations-rtw', 'data'), [$releaseThatWitch]));
 
-$seasonIds = is_file(__DIR__.'/seasonal-json.json')
-    ? json_decode(file_get_contents(__DIR__.'/seasonal-json.json'), true)['body']['manga_ids']
-    : [];
-
 return [
 
     'tags' => ['/manga/tag', []],
@@ -140,20 +136,6 @@ return [
     ]],
 
     // Home (Task 7). Record in this order: the later entries read the ids out of the earlier files.
-
-    // Community JSON on GitHub Pages: {id, name, manga_ids} (70 ids, sorted by id, no ranking).
-    'seasonal-json' => ['https://antsylich.github.io/mangadex-seasonal/seasonal-list.json', []],
-
-    // Fallback: the MangaDex custom list behind the JSON, its manga are `relationships`.
-    'seasonal-list' => ['/list/68ab4f4e-6f01-4898-9038-c5eee066be27', []],
-
-    'season-manga' => ['/manga', [
-        'ids' => $seasonIds,
-        'limit' => 100,
-        'contentRating' => ['safe', 'suggestive'],
-        'includes' => ['cover_art'],
-        'order' => ['followedCount' => 'desc'],
-    ]],
 
     // Tests run on 2026-10-24, so "created in the last 30 days" starts at 2026-09-24 00:00 UTC.
     'popular-new' => ['/manga', [

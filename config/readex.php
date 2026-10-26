@@ -5,7 +5,6 @@ return [
     // Spec §7. Seconds after fetched_at before get() marks the data stale.
     'refresh_ages' => [
         'tags' => 30 * 86400,
-        'home.season' => 86400,
         'home.popular' => 6 * 3600,
         'home.latest' => 15 * 60,
         'list' => 3600,
@@ -124,7 +123,5 @@ return [
         'ios_poll_ms' => 3000,
         'android_poll_ms' => 15000,
     ],
-
-    'seasonal_url' => 'https://antsylich.github.io/mangadex-seasonal/seasonal-list.json',
 
 ];

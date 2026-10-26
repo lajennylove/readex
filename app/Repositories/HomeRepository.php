@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
-use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Mappers\ChapterMapper;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Chapter;
@@ -11,17 +10,12 @@ use App\Models\Manga;
 use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use JsonException;
-use UnexpectedValueException;
 
-/** The Home rows (spec §9, D15): This season, Popular new titles, Latest updates. */
+/** The Home rows: Popular new titles, Latest updates. */
 final class HomeRepository
 {
-    public const SEASON = 'home.season';
-
     public const POPULAR = 'home.popular';
 
     public const LATEST = 'home.latest';
@@ -31,43 +25,6 @@ final class HomeRepository
         private readonly SettingsRepository $settings,
         private readonly MangaRepository $manga,
     ) {}
-
-    /** In reading-language order (D17), like search results. */
-    public function season(): Result
-    {
-        return $this->manga->readList(self::SEASON, self::SEASON);
-    }
-
-    /**
-     * Ids from the community JSON (its list id is remembered); when the JSON fails, the
-     * remembered source list (Review Focus 6). No remembered id: the JSON error bubbles
-     * up and the row stays as it was. Most followed first, the JSON itself has no ranking.
-     */
-    public function refreshSeason(Priority $priority = Priority::Interactive): void
-    {
-        try {
-            $ids = $this->seasonFromJson($priority);
-        } catch (ApiError|ConnectionException|JsonException|UnexpectedValueException $e) {
-            $listId = $this->settings->seasonalListId() ?? throw $e;
-            $ids = $this->seasonFromList($listId, $priority);
-        }
-
-        $manga = [];
-
-        foreach (array_chunk($ids, config('readex.page_sizes.ids')) as $chunk) {
-            $manga[] = $this->client->get('/manga', [
-                'ids' => $chunk,
-                'limit' => config('readex.page_sizes.ids'),
-                'contentRating' => $this->settings->contentRatings(),
-                'includes' => ['cover_art'],
-                'order' => ['followedCount' => 'desc'],
-            ], $priority);
-        }
-
-        DB::transaction(function () use ($manga) {
-            $this->replace(self::SEASON, array_merge(...array_map($this->manga->storeManga(...), $manga)));
-        });
-    }
 
     public function popular(): Result
     {
@@ -157,36 +114,6 @@ final class HomeRepository
             $this->replace(self::LATEST, array_keys($newest), array_column($newest, 'id', 'manga_id'));
             $this->forgetChapters($old->diff(array_column($newest, 'id'))->values()->all());
         });
-    }
-
-    /** @return list<string> */
-    private function seasonFromJson(Priority $priority): array
-    {
-        $json = $this->client->getJson(config('readex.seasonal_url'), $priority);
-        $ids = $json['manga_ids'] ?? null;
-
-        if (! is_array($ids) || ! is_string($json['id'] ?? null)) {
-            throw new UnexpectedValueException('The seasonal JSON has no list id or manga ids.');
-        }
-
-        $this->settings->setSeasonalListId($json['id']);
-
-        return array_values(array_unique(array_filter($ids, 'is_string')));
-    }
-
-    /** @return list<string> */
-    private function seasonFromList(string $listId, Priority $priority): array
-    {
-        $list = $this->client->get("/list/{$listId}", [], $priority);
-        $ids = [];
-
-        foreach ($list['data']['relationships'] ?? [] as $relation) {
-            if ($relation['type'] === 'manga') {
-                $ids[] = $relation['id'];
-            }
-        }
-
-        return array_values(array_unique($ids));
     }
 
     /**

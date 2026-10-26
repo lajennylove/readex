@@ -42,10 +42,9 @@ function host(Request $request): string
 it('runs the first-run steps in order and fills every Home row', function () {
     Loading::fake();
 
-    expect(load())->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok'])
+    expect(load())->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'ok', 'covers' => 'ok'])
         ->and($this->progress)->toBe([
             'tags:running', 'tags:ok',
-            'season:running', 'season:ok',
             'popular:running', 'popular:ok',
             'latest:running', 'latest:ok',
             'covers:running', 'covers:ok',
@@ -53,7 +52,6 @@ it('runs the first-run steps in order and fills every Home row', function () {
 
     $home = app(HomeRepository::class);
     expect(Tag::count())->toBe(77)
-        ->and($home->season()->isEmpty())->toBeFalse()
         ->and($home->popular()->isEmpty())->toBeFalse()
         ->and($home->latest()->isEmpty())->toBeFalse();
 });
@@ -64,13 +62,12 @@ it('downloads the first twelve tiles\' covers, row by row in turns', function ()
     load();
 
     $home = app(HomeRepository::class);
-    $season = $home->season()->data->values();
     $popular = $home->popular()->data->values();
     $latest = $home->latest()->data->values()->map(fn ($u) => $u->manga);
 
     $expected = collect();
-    for ($i = 0; $i < 4; $i++) {
-        foreach ([$season, $popular, $latest] as $row) {
+    for ($i = 0; $i < 6; $i++) {
+        foreach ([$popular, $latest] as $row) {
             $expected->push($row[$i]->id);
         }
     }
@@ -121,7 +118,7 @@ it('does not load tags again when Setup already got them', function () {
 it('keeps going when one row fails', function () {
     Loading::fake(fn (Request $request) => str_ends_with(host($request), '/chapter') ? Http::response(['result' => 'error'], 500) : null);
 
-    expect(load())->toBe(['tags' => 'ok', 'season' => 'ok', 'popular' => 'ok', 'latest' => 'unavailable', 'covers' => 'ok'])
+    expect(load())->toBe(['tags' => 'ok', 'popular' => 'ok', 'latest' => 'unavailable', 'covers' => 'ok'])
         ->and(app(HomeRepository::class)->popular()->isEmpty())->toBeFalse();
 });
 
@@ -135,7 +132,7 @@ it('stops trying once the phone is offline (Review Focus 1)', function () {
 
     expect(load())->toBe(array_fill_keys(array_keys(DataLoader::STEPS), RefreshStatus::Offline->value))
         ->and($asked)->toBe(1)
-        ->and($this->progress)->toBe(['tags:running', 'tags:offline', 'season:offline', 'popular:offline', 'latest:offline', 'covers:offline']);
+        ->and($this->progress)->toBe(['tags:running', 'tags:offline', 'popular:offline', 'latest:offline', 'covers:offline']);
 });
 
 it('loads the Home rows interactive and the rest at the given priority (spec §7.1)', function (Priority $rest, ?float $backgroundTokens) {
@@ -153,9 +150,9 @@ it('keeps step progress in the cache for the screen to poll', function () {
     LoadProgress::start('run-1');
     LoadProgress::record('run-1', 'tags', LoadProgress::RUNNING);
     LoadProgress::record('run-1', 'tags', 'ok');
-    LoadProgress::record('run-1', 'season', LoadProgress::RUNNING);
+    LoadProgress::record('run-1', 'popular', LoadProgress::RUNNING);
 
-    expect(LoadProgress::read('run-1'))->toBe(['tags' => 'ok', 'season' => 'running'])
+    expect(LoadProgress::read('run-1'))->toBe(['tags' => 'ok', 'popular' => 'running'])
         ->and(LoadProgress::read('other'))->toBe([]);
 
     LoadProgress::start('run-1');

@@ -10,23 +10,38 @@
         "chapter": "1",
         "title": "Eiusmod Primum",
         "translatedLanguage": "en",
-        "pages": 3,
         "externalUrl": null,
+        "isUnavailable": false,
         "publishAt": "2026-10-26T00:00:00+00:00",
         "readableAt": "2026-10-26T00:00:00+00:00",
-        "isUnavailable": false
+        "createdAt": "2026-10-26T00:00:00+00:00",
+        "updatedAt": "2026-10-26T00:00:00+00:00",
+        "version": 1,
+        "pages": 3
       },
       "relationships": [
-        {
-          "id": "demo-seasons-northern-shelf",
-          "type": "manga"
-        },
         {
           "id": "demo-group-1",
           "type": "scanlation_group",
           "attributes": {
-            "name": "Demo Translators"
+            "name": "Demo Translators",
+            "altNames": [],
+            "locked": false,
+            "website": null,
+            "focusedLanguages": [
+              "en"
+            ],
+            "official": false,
+            "verified": false,
+            "inactive": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1
           }
+        },
+        {
+          "id": "demo-seasons-northern-shelf",
+          "type": "manga"
         }
       ]
     },
@@ -38,23 +53,38 @@
         "chapter": "2",
         "title": "Eiusmod Secundum",
         "translatedLanguage": "en",
-        "pages": 3,
         "externalUrl": null,
+        "isUnavailable": false,
         "publishAt": "2026-10-26T00:00:00+00:00",
         "readableAt": "2026-10-26T00:00:00+00:00",
-        "isUnavailable": false
+        "createdAt": "2026-10-26T00:00:00+00:00",
+        "updatedAt": "2026-10-26T00:00:00+00:00",
+        "version": 1,
+        "pages": 3
       },
       "relationships": [
-        {
-          "id": "demo-seasons-northern-shelf",
-          "type": "manga"
-        },
         {
           "id": "demo-group-1",
           "type": "scanlation_group",
           "attributes": {
-            "name": "Demo Translators"
+            "name": "Demo Translators",
+            "altNames": [],
+            "locked": false,
+            "website": null,
+            "focusedLanguages": [
+              "en"
+            ],
+            "official": false,
+            "verified": false,
+            "inactive": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1
           }
+        },
+        {
+          "id": "demo-seasons-northern-shelf",
+          "type": "manga"
         }
       ]
     }

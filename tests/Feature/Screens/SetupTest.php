@@ -186,6 +186,7 @@ it('saves the content rating the reader picked', function () {
 
 it('keeps the reader on Setup with an error when the source field is left empty', function () {
     app(SettingsRepository::class)->clearSourceUrl();
+    config()->set('source.api_url_default', null);
 
     Native::test(Setup::class)
         ->tap('Continue')

@@ -69,7 +69,7 @@ class Setup extends NativeComponent
     {
         $this->language = IosLanguageMap::toMangaDex($bridge->preferredLanguage());
         $this->ratings = $settings->contentRatings();
-        $this->sourceUrl = (string) (config('source.api_url') ?? '');
+        $this->sourceUrl = (string) (config('source.api_url_default') ?? '');
 
         // Tags load while the reader picks; DataLoader skips them if they landed.
         RefreshTask::dispatch(Refresh::of([TagRepository::class, 'refresh']));

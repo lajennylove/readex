@@ -2,9 +2,12 @@
 
 return [
 
-    // The source URL itself (api_url / covers_url / report_url) is now per-user,
-    // read from SettingsRepository::sourceUrl() via App\Sources\ActiveSource.
-    // ReaDex ships NO default endpoint — the user supplies one at Setup.
+    // The runtime source URL is per-user — read from SettingsRepository::sourceUrl() via
+    // App\Sources\ActiveSource. These `_default` keys are a BUILD-TIME hint only, used solely
+    // by Setup to pre-fill its URL field on first run so a review build (or local dev) can cut
+    // one with the env vars set and have the field populated for the first-launch user. Blank
+    // in a normal production build -> field is blank, user types their URL in -> same as before.
+    'api_url_default' => env('SOURCE_API_URL'),
 
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 

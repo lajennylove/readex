@@ -45,9 +45,11 @@ class Setup extends NativeComponent
     public string $phase = self::SETTINGS;
 
     /**
-     * The content source URL/API endpoint (Jenny 2026-10-24 17:54 EDT): empty by default —
-     * never pre-filled with the built-in source's own URL — so the sources table only ever holds what the
-     * user actually typed in and loaded from, never a hardcoded preference (D45 §2 proof point).
+     * The content source URL/API endpoint. Blank in a normal build — the user types one in.
+     * Pre-filled from `config('source.api_url')` when it IS set, which lets a build cut with a
+     * `SOURCE_API_URL` env value (TestFlight review builds, local dev) show the field already
+     * populated so first-run is one tap. The production build leaves `SOURCE_API_URL` unset, so
+     * the field is blank for real users — same behavior as before.
      */
     public string $sourceUrl = '';
 
@@ -67,6 +69,7 @@ class Setup extends NativeComponent
     {
         $this->language = IosLanguageMap::toMangaDex($bridge->preferredLanguage());
         $this->ratings = $settings->contentRatings();
+        $this->sourceUrl = (string) (config('source.api_url') ?? '');
 
         // Tags load while the reader picks; DataLoader skips them if they landed.
         RefreshTask::dispatch(Refresh::of([TagRepository::class, 'refresh']));

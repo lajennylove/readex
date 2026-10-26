@@ -369,7 +369,7 @@ describe('Download all', function () {
             ->and(array_column(t7dRows($screen->tree()), 'caption'))->toBe(['Group A · Downloaded', 'Group A · Download stopped · 25%', 'Group A']);
     });
 
-    it('says Downloaded once every readable chapter of the language is downloaded, and does nothing on tap', function () {
+    it('says Downloaded once every readable chapter of the language is downloaded, and asks to delete them all on tap', function () {
         t7dChapter('t7-d1', '1');
         t7dChapter('t7-d2', '2', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/72']);
         Stored::chapter('t7-d1', 2, tier: 'local');
@@ -377,8 +377,36 @@ describe('Download all', function () {
         $screen = Native::visit('/home/manga/'.T7_DETAIL, platform: 'ios');
         expect(t7dButtons($screen->tree())[1])->toBe(['label' => 'Downloaded', 'icon' => 'checkmark.circle']);
 
-        $screen->tap('Downloaded')->assertNativeNotCalled('Dialog.Alert');
+        $screen->tap('Downloaded')->assertNativeCalled('Dialog.Alert', t7dAlert(
+            'Delete all downloads?',
+            'All downloaded chapters for "Downloads" in Español (Latinoamérica) will be removed from this phone. Your reading progress is kept.',
+            [['label' => 'Delete', 'style' => 'destructive']],
+        ));
         Queue::assertNotPushed(DownloadChapter::class);
+
+        // Cancel leaves everything untouched.
+        $screen->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel']);
+        expect(StoredChapter::query()->find('t7-d1')->tier)->toBe('local')
+            ->and(t7dButtons(Native::visit('/home/manga/'.T7_DETAIL, platform: 'ios')->tree())[1])
+            ->toBe(['label' => 'Downloaded', 'icon' => 'checkmark.circle']);
+    });
+
+    it('on Delete demotes every local chapter back to the cache tier, keeps progress, and the CTA flips back to Download all', function () {
+        t7dChapter('t7-d1', '1');
+        t7dChapter('t7-d2', '2');
+        Stored::chapter('t7-d1', 2, tier: 'local');
+        Stored::chapter('t7-d2', 2, tier: 'local');
+        app(LibraryRepository::class)->saveProgress('t7-d1', 1, 2);
+
+        Native::visit('/home/manga/'.T7_DETAIL, platform: 'ios')
+            ->tap('Downloaded')
+            ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Delete']);
+
+        expect(StoredChapter::query()->find('t7-d1')->tier)->toBe('cache')
+            ->and(StoredChapter::query()->find('t7-d2')->tier)->toBe('cache')
+            ->and(ReadingProgress::query()->find('t7-d1')?->page)->toBe(1)
+            ->and(t7dLabels(Native::visit('/home/manga/'.T7_DETAIL, platform: 'ios')->tree()))
+            ->toContain('Download all')->not->toContain('Downloaded');
     });
 
     it('is not there when the language has no readable chapter', function () {

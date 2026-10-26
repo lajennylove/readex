@@ -1,6 +1,9 @@
-{{-- Every block is a direct child of refreshable: its LazyVStack only builds the rows on screen, so long chapter lists stay cheap natively. --}}
+{{-- Root <native:stack> so native.partials.edge-back-gesture (position: absolute,
+     w-5 h-full left-0) actually overlays as an absolute child — on Android the
+     refreshable's scrolling Column doesn't honor PositionType.ABSOLUTE for its
+     children, only StackRenderer's Box does. --}}
+<native:stack class="w-full h-full bg-theme-background">
 <native:refreshable class="w-full h-full bg-theme-background" @refresh="pullToRefresh">
-    @include('native.partials.edge-back-gesture')
     @include('native.partials.status-line', ['line' => $line])
 
     @if ($manga)
@@ -99,3 +102,5 @@
         <native:column class="w-full h-32" />
     @endif
 </native:refreshable>
+    @include('native.partials.edge-back-gesture')
+</native:stack>

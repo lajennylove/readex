@@ -1,5 +1,8 @@
+{{-- Root <native:stack> + gesture-area last so the absolute left-edge overlay
+     sits on top on Android (StackRenderer's Box honors PositionType.ABSOLUTE;
+     scroll-view's inner column does not). --}}
+<native:stack class="w-full h-full bg-theme-background">
 <native:scroll-view class="w-full h-full bg-theme-background">
-    @include('native.partials.edge-back-gesture')
     <native:column class="w-full gap-6 p-4 pb-8">
         <native:column class="w-full gap-2">
             <native:text class="text-xs text-theme-on-surface-variant">ReaDex is a reading client you can point at your own content sources. Any source you add is chosen and controlled entirely by you.</native:text>
@@ -64,3 +67,5 @@
         </native:column>
     </native:column>
 </native:scroll-view>
+    @include('native.partials.edge-back-gesture')
+</native:stack>

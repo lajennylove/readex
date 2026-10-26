@@ -1,6 +1,10 @@
 @if ($screen === 'pages')
+    {{-- Root <native:stack> + gesture-area last so the absolute left-edge
+         overlay sits on top on Android (StackRenderer's Box honors
+         PositionType.ABSOLUTE; a plain Column places absolute children
+         inline instead). --}}
+    <native:stack class="w-full h-full bg-black">
     <native:column class="w-full h-full bg-black">
-        @include('native.partials.edge-back-gesture')
         <native:virtual-list
             class="w-full flex-1 bg-black"
             :count="$rows"
@@ -12,6 +16,8 @@
             :shows-indicators="false"
             on-window-change="windowChanged" />
     </native:column>
+    @include('native.partials.edge-back-gesture')
+    </native:stack>
 @elseif ($screen === 'loading')
     <native:column class="w-full h-full gap-1 bg-black">
         @foreach (range(1, 2) as $i)

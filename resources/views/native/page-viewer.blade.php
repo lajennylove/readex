@@ -4,8 +4,12 @@
         <native:text class="text-base text-center text-white">Page {{ $number }} isn't on this phone yet</native:text>
     </native:column>
 @else
+    {{-- Root <native:stack> + gesture-area last so the absolute left-edge
+         overlay sits on top on Android (StackRenderer's Box honors
+         PositionType.ABSOLUTE; a plain Column places absolute children
+         inline instead). --}}
+    <native:stack class="w-full h-full bg-black">
     <native:column class="w-full h-full bg-black">
-        @include('native.partials.edge-back-gesture')
         @if ($zoomed)
             <native:gesture-area class="w-full flex-1 justify-center bg-black" :pinch="$scale" pinch-min="1" pinch-max="{{ \App\NativeComponents\PageViewer::MAX_ZOOM }}" :pan-x="$panX" :pan-y="$panY" @pinchEnd="pinchEnded" @dragEnd="dragEnded">
                 <native:image
@@ -32,4 +36,6 @@
             </native:gesture-area>
         @endif
     </native:column>
+    @include('native.partials.edge-back-gesture')
+    </native:stack>
 @endif

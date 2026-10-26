@@ -6,15 +6,15 @@
     "type": "manga",
     "attributes": {
       "title": {
-        "en": "The Cartographer's Journal"
+        "en": "Lorem Ipsum Dolor"
       },
       "altTitles": [
         {
-          "es": "El cuaderno del cartógrafo"
+          "es": "Dolor Lorem Ipsum"
         }
       ],
       "description": {
-        "en": "A quiet travelogue of a surveyor charting an invented coastline."
+        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
       },
       "status": "ongoing",
       "year": 2024,
@@ -31,21 +31,21 @@
         "id": "cover-demo-cartographer-journal",
         "type": "cover_art",
         "attributes": {
-          "fileName": "cover.svg"
+          "fileName": "cover"
         }
       },
       {
         "id": "author-demo-cartographer-journal",
         "type": "author",
         "attributes": {
-          "name": "Isabel Montcalm"
+          "name": "Alpha Writer"
         }
       },
       {
         "id": "artist-demo-cartographer-journal",
         "type": "artist",
         "attributes": {
-          "name": "Isabel Montcalm"
+          "name": "Alpha Writer"
         }
       }
     ]

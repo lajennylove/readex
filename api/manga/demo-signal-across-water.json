@@ -6,15 +6,15 @@
     "type": "manga",
     "attributes": {
       "title": {
-        "en": "Signal Across the Water"
+        "en": "Consectetur Adipiscing"
       },
       "altTitles": [
         {
-          "es": "Señal a través del agua"
+          "es": "Adipiscing Consectetur"
         }
       ],
       "description": {
-        "en": "Short stories of a lighthouse keeper exchanging letters by lantern."
+        "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
       },
       "status": "ongoing",
       "year": 2023,
@@ -31,21 +31,21 @@
         "id": "cover-demo-signal-across-water",
         "type": "cover_art",
         "attributes": {
-          "fileName": "cover.svg"
+          "fileName": "cover"
         }
       },
       {
         "id": "author-demo-signal-across-water",
         "type": "author",
         "attributes": {
-          "name": "Teodor Vonk"
+          "name": "Beta Scribe"
         }
       },
       {
         "id": "artist-demo-signal-across-water",
         "type": "artist",
         "attributes": {
-          "name": "Marina Hale"
+          "name": "Beta Illustrator"
         }
       }
     ]

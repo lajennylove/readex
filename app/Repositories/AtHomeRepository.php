@@ -30,12 +30,36 @@ final class AtHomeRepository
         $response = $this->client->get($this->path($chapterId), [], $priority);
 
         return AtHome::query()->updateOrCreate(['chapter_id' => $chapterId], [
-            'base_url' => (string) $response['baseUrl'],
+            'base_url' => self::resolveBaseUrl((string) $response['baseUrl']),
             'hash' => (string) $response['chapter']['hash'],
             'data_files' => array_values($response['chapter']['data'] ?? []),
             'data_saver_files' => array_values($response['chapter']['dataSaver'] ?? []),
             'fetched_at' => Carbon::now(),
         ]);
+    }
+
+    /**
+     * A real upstream hands back an absolute `baseUrl` for the @Home node that owns the chapter.
+     * A single-endpoint source (the App-Review demo on GitHub Pages, for one) has no separate
+     *
+     * @Home layer: it serves the images from the same site as the API. In that case the at-home
+     * response leaves `baseUrl` empty; fall back to the PARENT of `source.api_url`, so images at
+     * `<parent>/data/<hash>/<file>` resolve to a reachable URL. (The demo's tree is
+     * `/demo-source/api/...` for API responses and `/demo-source/data/...` for images, siblings
+     * under the Pages root — stripping the last `/api` segment gives us the parent they share.)
+     */
+    private static function resolveBaseUrl(string $responseBaseUrl): string
+    {
+        $trimmed = trim($responseBaseUrl);
+
+        if ($trimmed !== '' && preg_match('#^https?://#i', $trimmed)) {
+            return $trimmed;
+        }
+
+        $apiUrl = rtrim((string) config('source.api_url'), '/');
+        $parent = preg_replace('#/[^/]+$#', '', $apiUrl);
+
+        return $parent === '' ? $apiUrl : $parent;
     }
 
     /**

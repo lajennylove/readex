@@ -59,6 +59,36 @@ describe('refresh', function () {
             ->and(AtHome::query()->find(AT_HOME_ONESHOT)->fetched_at->toDateTimeString())->toBe('2026-10-24 12:00:00');
     });
 
+    it('falls back to the parent of source.api_url when the response baseUrl is empty or non-absolute (single-endpoint sources like the App-Review demo)', function () {
+        // The demo tree sits under <base>/demo-source/{api,data,covers,...}; stripping the
+        // last /api segment of source.api_url points at <base>/demo-source so pageUrls()
+        // composes <base>/demo-source/data/<hash>/<file>.
+        config(['source.api_url' => 'https://pages.example.test/demo-source/api']);
+
+        Http::fake([
+            '*' => Http::sequence()
+                ->push(atHomeAnswer(''))
+                ->push(atHomeAnswer('/some/relative/path'))
+                ->push(atHomeAnswer('   ')),
+        ]);
+
+        $this->atHome->refresh('c-empty');
+        $this->atHome->refresh('c-relative');
+        $this->atHome->refresh('c-whitespace');
+
+        expect($this->atHome->get('c-empty')->data->base_url)->toBe('https://pages.example.test/demo-source')
+            ->and($this->atHome->get('c-relative')->data->base_url)->toBe('https://pages.example.test/demo-source')
+            ->and($this->atHome->get('c-whitespace')->data->base_url)->toBe('https://pages.example.test/demo-source');
+    });
+
+    it('keeps the response baseUrl when it is an absolute URL (normal @Home flow)', function () {
+        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://home.example.network'))]);
+
+        $this->atHome->refresh('c-abs');
+
+        expect($this->atHome->get('c-abs')->data->base_url)->toBe('https://home.example.network');
+    });
+
     it('replaces an older lookup', function () {
         Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://old.mangadex.network'))->push(atHomeAnswer('https://new.mangadex.network'))]);
 

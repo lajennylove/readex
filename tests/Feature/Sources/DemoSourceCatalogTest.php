@@ -58,11 +58,11 @@ it('loads the demo catalog, drills into a title, reads its chapters, and resolve
         },
         'demo.example/api/at-home/server/*' => function ($request) {
             preg_match('#/at-home/server/([^/?]+)#', $request->url(), $m);
-            $body = demoSourceFixture("api/at-home/server/{$m[1]}.json");
-            // The fixture carries `{BASE}` as a placeholder for the deployed GH Pages URL.
-            $body = str_replace('{BASE}', 'https://demo.example', $body);
 
-            return Http::response($body, 200);
+            // The fixture carries an empty `baseUrl` on purpose: single-endpoint
+            // sources let AtHomeRepository::resolveBaseUrl() fall back to the
+            // parent of source.api_url (the Pages tree's root).
+            return Http::response(demoSourceFixture("api/at-home/server/{$m[1]}.json"), 200);
         },
     ]);
 

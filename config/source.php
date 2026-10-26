@@ -2,11 +2,11 @@
 
 return [
 
-    'api_url' => 'https://api.mangadex.org',
+    'api_url' => env('SOURCE_API_URL', 'https://api.mangadex.org'),
 
-    'report_url' => 'https://api.mangadex.network/report',
+    'report_url' => env('SOURCE_REPORT_URL', 'https://api.mangadex.network/report'),
 
-    'covers_url' => 'https://uploads.mangadex.org/covers',
+    'covers_url' => env('SOURCE_COVERS_URL', 'https://uploads.mangadex.org/covers'),
 
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 

@@ -4,16 +4,34 @@ Generate the demo source's static files (JSON responses).
 
 Run from the demo-source/ directory. Idempotent — overwrites.
 
-Content is lorem ipsum (invented titles, placeholder authors, no real author,
-work or publisher is referenced). Covers are PNG bytes downloaded from
-placehold.co at build time and stored under covers/<id>/cover.256.jpg. Chapter
-pages are served directly from placehold.co at render time — the at-home
-response hands the client the full page URLs in its `data` array.
+30 lorem-ipsum titles across MangaDex's four content ratings so an App Review
+walkthrough can exercise the Browse row + rating filter + tag filter against a
+realistic catalog. All text is lorem ipsum; all authors are invented (Alpha
+Writer, Beta Illustrator, …); every image is a placehold.co URL — nothing in
+this demo references a real work, person or publisher.
+
+Rating distribution (hard-coded in TITLES below so a reviewer can flip the
+rating filter and see each category appear/disappear):
+  - 22 titles at `safe`
+  - 5 titles at `suggestive`
+  - 2 titles at `erotica`
+  - 1 title at `pornographic`
+
+Erotica + pornographic titles also carry the `Mature` tag, so a tag-based
+filter catches them in addition to the rating filter. Their content is still
+just lorem ipsum + placehold.co placeholders — the ratings exist only so the
+filter has something to work on.
 
 Shapes mirror MangaDex's live API responses (verified against
 https://api.mangadex.org/manga?limit=1 and /chapter?limit=1 on 2026-10-26) so
 a user who swaps SOURCE_URL to https://api.mangadex.org gets the same code
-paths exercised unchanged.
+paths exercised unchanged. No new fields were introduced for this expansion.
+
+Stable identifiers:
+  - Title IDs: `demo-01` … `demo-30` (zero-padded ordinal).
+  - Chapter IDs: `ch-<nn>-a` and `ch-<nn>-b` (b only on titles 1-15).
+  - Tag UUIDs: see TAGS below — hardcoded so regeneration doesn't rotate ids
+    that users or tests already reference.
 
 Requires only the Python standard library (urllib).
 """
@@ -27,9 +45,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 
-# Stable tag UUIDs — hardcoded so re-generating the demo doesn't rotate the
-# ids users / tests already reference. Shape mirrors a MangaDex Tag entity:
-# {id, type:"tag", attributes:{name:{en:…}, description:{}, group, version}}.
+# ---------- Tags ------------------------------------------------------------
+
 TAGS = [
     {"id": "11111111-1111-4111-8111-111111111111", "name": "Action", "group": "genre"},
     {"id": "22222222-2222-4222-8222-222222222222", "name": "Drama", "group": "genre"},
@@ -39,75 +56,143 @@ TAGS = [
     {"id": "66666666-6666-4666-8666-666666666666", "name": "Sci-Fi", "group": "theme"},
     {"id": "77777777-7777-4777-8777-777777777777", "name": "Slice of Life", "group": "theme"},
     {"id": "88888888-8888-4888-8888-888888888888", "name": "Suspense", "group": "theme"},
+    {"id": "99999999-9999-4999-8999-999999999999", "name": "Mature", "group": "content"},
 ]
 
-# Keep title IDs stable so existing cross-references don't break even though
-# the human-readable names and content are now lorem ipsum. The `tag_ids`
-# field picks 2–3 of the TAGS above per title.
-TITLES = [
-    {
-        "id": "demo-cartographer-journal",
-        "title": "Lorem Ipsum Dolor",
-        "alt": [{"es": "Dolor Lorem Ipsum"}],
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-        "author": "Alpha Writer",
-        "artist": "Alpha Writer",
-        "year": 2024,
-        "status": "ongoing",
-        "cover_bg": "1a1a2e",
-        "cover_fg": "eeeeee",
-        "tag_ids": [
-            "11111111-1111-4111-8111-111111111111",  # Action
-            "33333333-3333-4333-8333-333333333333",  # Mystery
-            "55555555-5555-4555-8555-555555555555",  # Historical
-        ],
-        "chapters": [
-            {"id": "ch-cart-1", "number": "1", "title": "Lorem Primum", "volume": "1"},
-            {"id": "ch-cart-2", "number": "2", "title": "Lorem Secundum", "volume": "1"},
-        ],
-    },
-    {
-        "id": "demo-signal-across-water",
-        "title": "Consectetur Adipiscing",
-        "alt": [{"es": "Adipiscing Consectetur"}],
-        "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-        "author": "Beta Scribe",
-        "artist": "Beta Illustrator",
-        "year": 2023,
-        "status": "ongoing",
-        "cover_bg": "2e1a1a",
-        "cover_fg": "eeeeee",
-        "tag_ids": [
-            "22222222-2222-4222-8222-222222222222",  # Drama
-            "66666666-6666-4666-8666-666666666666",  # Sci-Fi
-            "88888888-8888-4888-8888-888888888888",  # Suspense
-        ],
-        "chapters": [
-            {"id": "ch-sig-1", "number": "1", "title": "Adipiscing Primum", "volume": "1"},
-            {"id": "ch-sig-2", "number": "2", "title": "Adipiscing Secundum", "volume": "1"},
-        ],
-    },
-    {
-        "id": "demo-seasons-northern-shelf",
-        "title": "Elit Sed Do Eiusmod",
-        "alt": [{"es": "Eiusmod Sed Do Elit"}],
-        "description": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-        "author": "Gamma Author",
-        "artist": "Gamma Author",
-        "year": 2025,
-        "status": "ongoing",
-        "cover_bg": "1a2e1a",
-        "cover_fg": "eeeeee",
-        "tag_ids": [
-            "44444444-4444-4444-8444-444444444444",  # Comedy
-            "77777777-7777-4777-8777-777777777777",  # Slice of Life
-        ],
-        "chapters": [
-            {"id": "ch-sea-1", "number": "1", "title": "Eiusmod Primum", "volume": "1"},
-            {"id": "ch-sea-2", "number": "2", "title": "Eiusmod Secundum", "volume": "1"},
-        ],
-    },
+TAG_BY_NAME = {t["name"]: t["id"] for t in TAGS}
+
+
+def tag(*names: str) -> list[str]:
+    return [TAG_BY_NAME[n] for n in names]
+
+
+# ---------- Titles ----------------------------------------------------------
+#
+# Tag distribution across 30 titles (counted after building TITLES below):
+#   Action        16    Drama           12    Mystery           8    Comedy    10
+#   Historical     5    Sci-Fi           7    Slice of Life    10    Suspense   6
+#   Mature         3    (on all erotica + pornographic rows)
+#
+# Rating distribution:
+#   safe 22 · suggestive 5 · erotica 2 · pornographic 1
+#
+# Lorem names are varied phrases from classical Lorem Ipsum so a reviewer sees
+# a non-trivial list, not three copies of "Lorem Ipsum".
+
+AUTHORS = [
+    "Alpha Writer", "Beta Scribe", "Gamma Author", "Delta Pen",
+    "Epsilon Quill", "Zeta Script", "Eta Chronicler", "Theta Draft",
+    "Iota Composer", "Kappa Narrator",
 ]
+ARTISTS = [
+    "Alpha Illustrator", "Beta Inker", "Gamma Line", "Delta Brush",
+    "Epsilon Palette", "Zeta Studio", "Eta Panel", "Theta Ink",
+    "Iota Canvas", "Kappa Frame",
+]
+
+# Palette of cover backgrounds — cycled, so adjacent tiles don't clash.
+COVER_PALETTE = [
+    ("1a1a2e", "eeeeee"), ("2e1a1a", "eeeeee"), ("1a2e1a", "eeeeee"),
+    ("2e2e1a", "222222"), ("1a2e2e", "222222"), ("2e1a2e", "eeeeee"),
+    ("3a2e1a", "eeeeee"), ("1a3a2e", "eeeeee"), ("2e1a3a", "eeeeee"),
+    ("3a1a2e", "eeeeee"), ("1a2e3a", "eeeeee"), ("2e3a1a", "222222"),
+    ("4a3a2a", "eeeeee"), ("2a4a3a", "eeeeee"), ("3a2a4a", "eeeeee"),
+]
+
+TITLES: list[dict] = []
+
+
+def _add(
+    ordinal: int,
+    title_text: str,
+    description: str,
+    rating: str,
+    tag_names: list[str],
+    year: int,
+    chapters: int,
+) -> None:
+    idx = ordinal - 1
+    bg, fg = COVER_PALETTE[idx % len(COVER_PALETTE)]
+    author = AUTHORS[idx % len(AUTHORS)]
+    artist = ARTISTS[(idx + 3) % len(ARTISTS)]
+    chapter_entries = [
+        {
+            "id": f"ch-{ordinal:02d}-a",
+            "number": "1",
+            "title": "Lorem Primum",
+            "volume": "1",
+        }
+    ]
+    if chapters >= 2:
+        chapter_entries.append({
+            "id": f"ch-{ordinal:02d}-b",
+            "number": "2",
+            "title": "Lorem Secundum",
+            "volume": "1",
+        })
+    TITLES.append({
+        "id": f"demo-{ordinal:02d}",
+        "ordinal": ordinal,
+        "title": title_text,
+        "alt": [{"es": title_text + " (es)"}],
+        "description": description,
+        "author": author,
+        "artist": artist,
+        "year": year,
+        "status": "ongoing",
+        "cover_bg": bg,
+        "cover_fg": fg,
+        "content_rating": rating,
+        "tag_ids": tag(*tag_names),
+        "chapters": chapter_entries,
+    })
+
+
+_LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+_LOREM2 = "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+_LOREM3 = "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+
+
+# -- safe (22) ---------------------------------------------------------------
+_add(1,  "Lorem Ipsum Dolor",        _LOREM,  "safe", ["Action", "Mystery", "Historical"],       2024, 2)
+_add(2,  "Consectetur Adipiscing",   _LOREM2, "safe", ["Action", "Sci-Fi", "Suspense"],          2023, 2)
+_add(3,  "Elit Sed Do Eiusmod",      _LOREM3, "safe", ["Comedy", "Slice of Life"],               2025, 2)
+_add(4,  "Tempor Incididunt",        _LOREM,  "safe", ["Action", "Drama"],                       2022, 2)
+_add(5,  "Labore Et Dolore",         _LOREM2, "safe", ["Mystery", "Suspense", "Historical"],     2024, 2)
+_add(6,  "Magna Aliqua",             _LOREM3, "safe", ["Comedy", "Slice of Life", "Mystery"],    2024, 2)
+_add(7,  "Ut Enim Ad Minim",         _LOREM,  "safe", ["Action", "Sci-Fi"],                      2025, 2)
+_add(8,  "Veniam Quis Nostrud",      _LOREM2, "safe", ["Drama", "Slice of Life"],                2023, 2)
+_add(9,  "Exercitation Ullamco",     _LOREM3, "safe", ["Action", "Comedy", "Sci-Fi"],            2024, 2)
+_add(10, "Laboris Nisi Aliquip",     _LOREM,  "safe", ["Mystery", "Slice of Life"],              2022, 2)
+_add(11, "Ex Ea Commodo",            _LOREM2, "safe", ["Action", "Sci-Fi", "Historical"],        2024, 2)
+_add(12, "Consequat Duis Aute",      _LOREM3, "safe", ["Comedy", "Slice of Life"],               2025, 2)
+_add(13, "Irure Dolor",              _LOREM,  "safe", ["Action", "Suspense"],                    2023, 2)
+_add(14, "Reprehenderit Voluptate",  _LOREM2, "safe", ["Drama", "Sci-Fi"],                       2024, 2)
+_add(15, "Velit Esse Cillum",        _LOREM3, "safe", ["Action", "Comedy", "Slice of Life"],     2025, 2)
+_add(16, "Fugiat Nulla Pariatur",    _LOREM,  "safe", ["Action", "Mystery"],                      2024, 1)
+_add(17, "Excepteur Sint Occaecat",  _LOREM2, "safe", ["Drama", "Slice of Life", "Comedy"],      2023, 1)
+_add(18, "Cupidatat Non Proident",   _LOREM3, "safe", ["Historical", "Comedy"],                   2022, 1)
+_add(19, "Sunt In Culpa",            _LOREM,  "safe", ["Action", "Sci-Fi", "Suspense"],          2024, 1)
+_add(20, "Qui Officia Deserunt",     _LOREM2, "safe", ["Comedy", "Slice of Life", "Action"],     2025, 1)
+_add(21, "Mollit Anim Id Est",       _LOREM3, "safe", ["Action", "Drama"],                       2024, 1)
+_add(22, "Laborum Sed Perspiciatis", _LOREM,  "safe", ["Mystery", "Comedy"],                     2023, 1)
+
+# -- suggestive (5) ----------------------------------------------------------
+_add(23, "Unde Omnis Iste",          _LOREM2, "suggestive", ["Drama", "Suspense"],                            2024, 1)
+_add(24, "Natus Error Voluptatem",   _LOREM3, "suggestive", ["Action", "Drama", "Mystery"],                   2023, 1)
+_add(25, "Accusantium Doloremque",   _LOREM,  "suggestive", ["Slice of Life", "Drama"],                       2024, 1)
+_add(26, "Laudantium Totam Rem",     _LOREM2, "suggestive", ["Action", "Suspense"],                           2025, 1)
+_add(27, "Aperiam Eaque Ipsa",       _LOREM3, "suggestive", ["Historical", "Drama"],                          2022, 1)
+
+# -- erotica (2) + Mature tag ------------------------------------------------
+_add(28, "Quae Ab Illo Inventore",   _LOREM,  "erotica",       ["Drama", "Mature"],                           2024, 1)
+_add(29, "Veritatis Et Quasi",       _LOREM2, "erotica",       ["Slice of Life", "Drama", "Mature"],          2023, 1)
+
+# -- pornographic (1) + Mature tag -------------------------------------------
+_add(30, "Architecto Beatae Vitae",  _LOREM3, "pornographic", ["Suspense", "Mature"],                         2024, 1)
+
+
+# ---------- Common bits -----------------------------------------------------
 
 GROUP_ID = "demo-group-1"
 GROUP_NAME = "Demo Translators"
@@ -146,18 +231,27 @@ def page_url(t: dict, c: dict, page_num: int) -> str:
     return f"{PLACEHOLD}/{PAGE_SIZE_PATH}/{PAGE_BG}/{PAGE_FG}.png?text={text}"
 
 
+# Each chapter gets its own readableAt timestamp — titles with higher ordinals
+# are considered newer, title 30 Ch.2 is "now", title 1 Ch.1 is oldest. Chunk
+# per title so chapter B is one hour newer than chapter A.
+def readable_at_for(t: dict, c: dict) -> str:
+    minutes_from_now = (31 - t["ordinal"]) * 120 + (0 if c["number"] == "2" else 60)
+    hours = minutes_from_now // 60
+    mins = minutes_from_now % 60
+    return f"2026-10-{26 - (hours // 24):02d}T{(23 - (hours % 24)):02d}:{(59 - mins):02d}:00+00:00"
+
+
 # ---------- JSON responses --------------------------------------------------
 
 
-def tag_entity(tag: dict) -> dict:
-    """MangaDex Tag entity. `description` is `{}` on live responses."""
+def tag_entity(x: dict) -> dict:
     return {
-        "id": tag["id"],
+        "id": x["id"],
         "type": "tag",
         "attributes": {
-            "name": {"en": tag["name"]},
+            "name": {"en": x["name"]},
             "description": {},
-            "group": tag["group"],
+            "group": x["group"],
             "version": 1,
         },
         "relationships": [],
@@ -170,10 +264,6 @@ def tag_entities_for(t: dict) -> list:
 
 
 def manga_entity(t: dict, with_people: bool = False) -> dict:
-    # Cover file name is `cover` + the `.{size}.jpg` suffix the CoverStore adds.
-    # The client resolves <covers_url>/<id>/<fileName>.<size>.jpg; we serve
-    # a real PNG at that exact path (PNG bytes under .jpg filename — PHP's
-    # getimagesizefromstring detects by magic bytes, not extension).
     rels = [
         {
             "id": f"cover-{t['id']}",
@@ -209,7 +299,7 @@ def manga_entity(t: dict, with_people: bool = False) -> dict:
             "publicationDemographic": None,
             "status": t["status"],
             "year": t["year"],
-            "contentRating": "safe",
+            "contentRating": t["content_rating"],
             "tags": tag_entities_for(t),
             "state": "published",
             "chapterNumbersResetOnNewVolume": False,
@@ -235,13 +325,11 @@ def catalog() -> dict:
 
 
 def seasonal() -> dict:
-    """Curated-list contract: a list of manga IDs the Home 'This season' row renders.
-    A source that opts in serves this; sources that don't 404 and the row hides."""
-    return {
-        "result": "ok",
-        "response": "collection",
-        "data": [TITLES[0]["id"], TITLES[1]["id"]],
-    }
+    # A curated list a reviewer can see "This season" render from. Pick a
+    # handful across tags/ratings — all safe here, since the curated row is
+    # the first non-skeleton surface in Home.
+    picks = [TITLES[0]["id"], TITLES[2]["id"], TITLES[6]["id"], TITLES[14]["id"], TITLES[20]["id"]]
+    return {"result": "ok", "response": "collection", "data": picks}
 
 
 def detail(t: dict) -> dict:
@@ -253,6 +341,7 @@ def detail(t: dict) -> dict:
 
 
 def chapter_entity(t: dict, c: dict) -> dict:
+    readable = readable_at_for(t, c)
     return {
         "id": c["id"],
         "type": "chapter",
@@ -263,10 +352,10 @@ def chapter_entity(t: dict, c: dict) -> dict:
             "translatedLanguage": "en",
             "externalUrl": None,
             "isUnavailable": False,
-            "publishAt": NOW,
-            "readableAt": NOW,
-            "createdAt": NOW,
-            "updatedAt": NOW,
+            "publishAt": readable,
+            "readableAt": readable,
+            "createdAt": readable,
+            "updatedAt": readable,
             "version": 1,
             "pages": PAGES_PER_CHAPTER,
         },
@@ -306,12 +395,10 @@ def feed(t: dict) -> dict:
 
 
 def manga_collection() -> dict:
-    """Served at /api/manga.json. Backs both:
-    - Home "Popular new titles" (GET /manga?order[followedCount]=desc...)
-    - Home "Latest updates" second call (GET /manga?ids[]=... for titles)
-    - Search tab's default list (GET /manga?title=... — static source ignores
-      the query so it always returns the same 3 titles).
-    """
+    """Served at /api/manga.json. Backs Home 'Popular new titles', the Latest
+    row's second call (ids[]=), and the Search tab's default list. A static
+    source can't filter — one file serves every variant; the client applies
+    content-rating + tag filters locally."""
     return {
         "result": "ok",
         "response": "collection",
@@ -323,16 +410,17 @@ def manga_collection() -> dict:
 
 
 def chapter_collection() -> dict:
-    """Served at /api/chapter.json. Backs the Home "Latest updates" first call
-    (GET /chapter?order[readableAt]=desc...). Six chapters, newest first — the
-    client takes the newest chapter per manga for the row."""
-    all_chapters = []
+    """Served at /api/chapter.json. Backs Home 'Latest updates' first call.
+    15 chapters, newest readableAt first, cross-section of titles (includes
+    adult-rated ones so filter changes are visible there too)."""
+    all_pairs: list[tuple[dict, dict]] = []
     for t in TITLES:
         for c in t["chapters"]:
-            all_chapters.append((t, c))
-    # Newest first — Ch. 2 of each title before Ch. 1 of the same title.
-    all_chapters.sort(key=lambda pair: pair[1]["number"], reverse=True)
-    data = [chapter_entity(t, c) for t, c in all_chapters]
+            all_pairs.append((t, c))
+    # Newest first: higher ordinal -> newer; chapter "2" newer than "1" within a title.
+    all_pairs.sort(key=lambda pair: (pair[0]["ordinal"], 1 if pair[1]["number"] == "2" else 0), reverse=True)
+    picked = all_pairs[:15]
+    data = [chapter_entity(t, c) for t, c in picked]
     return {
         "result": "ok",
         "response": "collection",
@@ -344,7 +432,6 @@ def chapter_collection() -> dict:
 
 
 def tag_collection() -> dict:
-    """Served at /api/manga/tag.json."""
     return {
         "result": "ok",
         "response": "collection",
@@ -356,9 +443,6 @@ def tag_collection() -> dict:
 
 
 def at_home(t: dict, c: dict) -> dict:
-    # Pages are served externally by placehold.co. We embed the full
-    # placehold.co URL in each `data[]` entry; AtHomeRepository::pageUrls()
-    # keeps absolute URLs verbatim (otherwise concatenates under baseUrl).
     return {
         "result": "ok",
         "baseUrl": "",
@@ -379,8 +463,9 @@ def download_cover(url: str) -> bytes:
 
 
 def build() -> None:
-    # Wipe any old SVG assets from previous builds.
-    for subdir in ("covers", "data", "data-saver"):
+    # Wipe any old generated assets from previous builds — the api/ tree is
+    # fully regenerated below; covers/ is downloaded fresh.
+    for subdir in ("covers", "data", "data-saver", "api"):
         p = ROOT / subdir
         if p.exists():
             shutil.rmtree(p)
@@ -388,8 +473,6 @@ def build() -> None:
     write(ROOT / "api/manga/_catalog.json", json_dump(catalog()))
     write(ROOT / "api/manga/_bare_manga", json_dump(catalog()))
     write(ROOT / "api/manga/_seasonal.json", json_dump(seasonal()))
-    # The dynamic query endpoints Home + Search hit. Static source: query
-    # params are dropped by GH Pages; one file serves every variant.
     write(ROOT / "api/manga.json", json_dump(manga_collection()))
     write(ROOT / "api/chapter.json", json_dump(chapter_collection()))
     write(ROOT / "api/manga/tag.json", json_dump(tag_collection()))
@@ -402,8 +485,6 @@ def build() -> None:
                 ROOT / f"api/at-home/server/{c['id']}.json",
                 json_dump(at_home(t, c)),
             )
-        # Download the cover PNG from placehold.co at build time and store it
-        # at the exact path CoverStore::path() expects: covers/<id>/<file>.256.jpg.
         print(f"  fetching cover for {t['id']}...")
         png = download_cover(cover_url(t))
         write_bytes(ROOT / f"covers/{t['id']}/cover.{COVER_SIZE_SUFFIX}.jpg", png)
@@ -411,4 +492,4 @@ def build() -> None:
 
 if __name__ == "__main__":
     build()
-    print("demo-source: built (placehold.co + lorem ipsum + MangaDex envelope)")
+    print(f"demo-source: built {len(TITLES)} titles (placehold.co + lorem ipsum + MangaDex envelope)")

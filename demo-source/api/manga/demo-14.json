@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-14",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Reprehenderit Voluptate"
+      },
+      "altTitles": [
+        {
+          "es": "Reprehenderit Voluptate (es)"
+        }
+      ],
+      "description": {
+        "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2024,
+      "contentRating": "safe",
+      "tags": [
+        {
+          "id": "22222222-2222-4222-8222-222222222222",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Drama"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "66666666-6666-4666-8666-666666666666",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Sci-Fi"
+            },
+            "description": {},
+            "group": "theme",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-26T00:00:00+00:00",
+      "updatedAt": "2026-10-26T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-14-b"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-14",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover"
+        }
+      },
+      {
+        "id": "author-demo-14",
+        "type": "author",
+        "attributes": {
+          "name": "Delta Pen"
+        }
+      },
+      {
+        "id": "artist-demo-14",
+        "type": "artist",
+        "attributes": {
+          "name": "Eta Panel"
+        }
+      }
+    ]
+  }
+}

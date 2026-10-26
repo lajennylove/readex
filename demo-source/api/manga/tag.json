@@ -105,9 +105,22 @@
         "version": 1
       },
       "relationships": []
+    },
+    {
+      "id": "99999999-9999-4999-8999-999999999999",
+      "type": "tag",
+      "attributes": {
+        "name": {
+          "en": "Mature"
+        },
+        "description": {},
+        "group": "content",
+        "version": 1
+      },
+      "relationships": []
     }
   ],
-  "limit": 8,
+  "limit": 9,
   "offset": 0,
-  "total": 8
+  "total": 9
 }

@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-21",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Mollit Anim Id Est"
+      },
+      "altTitles": [
+        {
+          "es": "Mollit Anim Id Est (es)"
+        }
+      ],
+      "description": {
+        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2024,
+      "contentRating": "safe",
+      "tags": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Action"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "22222222-2222-4222-8222-222222222222",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Drama"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-26T00:00:00+00:00",
+      "updatedAt": "2026-10-26T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-21-a"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-21",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover"
+        }
+      },
+      {
+        "id": "author-demo-21",
+        "type": "author",
+        "attributes": {
+          "name": "Alpha Writer"
+        }
+      },
+      {
+        "id": "artist-demo-21",
+        "type": "artist",
+        "attributes": {
+          "name": "Delta Brush"
+        }
+      }
+    ]
+  }
+}

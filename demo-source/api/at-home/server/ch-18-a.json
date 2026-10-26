@@ -1,0 +1,17 @@
+{
+  "result": "ok",
+  "baseUrl": "",
+  "chapter": {
+    "hash": "ch-18-a",
+    "data": [
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Cupidatat+Non+Proident%0ACh.+1+%C2%B7+Page+1",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Cupidatat+Non+Proident%0ACh.+1+%C2%B7+Page+2",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Cupidatat+Non+Proident%0ACh.+1+%C2%B7+Page+3"
+    ],
+    "dataSaver": [
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Cupidatat+Non+Proident%0ACh.+1+%C2%B7+Page+1",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Cupidatat+Non+Proident%0ACh.+1+%C2%B7+Page+2",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Cupidatat+Non+Proident%0ACh.+1+%C2%B7+Page+3"
+    ]
+  }
+}

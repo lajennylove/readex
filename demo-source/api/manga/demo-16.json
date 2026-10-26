@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-16",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Fugiat Nulla Pariatur"
+      },
+      "altTitles": [
+        {
+          "es": "Fugiat Nulla Pariatur (es)"
+        }
+      ],
+      "description": {
+        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2024,
+      "contentRating": "safe",
+      "tags": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Action"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "33333333-3333-4333-8333-333333333333",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Mystery"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-26T00:00:00+00:00",
+      "updatedAt": "2026-10-26T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-16-a"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-16",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover"
+        }
+      },
+      {
+        "id": "author-demo-16",
+        "type": "author",
+        "attributes": {
+          "name": "Zeta Script"
+        }
+      },
+      {
+        "id": "artist-demo-16",
+        "type": "artist",
+        "attributes": {
+          "name": "Iota Canvas"
+        }
+      }
+    ]
+  }
+}

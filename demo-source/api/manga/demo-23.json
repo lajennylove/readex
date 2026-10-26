@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-23",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Unde Omnis Iste"
+      },
+      "altTitles": [
+        {
+          "es": "Unde Omnis Iste (es)"
+        }
+      ],
+      "description": {
+        "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2024,
+      "contentRating": "suggestive",
+      "tags": [
+        {
+          "id": "22222222-2222-4222-8222-222222222222",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Drama"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "88888888-8888-4888-8888-888888888888",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Suspense"
+            },
+            "description": {},
+            "group": "theme",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-26T00:00:00+00:00",
+      "updatedAt": "2026-10-26T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-23-a"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-23",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover"
+        }
+      },
+      {
+        "id": "author-demo-23",
+        "type": "author",
+        "attributes": {
+          "name": "Gamma Author"
+        }
+      },
+      {
+        "id": "artist-demo-23",
+        "type": "artist",
+        "attributes": {
+          "name": "Zeta Studio"
+        }
+      }
+    ]
+  }
+}

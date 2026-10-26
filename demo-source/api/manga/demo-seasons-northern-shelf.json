@@ -6,15 +6,15 @@
     "type": "manga",
     "attributes": {
       "title": {
-        "en": "Seasons on the Northern Shelf"
+        "en": "Elit Sed Do Eiusmod"
       },
       "altTitles": [
         {
-          "es": "Estaciones de la plataforma norte"
+          "es": "Eiusmod Sed Do Elit"
         }
       ],
       "description": {
-        "en": "A year with a research crew on an invented sub-arctic platform."
+        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
       },
       "status": "ongoing",
       "year": 2025,
@@ -31,21 +31,21 @@
         "id": "cover-demo-seasons-northern-shelf",
         "type": "cover_art",
         "attributes": {
-          "fileName": "cover.svg"
+          "fileName": "cover"
         }
       },
       {
         "id": "author-demo-seasons-northern-shelf",
         "type": "author",
         "attributes": {
-          "name": "Rune Oftedal"
+          "name": "Gamma Author"
         }
       },
       {
         "id": "artist-demo-seasons-northern-shelf",
         "type": "artist",
         "attributes": {
-          "name": "Rune Oftedal"
+          "name": "Gamma Author"
         }
       }
     ]

@@ -99,7 +99,10 @@ final class AtHomeRepository
 
         $base = rtrim($server->base_url, '/')."/{$folder}/{$server->hash}/";
 
-        return array_map(fn (string $file) => $base.$file, array_values($files));
+        return array_map(
+            fn (string $file) => str_starts_with($file, 'http://') || str_starts_with($file, 'https://') ? $file : $base.$file,
+            array_values($files),
+        );
     }
 
     private function path(string $chapterId): string

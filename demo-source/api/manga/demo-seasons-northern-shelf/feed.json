@@ -8,10 +8,11 @@
       "attributes": {
         "volume": "1",
         "chapter": "1",
-        "title": "Thaw",
+        "title": "Eiusmod Primum",
         "translatedLanguage": "en",
-        "pages": 4,
+        "pages": 3,
         "externalUrl": null,
+        "publishAt": "2026-10-26T00:00:00+00:00",
         "readableAt": "2026-10-26T00:00:00+00:00",
         "isUnavailable": false
       },
@@ -35,10 +36,11 @@
       "attributes": {
         "volume": "1",
         "chapter": "2",
-        "title": "Midnight sun",
+        "title": "Eiusmod Secundum",
         "translatedLanguage": "en",
-        "pages": 4,
+        "pages": 3,
         "externalUrl": null,
+        "publishAt": "2026-10-26T00:00:00+00:00",
         "readableAt": "2026-10-26T00:00:00+00:00",
         "isUnavailable": false
       },

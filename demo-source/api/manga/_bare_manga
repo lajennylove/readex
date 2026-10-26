@@ -7,15 +7,15 @@
       "type": "manga",
       "attributes": {
         "title": {
-          "en": "The Cartographer's Journal"
+          "en": "Lorem Ipsum Dolor"
         },
         "altTitles": [
           {
-            "es": "El cuaderno del cartógrafo"
+            "es": "Dolor Lorem Ipsum"
           }
         ],
         "description": {
-          "en": "A quiet travelogue of a surveyor charting an invented coastline."
+          "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
         },
         "status": "ongoing",
         "year": 2024,
@@ -32,7 +32,7 @@
           "id": "cover-demo-cartographer-journal",
           "type": "cover_art",
           "attributes": {
-            "fileName": "cover.svg"
+            "fileName": "cover"
           }
         }
       ]
@@ -42,15 +42,15 @@
       "type": "manga",
       "attributes": {
         "title": {
-          "en": "Signal Across the Water"
+          "en": "Consectetur Adipiscing"
         },
         "altTitles": [
           {
-            "es": "Señal a través del agua"
+            "es": "Adipiscing Consectetur"
           }
         ],
         "description": {
-          "en": "Short stories of a lighthouse keeper exchanging letters by lantern."
+          "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
         },
         "status": "ongoing",
         "year": 2023,
@@ -67,7 +67,7 @@
           "id": "cover-demo-signal-across-water",
           "type": "cover_art",
           "attributes": {
-            "fileName": "cover.svg"
+            "fileName": "cover"
           }
         }
       ]
@@ -77,15 +77,15 @@
       "type": "manga",
       "attributes": {
         "title": {
-          "en": "Seasons on the Northern Shelf"
+          "en": "Elit Sed Do Eiusmod"
         },
         "altTitles": [
           {
-            "es": "Estaciones de la plataforma norte"
+            "es": "Eiusmod Sed Do Elit"
           }
         ],
         "description": {
-          "en": "A year with a research crew on an invented sub-arctic platform."
+          "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
         },
         "status": "ongoing",
         "year": 2025,
@@ -102,7 +102,7 @@
           "id": "cover-demo-seasons-northern-shelf",
           "type": "cover_art",
           "attributes": {
-            "fileName": "cover.svg"
+            "fileName": "cover"
           }
         }
       ]

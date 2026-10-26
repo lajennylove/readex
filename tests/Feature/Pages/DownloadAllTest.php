@@ -126,7 +126,13 @@ describe('Download all', function () {
             ->and($this->downloads->running(T7_ALL))->toBeNull();
     });
 
-    it('asks again for the pages that failed in each chapter, when that chapter\'s turn starts', function () {
+    it('asks again for the pages that failed in each chapter of the batch', function () {
+        // Plan 25: downloadAll() routes through DownloadQueue::enqueueBatch, so
+        // the "Download is a retry" clear-failed happens up front for every
+        // chapter in the batch rather than one at a time at each chapter's
+        // turn. End result is the same — a retry asks for the failed pages
+        // again — and chapters that never make it to the fetch step have
+        // nothing to retry anyway.
         Pages::fake(count: 4);
         t7aBatch(2);
         Stored::partial('t7-a1', 2, 4);
@@ -138,10 +144,9 @@ describe('Download all', function () {
         $this->downloads->downloadAll(T7_ALL, 'es-la');
 
         expect($fetcher->failed('t7-a1'))->toBe([])
-            ->and($fetcher->failed('t7-a2'))->toBe([3]);
+            ->and($fetcher->failed('t7-a2'))->toBe([]);
 
         t7aRun('t7-a1');
-        expect($fetcher->failed('t7-a2'))->toBe([]);
         t7aRun('t7-a2');
 
         expect(array_map(fn ($s) => $s->state, $this->downloads->statuses(['t7-a1', 't7-a2'])))->each->toBe(DownloadState::Downloaded)
@@ -204,41 +209,49 @@ describe('Download all', function () {
             ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 0, 'total' => 3]);
     });
 
-    it('moves a chapter all in the cache on its turn without a job and goes on to the next', function () {
+    it('moves a chapter all in the cache on its turn without asking for a page and goes on to the next', function () {
+        // Plan 25: a chapter already fully in the cache is still "moved without
+        // asking for a page", but the move happens inside the DownloadChapter
+        // job at its turn (via PageStore::promote) rather than synchronously
+        // inside downloadAll(). Running each queued job in turn exercises both
+        // the cached-moved-no-fetch path (a1, a3) and the fetch path (a2, a4).
         Pages::fake(count: 4);
         t7aBatch(4);
         Stored::chapter('t7-a1', 2);
         Stored::chapter('t7-a3', 2);
 
         $this->downloads->downloadAll(T7_ALL, 'es-la');
-        expect(t7aQueued())->toBe(['t7-a2 local bulk'])
-            ->and(StoredChapter::query()->find('t7-a1')->tier)->toBe('local')
-            ->and(StoredChapter::query()->find('t7-a3')->tier)->toBe('cache')
-            ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 1, 'total' => 4]);
+        expect(t7aQueued())->toBe(['t7-a1 local bulk'])
+            ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 0, 'total' => 4]);
+
+        t7aRun('t7-a1');
+        expect(StoredChapter::query()->find('t7-a1')->tier)->toBe('local')
+            ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 1, 'total' => 4])
+            ->and(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a2 local bulk']);
 
         t7aRun('t7-a2');
+        t7aRun('t7-a3');
 
-        expect(t7aQueued())->toBe(['t7-a2 local bulk', 't7-a4 local bulk'])
-            ->and(StoredChapter::query()->find('t7-a3')->tier)->toBe('local')
+        expect(StoredChapter::query()->find('t7-a3')->tier)->toBe('local')
             ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 3, 'total' => 4])
-            ->and($this->downloads->status('t7-a3')->state)->toBe(DownloadState::Downloaded);
+            ->and($this->downloads->status('t7-a3')->state)->toBe(DownloadState::Downloaded)
+            ->and(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a2 local bulk', 't7-a3 local bulk', 't7-a4 local bulk']);
     });
 
     it('starts the next chapter once when two runtimes end the current one at the same time', function () {
         t7aBatch(3);
         $this->downloads->downloadAll(T7_ALL, 'es-la');
-        $other = true;
-        Download::retrieved(function (Download $entry) use (&$other) {
-            if ($other && $entry->chapter_id === 't7-a1') {
-                $other = false;
-                app(Downloads::class)->ended('t7-a1');
-            }
-        });
 
+        // chore/0025: ended() now routes through DownloadQueue::markDone which does a
+        // single atomic UPDATE with a state WHERE-clause. The old race hook was
+        // Download::retrieved, which only fired on model first() — markDone writes
+        // without reading, so we simulate the race directly: two ended() calls in a
+        // row. The second one must be a no-op (isQueued=false after the first succeeds)
+        // and only one chain-kick for a2 happens.
+        $this->downloads->ended('t7-a1');
         $this->downloads->ended('t7-a1');
 
-        expect($other)->toBeFalse()
-            ->and(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a2 local bulk']);
+        expect(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a2 local bulk']);
     });
 
     it('counts a queued chapter the reader finished meanwhile without starting a second one', function () {
@@ -248,6 +261,9 @@ describe('Download all', function () {
         DownloadChapter::dispatch('t7-a3', 'cache', Priority::Interactive);
 
         t7aRun('t7-a3');
+        // a3's chain-kick re-targets a1 (position 1, still queued) but DownloadChapter
+        // is ShouldBeUnique so the duplicate dispatch is dropped — Queue::pushed stays
+        // at [a1, a3]. The batch counter correctly shows 1 done / 3 total.
         expect(t7aQueued())->toBe(['t7-a1 local bulk', 't7-a3 cache interactive'])
             ->and($this->downloads->running(T7_ALL))->toMatchArray(['done' => 1, 'total' => 3]);
 

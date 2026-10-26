@@ -243,6 +243,11 @@ describe('downloaded chapters (Review Focus 8)', function () {
         Stored::chapter('t7-ic-read', 3, openedAt: '2026-10-23 20:00:00');
         Stored::chapter('t7-ic-new', 2, openedAt: '2026-10-24 01:00:00');
 
+        // chore/0025: promote first (what the worker does when it claims a
+        // chapter whose pages are already complete at the cache tier) so the
+        // "chapter is downloaded" short-circuit in Downloads::download() fires
+        // and no DownloadChapter job gets dispatched for a no-op fetch.
+        app(PageStore::class)->promote('t7-ic-read');
         app(Downloads::class)->download('t7-ic-read');
         capAt(0);
         enforceCap();

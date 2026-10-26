@@ -123,6 +123,11 @@ class DownloadChapter implements ShouldBeUnique, ShouldQueue
 
         try {
             if ($download) {
+                // Flip the row queued → downloading (DiskSpaceGuard-checked at this
+                // chapter boundary). Without this call, chore/0025's queued-first
+                // semantics mean the row stays `queued` for its whole run and the
+                // Downloads tab + MangaDetail status pill never show "Downloading X%".
+                $queue->claim($this->chapterId);
                 app(PageStore::class)->promote($this->chapterId);
             }
 

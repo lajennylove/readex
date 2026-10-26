@@ -340,6 +340,48 @@ final class DownloadQueue
         });
     }
 
+    /**
+     * Transition a specific chapter from `queued → downloading` atomically. Used by
+     * `DownloadChapter::handle()` once it has the row the kick dispatched for — the
+     * worker already knows which chapter it is handling, so there's no need to call
+     * `nextRunnable()` and risk the queue having shifted. `DiskSpaceGuard::ensure()`
+     * is still enforced at this chapter boundary, same contract as `claimNext()`.
+     * Returns true when the state flipped, false otherwise (row missing, already
+     * past queued, or disk full after retry window). Idempotent for the already-
+     * downloading case.
+     *
+     * @throws DiskSpaceLow when the device is nearly full; the caller should
+     *                      release the job back for retry (same contract as `claimNext()`).
+     */
+    public function claim(string $chapterId): bool
+    {
+        $row = Download::query()->whereKey($chapterId)->first();
+
+        if ($row === null) {
+            return false;
+        }
+
+        if ($row->state === QueueState::Downloading) {
+            return true;
+        }
+
+        if ($row->state !== QueueState::Queued) {
+            return false;
+        }
+
+        $this->diskSpace->ensure();
+
+        $claimed = Download::query()
+            ->whereKey($chapterId)
+            ->where('state', QueueState::Queued->value)
+            ->update([
+                'state' => QueueState::Downloading->value,
+                'started_at' => Carbon::now(),
+            ]);
+
+        return $claimed === 1;
+    }
+
     /** Downloading → done: terminal, chain-kick-next. */
     public function markDone(string $chapterId): void
     {

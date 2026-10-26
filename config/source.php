@@ -9,6 +9,11 @@ return [
     // in a normal production build -> field is blank, user types their URL in -> same as before.
     'api_url_default' => env('SOURCE_API_URL'),
 
+    // When true, the HTTP Client appends `.json` to every path -- the convention a
+    // static-file source (e.g. our GH Pages demo for App Review) uses. Production
+    // builds leave this unset.
+    'static_json' => env('SOURCE_STATIC_JSON', false),
+
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 
     'contact' => env('SOURCE_CONTACT'),

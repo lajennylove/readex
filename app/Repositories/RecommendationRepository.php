@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Manga;
 use App\Models\Recommendation;
@@ -50,7 +51,15 @@ final class RecommendationRepository
      */
     public function refresh(string $mangaId, Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get("/manga/{$mangaId}/recommendation", [], $priority);
+        try {
+            $response = $this->client->get("/manga/{$mangaId}/recommendation", [], $priority);
+        } catch (ApiError $e) {
+            // Source doesn't ship a recommendation endpoint -- just skip populating the row.
+            if ($e->status === 404 || $e->status === 405) {
+                return;
+            }
+            throw $e;
+        }
         $scores = [];
 
         // Each item links the source manga and the recommended one.
@@ -66,12 +75,19 @@ final class RecommendationRepository
         $size = config('readex.page_sizes.ids');
 
         foreach (array_chunk(array_keys($scores), $size) as $chunk) {
-            $manga[] = $this->client->get('/manga', [
-                'ids' => $chunk,
-                'limit' => $size,
-                'contentRating' => config('readex.content_ratings'),
-                'includes' => ['cover_art'],
-            ], $priority);
+            try {
+                $manga[] = $this->client->get('/manga', [
+                    'ids' => $chunk,
+                    'limit' => $size,
+                    'contentRating' => config('readex.content_ratings'),
+                    'includes' => ['cover_art'],
+                ], $priority);
+            } catch (ApiError $e) {
+                if ($e->status === 404 || $e->status === 405) {
+                    return;
+                }
+                throw $e;
+            }
         }
 
         DB::transaction(function () use ($mangaId, $scores, $manga) {

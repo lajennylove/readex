@@ -119,12 +119,21 @@ final class HomeRepository
 
         $newest = array_slice($newest, 0, config('readex.page_sizes.home_row'), true);
 
-        $manga = $newest === [] ? ['data' => []] : $this->client->get('/manga', [
-            'ids' => array_keys($newest),
-            'limit' => config('readex.page_sizes.ids'),
-            'contentRating' => $this->settings->contentRatings(),
-            'includes' => ['cover_art'],
-        ], $priority);
+        try {
+            $manga = $newest === [] ? ['data' => []] : $this->client->get('/manga', [
+                'ids' => array_keys($newest),
+                'limit' => config('readex.page_sizes.ids'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::LATEST, []));
+
+                return;
+            }
+            throw $e;
+        }
 
         DB::transaction(function () use ($newest, $manga) {
             $this->manga->storeManga($manga);

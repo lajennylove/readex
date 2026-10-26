@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Mappers\MangaMapper;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Language\LanguageChain;
@@ -48,7 +49,18 @@ final class MangaRepository
      */
     public function refreshSearch(string $query = '', array $tagIds = [], Priority $priority = Priority::Interactive): bool
     {
-        $response = $this->client->get('/manga', $this->searchQuery($query, $tagIds, 0, config('readex.page_sizes.list')), $priority);
+        try {
+            $response = $this->client->get('/manga', $this->searchQuery($query, $tagIds, 0, config('readex.page_sizes.list')), $priority);
+        } catch (ApiError $e) {
+            // Source doesn't support dynamic search -- empty the saved list, return "no more".
+            if ($e->status === 404 || $e->status === 405) {
+                $key = $this->listKey($query, $tagIds);
+                DB::transaction(fn () => MangaListEntry::query()->where('list_key', $key)->delete());
+
+                return false;
+            }
+            throw $e;
+        }
         $key = $this->listKey($query, $tagIds);
 
         DB::transaction(function () use ($response, $key) {
@@ -128,12 +140,20 @@ final class MangaRepository
         $size = config('readex.page_sizes.ids');
 
         foreach (array_chunk(array_values(array_unique($ids)), $size) as $chunk) {
-            $response = $this->client->get('/manga', [
-                'ids' => $chunk,
-                'limit' => $size,
-                'contentRating' => config('readex.content_ratings'),
-                'includes' => ['cover_art'],
-            ], $priority);
+            try {
+                $response = $this->client->get('/manga', [
+                    'ids' => $chunk,
+                    'limit' => $size,
+                    'contentRating' => config('readex.content_ratings'),
+                    'includes' => ['cover_art'],
+                ], $priority);
+            } catch (ApiError $e) {
+                // Source doesn't support bulk-by-ids -- skip; detail() will populate per-title.
+                if ($e->status === 404 || $e->status === 405) {
+                    continue;
+                }
+                throw $e;
+            }
 
             DB::transaction(fn () => $this->storeManga($response));
         }

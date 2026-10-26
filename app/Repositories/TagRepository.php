@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Mappers\TagMapper;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Tag;
@@ -26,7 +27,15 @@ final class TagRepository
     /** Replaces the whole set: a tag the source no longer sends is removed. */
     public function refresh(Priority $priority = Priority::Interactive): void
     {
-        $rows = TagMapper::rows($this->client->get('/manga/tag', [], $priority));
+        try {
+            $rows = TagMapper::rows($this->client->get('/manga/tag', [], $priority));
+        } catch (ApiError $e) {
+            // Source doesn't ship a tag catalog -- OK, we just won't have tag filters.
+            if ($e->status === 404 || $e->status === 405) {
+                return;
+            }
+            throw $e;
+        }
 
         if ($rows === []) {
             return;

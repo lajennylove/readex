@@ -154,7 +154,17 @@ final class Client
 
     private function apiUrl(string $path, array $query): string
     {
-        $url = rtrim(app(ActiveSource::class)->apiUrl(), '/').'/'.ltrim($path, '/');
+        $path = ltrim($path, '/');
+
+        // Static-file sources (e.g. GH Pages demo for review builds) serve `.json`-suffixed
+        // files. SOURCE_STATIC_JSON=true tells the Client to append `.json` to the path before
+        // the query string. The query string itself still rides -- static sources will 404 on
+        // query-driven endpoints and the top-level caller catches that.
+        if (config('source.static_json') && ! str_ends_with($path, '.json')) {
+            $path .= '.json';
+        }
+
+        $url = rtrim(app(ActiveSource::class)->apiUrl(), '/').'/'.$path;
 
         return $query === [] ? $url : $url.'?'.Query::build($query);
     }

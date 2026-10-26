@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Statistic;
 use Illuminate\Support\Carbon;
@@ -38,7 +39,15 @@ final class StatisticsRepository
         $responses = [];
 
         foreach (array_chunk(array_values(array_unique($ids)), config('readex.page_sizes.ids')) as $chunk) {
-            $responses[] = $this->client->get('/statistics/manga', ['manga' => $chunk], $priority);
+            try {
+                $responses[] = $this->client->get('/statistics/manga', ['manga' => $chunk], $priority);
+            } catch (ApiError $e) {
+                // Source doesn't ship statistics -- skip the row, no error surface.
+                if ($e->status === 404 || $e->status === 405) {
+                    return;
+                }
+                throw $e;
+            }
         }
 
         DB::transaction(function () use ($responses) {
@@ -59,7 +68,14 @@ final class StatisticsRepository
 
     public function refreshDetail(string $id, Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get("/statistics/manga/{$id}", [], $priority);
+        try {
+            $response = $this->client->get("/statistics/manga/{$id}", [], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                return;
+            }
+            throw $e;
+        }
 
         DB::transaction(fn () => $this->store($response['statistics'] ?? [], withDistribution: true));
     }

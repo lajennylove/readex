@@ -3,6 +3,7 @@
 namespace App\NativeComponents;
 
 use App\Repositories\SettingsRepository;
+use App\Sources\ActiveSource;
 use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
@@ -39,7 +40,9 @@ class Eula extends NativeComponent
         $settings = app(SettingsRepository::class);
         $settings->acknowledgeEula();
 
-        $this->replace($settings->setupDone() ? '/home' : '/setup');
+        // Mirror StartGate: a pre-agnostic build may have marked setup_done without saving a
+        // source_url, so re-route through Setup when the source isn't actually configured.
+        $this->replace($settings->setupDone() && app(ActiveSource::class)->isConfigured() ? '/home' : '/setup');
     }
 
     public function render(): View

@@ -1,0 +1,19 @@
+{
+  "result": "ok",
+  "baseUrl": "{BASE}",
+  "chapter": {
+    "hash": "ch-sea-2",
+    "data": [
+      "001.svg",
+      "002.svg",
+      "003.svg",
+      "004.svg"
+    ],
+    "dataSaver": [
+      "001.svg",
+      "002.svg",
+      "003.svg",
+      "004.svg"
+    ]
+  }
+}

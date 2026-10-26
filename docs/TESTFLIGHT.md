@@ -134,3 +134,29 @@ Tick these off before Archive.
 
 - Capture App Store Connect's processed build number and tag the commit it was built from: `git tag -a v0.1.0-testflight.1 -m "First TestFlight upload" && git push origin v0.1.0-testflight.1`. Tags on `main` only, per `CLAUDE.md` section 4.5.
 - Open the next planning ticket for Beta App Review feedback (external testing) so you can turn around any requested changes quickly.
+
+## 10. Demo content source for App Review
+
+ReaDex ships with no built-in catalog, so Apple App Review needs a working source URL to paste into first-run Setup. We serve one from GitHub Pages: a tiny invented catalog (three titles, two chapters each, placeholder SVG pages — no third-party content). Lives at `demo-source/` on branch `feature/0034-demo-source-review-pages` (merge target: `main`).
+
+### Enable it
+
+1. Push `feature/0034-demo-source-review-pages` to GitHub (already done).
+2. GitHub repo -> Settings -> Pages -> Source: "Deploy from a branch". Branch: `feature/0034-demo-source-review-pages`. Folder: `/demo-source`.
+3. Wait for Pages to publish. The site URL will be: `https://<owner>.github.io/<repo>/`.
+4. The demo endpoints then live under `https://<owner>.github.io/<repo>/api` and the assets under `/covers`, `/data`, `/data-saver`.
+
+### Paste into App Review Information
+
+In App Store Connect -> App Information -> App Review Information -> **Notes**, include:
+
+> ReaDex has no built-in catalog by design — the user supplies their own content source URL in first-run Setup. To exercise the app end-to-end, please paste the following URL into the Setup screen's source URL field and tap Save:
+>
+> `https://<owner>.github.io/<repo>/api`
+>
+> You can name the source anything (for example "Demo"). After saving, you'll see three invented placeholder titles. Open any title, tap Download, then Read — the demo exercises the catalog, chapter list, download, and reader flows. No account or login is required.
+
+### Caveats before this is actually usable
+
+- The app's base URL for API calls today comes from `config/source.php`, not from each saved user source. A user-added source is stored but not yet routed through. Either finish multi-source routing (saved source's `base_url` is what the Client uses) OR cut a review-only build whose `source.api_url` and `source.covers_url` point at the demo site. See `demo-source/README.md` for the full gap list.
+- At-home JSON responses carry a `{BASE}` placeholder for the deployed URL. Replace with the real Pages URL before enabling (sed in a CI step, or by hand once in the published site).

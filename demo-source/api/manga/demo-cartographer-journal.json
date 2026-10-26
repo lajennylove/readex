@@ -1,0 +1,53 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-cartographer-journal",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "The Cartographer's Journal"
+      },
+      "altTitles": [
+        {
+          "es": "El cuaderno del cartógrafo"
+        }
+      ],
+      "description": {
+        "en": "A quiet travelogue of a surveyor charting an invented coastline."
+      },
+      "status": "ongoing",
+      "year": 2024,
+      "contentRating": "safe",
+      "originalLanguage": "en",
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "tags": []
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-cartographer-journal",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover.svg"
+        }
+      },
+      {
+        "id": "author-demo-cartographer-journal",
+        "type": "author",
+        "attributes": {
+          "name": "Isabel Montcalm"
+        }
+      },
+      {
+        "id": "artist-demo-cartographer-journal",
+        "type": "artist",
+        "attributes": {
+          "name": "Isabel Montcalm"
+        }
+      }
+    ]
+  }
+}

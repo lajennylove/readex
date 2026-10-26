@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ReaDex — Demo Content Source</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <style>
+        body { font-family: Georgia, serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; color: #2a2a2a; line-height: 1.5; }
+        code { background: #f1ece0; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.95em; }
+        pre { background: #f1ece0; padding: 0.75rem; border-radius: 4px; overflow-x: auto; }
+        h1 { margin-top: 0; }
+        h2 { margin-top: 2rem; font-size: 1.15rem; }
+        ul { padding-left: 1.25rem; }
+        li + li { margin-top: 0.25rem; }
+        .muted { color: #777; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>ReaDex demo content source</h1>
+    <p>
+        This static site is a placeholder content source for the ReaDex reader app.
+        It exists so Apple App Review (and anyone else exercising the app for the
+        first time) has a working URL to paste into the first-run Setup screen.
+    </p>
+
+    <h2>What it serves</h2>
+    <ul>
+        <li>Three invented titles with two chapters each (four placeholder pages per chapter).</li>
+        <li>Covers and pages are plain geometric SVGs — no third-party content, no copyrighted material.</li>
+        <li>Authors, titles, and descriptions are all invented placeholders.</li>
+    </ul>
+
+    <h2>How to use it in ReaDex</h2>
+    <ol>
+        <li>Open ReaDex. On first launch, you&rsquo;ll see the Setup screen.</li>
+        <li>Paste the URL to this site&rsquo;s <code>/api</code> directory into the source URL field.</li>
+        <li>Give the source a name (any label works — &ldquo;Demo&rdquo; is fine).</li>
+        <li>Save. Browse the catalog, open a title, download a chapter, read it.</li>
+    </ol>
+
+    <h2>Endpoints</h2>
+    <p>Request shape mirrors the generic HTTP adapter the app ships with:</p>
+    <ul>
+        <li><code>GET /api/manga</code> — catalog list.</li>
+        <li><code>GET /api/manga/{id}</code> — title detail.</li>
+        <li><code>GET /api/manga/{id}/feed</code> — chapter list for a title.</li>
+        <li><code>GET /api/at-home/server/{chapterId}</code> — page server info for a chapter.</li>
+        <li><code>GET /covers/{titleId}/{file}</code> — cover images.</li>
+        <li><code>GET /data/{hash}/{file}</code> and <code>/data-saver/{hash}/{file}</code> — page images.</li>
+    </ul>
+
+    <h2>Rebuild</h2>
+    <p>
+        <code>python3 build.py</code> in <code>demo-source/</code>. Idempotent &mdash; overwrites JSON and SVG. No external dependencies.
+    </p>
+
+    <p class="muted">
+        Not for public catalog browsing. Hosted here only so App Store review has a known-good URL to point the app at.
+    </p>
+</body>
+</html>

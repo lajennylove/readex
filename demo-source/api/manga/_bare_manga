@@ -1,0 +1,114 @@
+{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    {
+      "id": "demo-cartographer-journal",
+      "type": "manga",
+      "attributes": {
+        "title": {
+          "en": "The Cartographer's Journal"
+        },
+        "altTitles": [
+          {
+            "es": "El cuaderno del cartógrafo"
+          }
+        ],
+        "description": {
+          "en": "A quiet travelogue of a surveyor charting an invented coastline."
+        },
+        "status": "ongoing",
+        "year": 2024,
+        "contentRating": "safe",
+        "originalLanguage": "en",
+        "availableTranslatedLanguages": [
+          "en",
+          "es"
+        ],
+        "tags": []
+      },
+      "relationships": [
+        {
+          "id": "cover-demo-cartographer-journal",
+          "type": "cover_art",
+          "attributes": {
+            "fileName": "cover.svg"
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-signal-across-water",
+      "type": "manga",
+      "attributes": {
+        "title": {
+          "en": "Signal Across the Water"
+        },
+        "altTitles": [
+          {
+            "es": "Señal a través del agua"
+          }
+        ],
+        "description": {
+          "en": "Short stories of a lighthouse keeper exchanging letters by lantern."
+        },
+        "status": "ongoing",
+        "year": 2023,
+        "contentRating": "safe",
+        "originalLanguage": "en",
+        "availableTranslatedLanguages": [
+          "en",
+          "es"
+        ],
+        "tags": []
+      },
+      "relationships": [
+        {
+          "id": "cover-demo-signal-across-water",
+          "type": "cover_art",
+          "attributes": {
+            "fileName": "cover.svg"
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-seasons-northern-shelf",
+      "type": "manga",
+      "attributes": {
+        "title": {
+          "en": "Seasons on the Northern Shelf"
+        },
+        "altTitles": [
+          {
+            "es": "Estaciones de la plataforma norte"
+          }
+        ],
+        "description": {
+          "en": "A year with a research crew on an invented sub-arctic platform."
+        },
+        "status": "ongoing",
+        "year": 2025,
+        "contentRating": "safe",
+        "originalLanguage": "en",
+        "availableTranslatedLanguages": [
+          "en",
+          "es"
+        ],
+        "tags": []
+      },
+      "relationships": [
+        {
+          "id": "cover-demo-seasons-northern-shelf",
+          "type": "cover_art",
+          "attributes": {
+            "fileName": "cover.svg"
+          }
+        }
+      ]
+    }
+  ],
+  "limit": 3,
+  "offset": 0,
+  "total": 3
+}

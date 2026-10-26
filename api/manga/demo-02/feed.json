@@ -10,14 +10,14 @@
         "chapter": "1",
         "title": "Lorem Primum",
         "translatedLanguage": "en",
-        "externalUrl": null,
+        "externalUrl": "https://lajennylove.github.io/readex/external/demo-02/ch-a.html",
         "isUnavailable": false,
         "publishAt": "2026-10-24T12:59:00+00:00",
         "readableAt": "2026-10-24T12:59:00+00:00",
         "createdAt": "2026-10-24T12:59:00+00:00",
         "updatedAt": "2026-10-24T12:59:00+00:00",
         "version": 1,
-        "pages": 3
+        "pages": 0
       },
       "relationships": [
         {

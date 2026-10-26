@@ -1,0 +1,104 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-15",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Velit Esse Cillum"
+      },
+      "altTitles": [
+        {
+          "es": "Velit Esse Cillum (es)"
+        }
+      ],
+      "description": {
+        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2025,
+      "contentRating": "safe",
+      "tags": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Action"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "44444444-4444-4444-8444-444444444444",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Comedy"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "77777777-7777-4777-8777-777777777777",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Slice of Life"
+            },
+            "description": {},
+            "group": "theme",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-26T00:00:00+00:00",
+      "updatedAt": "2026-10-26T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-15-b"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-15",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover"
+        }
+      },
+      {
+        "id": "author-demo-15",
+        "type": "author",
+        "attributes": {
+          "name": "Epsilon Quill"
+        }
+      },
+      {
+        "id": "artist-demo-15",
+        "type": "artist",
+        "attributes": {
+          "name": "Theta Ink"
+        }
+      }
+    ]
+  }
+}

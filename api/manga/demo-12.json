@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-12",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Consequat Duis Aute"
+      },
+      "altTitles": [
+        {
+          "es": "Consequat Duis Aute (es)"
+        }
+      ],
+      "description": {
+        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2025,
+      "contentRating": "safe",
+      "tags": [
+        {
+          "id": "44444444-4444-4444-8444-444444444444",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Comedy"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "77777777-7777-4777-8777-777777777777",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Slice of Life"
+            },
+            "description": {},
+            "group": "theme",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-26T00:00:00+00:00",
+      "updatedAt": "2026-10-26T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-12-b"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-12",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "cover"
+        }
+      },
+      {
+        "id": "author-demo-12",
+        "type": "author",
+        "attributes": {
+          "name": "Beta Scribe"
+        }
+      },
+      {
+        "id": "artist-demo-12",
+        "type": "artist",
+        "attributes": {
+          "name": "Epsilon Palette"
+        }
+      }
+    ]
+  }
+}

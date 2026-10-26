@@ -1,0 +1,95 @@
+{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    {
+      "id": "ch-07-a",
+      "type": "chapter",
+      "attributes": {
+        "volume": "1",
+        "chapter": "1",
+        "title": "Lorem Primum",
+        "translatedLanguage": "en",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "publishAt": "2026-10-24T22:59:00+00:00",
+        "readableAt": "2026-10-24T22:59:00+00:00",
+        "createdAt": "2026-10-24T22:59:00+00:00",
+        "updatedAt": "2026-10-24T22:59:00+00:00",
+        "version": 1,
+        "pages": 3
+      },
+      "relationships": [
+        {
+          "id": "demo-group-1",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "Demo Translators",
+            "altNames": [],
+            "locked": false,
+            "website": null,
+            "focusedLanguages": [
+              "en"
+            ],
+            "official": false,
+            "verified": false,
+            "inactive": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "demo-07",
+          "type": "manga"
+        }
+      ]
+    },
+    {
+      "id": "ch-07-b",
+      "type": "chapter",
+      "attributes": {
+        "volume": "1",
+        "chapter": "2",
+        "title": "Lorem Secundum",
+        "translatedLanguage": "en",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "publishAt": "2026-10-24T23:59:00+00:00",
+        "readableAt": "2026-10-24T23:59:00+00:00",
+        "createdAt": "2026-10-24T23:59:00+00:00",
+        "updatedAt": "2026-10-24T23:59:00+00:00",
+        "version": 1,
+        "pages": 3
+      },
+      "relationships": [
+        {
+          "id": "demo-group-1",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "Demo Translators",
+            "altNames": [],
+            "locked": false,
+            "website": null,
+            "focusedLanguages": [
+              "en"
+            ],
+            "official": false,
+            "verified": false,
+            "inactive": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "demo-07",
+          "type": "manga"
+        }
+      ]
+    }
+  ],
+  "limit": 2,
+  "offset": 0,
+  "total": 2
+}

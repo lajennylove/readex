@@ -1,0 +1,17 @@
+{
+  "result": "ok",
+  "baseUrl": "",
+  "chapter": {
+    "hash": "ch-05-b",
+    "data": [
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Labore+Et+Dolore%0ACh.+2+%C2%B7+Page+1",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Labore+Et+Dolore%0ACh.+2+%C2%B7+Page+2",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Labore+Et+Dolore%0ACh.+2+%C2%B7+Page+3"
+    ],
+    "dataSaver": [
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Labore+Et+Dolore%0ACh.+2+%C2%B7+Page+1",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Labore+Et+Dolore%0ACh.+2+%C2%B7+Page+2",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=Labore+Et+Dolore%0ACh.+2+%C2%B7+Page+3"
+    ]
+  }
+}

@@ -2,7 +2,10 @@
   "result": "ok",
   "response": "collection",
   "data": [
-    "demo-cartographer-journal",
-    "demo-signal-across-water"
+    "demo-01",
+    "demo-03",
+    "demo-07",
+    "demo-15",
+    "demo-21"
   ]
 }

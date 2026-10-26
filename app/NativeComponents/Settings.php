@@ -56,6 +56,8 @@ class Settings extends NativeComponent implements HasResumeBar
 
     public const FACTORY_RESET = 'Delete everything';
 
+    public const CHANGE_SOURCE = 'Continue';
+
     public const NEEDS_INTERNET = 'Needs internet';
 
     public string $language = 'en';
@@ -152,6 +154,21 @@ class Settings extends NativeComponent implements HasResumeBar
      * Settings with no undo and no exception (every table, every file, every setting, the
      * sources themselves).
      */
+    /**
+     * Jenny 2026-10-26: entering a different source URL in Setup would read saved content whose
+     * ids and shapes came from the previous source — stale covers, broken deep links, mismatched
+     * tag ids. So this flushes the same tables factory reset does, then takes the user back to
+     * Setup. EULA stays acknowledged (they already saw it); only Setup needs to run again.
+     */
+    public function askChangeSource(): void
+    {
+        Dialog::alert(
+            'Change source URL?',
+            'This removes your Library, reading progress, downloads and cached chapters so the new source starts clean. The EULA you already accepted stays accepted; the app returns to Setup to enter the new URL.',
+            [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::CHANGE_SOURCE, 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::CHANGE_SOURCE ? $this->changeSource() : null);
+    }
+
     public function askFactoryReset(): void
     {
         Dialog::alert(
@@ -190,6 +207,13 @@ class Settings extends NativeComponent implements HasResumeBar
     private function factoryReset(): void
     {
         app(FactoryReset::class)->wipe();
+        $this->replace('/');
+    }
+
+    private function changeSource(): void
+    {
+        app(FactoryReset::class)->wipe();
+        app(SettingsRepository::class)->acknowledgeEula();
         $this->replace('/');
     }
 

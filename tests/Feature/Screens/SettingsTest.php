@@ -445,3 +445,37 @@ it('wipes every table and file on confirm, and routes back to the real first-run
         ->and(app(SettingsRepository::class)->eulaAcknowledged())->toBeFalse()
         ->and(app(SettingsRepository::class)->setupDone())->toBeFalse();
 });
+
+it('asks before changing source URL; Cancel keeps the current source and library', function () {
+    settingsSavedData();
+    app(SettingsRepository::class)->setSourceUrl('https://example.test');
+
+    Native::test(Settings::class)
+        ->tap('Change source URL')
+        ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Change source URL?'
+            && str_contains($p['message'], 'returns to Setup')
+            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Continue', 'style' => 'destructive']])
+        ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel'])
+        ->assertNoNavigation();
+
+    expect(app(SettingsRepository::class)->sourceUrl())->toBe('https://example.test')
+        ->and(LibraryEntry::query()->count())->toBeGreaterThan(0);
+});
+
+it('on Change source confirm, flushes content and sends the user back to Setup — EULA stays accepted', function () {
+    settingsSavedData();
+    app(SettingsRepository::class)->markSetupDone();
+    app(SettingsRepository::class)->acknowledgeEula();
+    app(SettingsRepository::class)->setSourceUrl('https://old-source.test');
+
+    Native::test(Settings::class)
+        ->tap('Change source URL')
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Continue'])
+        ->assertReplacedWith('/');
+
+    expect(DB::table('manga_lists')->count())->toBe(0)
+        ->and(DB::table('collections')->count())->toBe(0)
+        ->and(app(SettingsRepository::class)->sourceUrl())->toBeNull()
+        ->and(app(SettingsRepository::class)->setupDone())->toBeFalse()
+        ->and(app(SettingsRepository::class)->eulaAcknowledged())->toBeTrue();
+});

@@ -65,6 +65,8 @@
 
         <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-destructive">Reset ReaDex</native:text>
+            <native:button label="Change source URL" variant="destructive" @press="askChangeSource" />
+            <native:text class="text-xs text-theme-on-surface-variant">Removes your Library, reading progress, downloads and cached chapters, then takes you back to Setup to enter a new source URL. Content from a different source wouldn't match what's saved here.</native:text>
             <native:button label="Delete everything" variant="destructive" @press="askFactoryReset" />
             <native:text class="text-xs text-theme-on-surface-variant">Deletes your whole Library, reading progress, every download, every cached image, your content sources and all settings. This can't be undone.</native:text>
         </native:column>

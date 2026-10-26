@@ -11,6 +11,7 @@ use App\Models\Collection as LibraryEntry;
 use App\Models\Manga;
 use App\Models\ReadingProgress;
 use App\Models\Statistic;
+use App\NativeComponents\Concerns\EdgeSwipesBack;
 use App\NativeComponents\Concerns\ManagesDownloads;
 use App\NativeComponents\Concerns\RefreshesData;
 use App\NativeComponents\Concerns\ShowsResumeBar;
@@ -41,6 +42,7 @@ use Native\Mobile\Edge\NativeComponent;
  */
 class MangaDetail extends NativeComponent implements HasResumeBar
 {
+    use EdgeSwipesBack;
     use ManagesDownloads;
     use RefreshesData;
     use ShowsResumeBar;

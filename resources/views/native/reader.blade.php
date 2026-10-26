@@ -1,5 +1,6 @@
 @if ($screen === 'pages')
     <native:column class="w-full h-full bg-black">
+        @include('native.partials.edge-back-gesture')
         <native:virtual-list
             class="w-full flex-1 bg-black"
             :count="$rows"

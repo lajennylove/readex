@@ -3,6 +3,7 @@
 namespace App\NativeComponents;
 
 use App\Models\Chapter;
+use App\NativeComponents\Concerns\EdgeSwipesBack;
 use App\NativeLayouts\TabsLayout;
 use App\Storage\PageStore;
 use Illuminate\View\View;
@@ -17,6 +18,8 @@ use Native\Mobile\Edge\SharedValue;
  */
 class PageViewer extends NativeComponent
 {
+    use EdgeSwipesBack;
+
     public const MAX_ZOOM = 4.0;
 
     public const DOUBLE_TAP_ZOOM = 2.5;

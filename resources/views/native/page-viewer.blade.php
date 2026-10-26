@@ -5,6 +5,7 @@
     </native:column>
 @else
     <native:column class="w-full h-full bg-black">
+        @include('native.partials.edge-back-gesture')
         @if ($zoomed)
             <native:gesture-area class="w-full flex-1 justify-center bg-black" :pinch="$scale" pinch-min="1" pinch-max="{{ \App\NativeComponents\PageViewer::MAX_ZOOM }}" :pan-x="$panX" :pan-y="$panY" @pinchEnd="pinchEnded" @dragEnd="dragEnded">
                 <native:image

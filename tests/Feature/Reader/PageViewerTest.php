@@ -64,6 +64,24 @@ function viewerNode(array $tree, string $type): ?array
     return viewerAll($tree, $type)[0] ?? null;
 }
 
+/**
+ * The pinch-handling gesture area. The viewer blade now includes the
+ * edge-swipe-back partial as its first `gesture_area` (a 20 px column on
+ * the left edge) so a right-ward swipe pops the screen; the pinch/zoom
+ * gesture is the next one. This helper filters to the pinch one so the
+ * zoom tests don't get the edge-back shim.
+ */
+function viewerPinchArea(array $tree): ?array
+{
+    foreach (viewerAll($tree, 'gesture_area') as $area) {
+        if (array_key_exists('on_pinch_end', $area['props'] ?? [])) {
+            return $area;
+        }
+    }
+
+    return null;
+}
+
 /** The reader's page image with this alt. */
 function viewerRowImage(array $tree, string $alt): ?array
 {
@@ -304,14 +322,14 @@ it('binds pan only while zoomed, clamped live to the current zoom\'s bounds', fu
     viewerStored('c1', 3);
 
     $viewer = Native::visit('/home/read/c1/page/1');
-    $area = viewerNode($viewer->tree(), 'gesture_area');
+    $area = viewerPinchArea($viewer->tree());
 
     expect($area['props'])->toHaveKey('on_pinch_end')->not->toHaveKey('on_drag_end')
         ->and(json_encode($area['props']))->not->toContain('pan')
         ->and(json_encode(viewerNode($viewer->tree(), 'image')['props']))->not->toContain('translate');
 
     $viewer->press('doubleTapped');
-    $area = viewerNode($viewer->tree(), 'gesture_area');
+    $area = viewerPinchArea($viewer->tree());
     $image = json_encode(viewerNode($viewer->tree(), 'image')['props']);
 
     expect(viewerNode($viewer->tree(), 'image')['id'])->toBe(Element::fnv1a32('/viewer-page'));

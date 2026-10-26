@@ -1,4 +1,5 @@
 <native:scroll-view class="w-full h-full bg-theme-background">
+    @include('native.partials.edge-back-gesture')
     <native:column class="w-full gap-6 p-4 pb-8">
         <native:column class="w-full gap-2">
             <native:text class="text-xs text-theme-on-surface-variant">ReaDex is a reading client you can point at your own content sources. Any source you add is chosen and controlled entirely by you.</native:text>

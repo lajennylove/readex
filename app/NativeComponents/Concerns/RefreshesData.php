@@ -11,8 +11,10 @@ use App\Refresh\RefreshTask;
 use App\Repositories\Result;
 use Illuminate\Support\Carbon;
 use Native\Mobile\Attributes\Poll;
+use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Exceptions\AsyncTaskException;
 use Native\Mobile\Facades\Network;
+use Native\Mobile\Platform;
 
 /**
  * Spec §7 loop for a screen. `load()` reads repositories (SQLite only) and passes each
@@ -45,6 +47,9 @@ trait RefreshesData
 
     private bool $forceRefresh = false;
 
+    /** Once-per-instance guard for the Android poll-interval patch. */
+    private bool $pollIntervalPatched = false;
+
     /** Read every repository the screen shows and call keepFresh() for each Result. */
     abstract protected function load(): void;
 
@@ -69,9 +74,25 @@ trait RefreshesData
         $this->load();
     }
 
+    /**
+     * Platform-aware poll cadence (ms) for {@see checkWaitingRefreshes}. The
+     * `#[Poll]` attribute value is a compile-time constant, so this returns
+     * the resolved runtime value — iOS keeps the historical 3s tick, Android
+     * bumps to a 15s default so colour e-ink devices (Bigme HiBreak Pro Color)
+     * aren't held under the ~700ms PHP render time of each tick.
+     */
+    public static function pollIntervalMs(): int
+    {
+        return Platform::isAndroid()
+            ? (int) config('readex.refreshes_data.android_poll_ms', 15_000)
+            : (int) config('readex.refreshes_data.ios_poll_ms', 3_000);
+    }
+
     #[Poll(3000)]
     public function checkWaitingRefreshes(): void
     {
+        $this->maybePatchPollInterval();
+
         foreach ($this->waiting as $key => $queuedAt) {
             $outcome = Landed::since($key, $queuedAt);
 
@@ -235,5 +256,52 @@ trait RefreshesData
     {
         return isset($this->refreshedAt[$key])
             && Carbon::now()->getTimestampMs() - $this->refreshedAt[$key] < 60_000;
+    }
+
+    /**
+     * Replace the vendor's cached `#[Poll(3000)]` cadence for
+     * {@see checkWaitingRefreshes} with the platform-resolved interval
+     * ({@see pollIntervalMs}). The `Poll` attribute's `ms` is a static int, so
+     * reaching into the private `pollDefinitions` cache is the only way to
+     * actually lengthen the `wait_event` idle wake and the fire deadline.
+     * One tick is spent at the compiled 3s cadence before the patch takes;
+     * every tick after follows the platform cadence.
+     */
+    private function maybePatchPollInterval(): void
+    {
+        if ($this->pollIntervalPatched) {
+            return;
+        }
+
+        $this->pollIntervalPatched = true;
+
+        $target = self::pollIntervalMs();
+        if ($target === 3000) {
+            // iOS (and any other platform) keeps the compiled cadence — no
+            // reflection needed.
+            return;
+        }
+
+        try {
+            $prop = new \ReflectionProperty(NativeComponent::class, 'pollDefinitions');
+            $prop->setAccessible(true);
+            $defs = $prop->getValue($this);
+            if (! is_array($defs)) {
+                return;
+            }
+
+            $now = microtime(true) * 1000;
+            foreach ($defs as $i => $def) {
+                if (($def['method'] ?? null) === 'checkWaitingRefreshes') {
+                    $defs[$i]['ms'] = $target;
+                    $defs[$i]['next'] = $now + $target;
+                }
+            }
+
+            $prop->setValue($this, $defs);
+        } catch (\Throwable) {
+            // Vendor shape changed — fall through to the compiled cadence
+            // rather than crashing the screen.
+        }
     }
 }

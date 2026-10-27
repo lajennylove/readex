@@ -9,6 +9,7 @@ use App\Jobs\RefreshAllData;
 use App\Language\Languages;
 use App\Loading\DataLoader;
 use App\Loading\LoadProgress;
+use App\Models\SourceConfig;
 use App\NativeComponents\Concerns\ChoosesContentRatings;
 use App\NativeComponents\Concerns\ShowsResumeBar;
 use App\NativeLayouts\HasResumeBar;
@@ -277,8 +278,13 @@ class Settings extends NativeComponent implements HasResumeBar
 
     private function providerUrl(): string
     {
-        return app(SourceRepository::class)->enabled()->first()?->config['base_url']
-        ?? rtrim(config('source.api_url'), '/');
+        $enabled = app(SourceRepository::class)->enabled();
+
+        $user = $enabled->first(fn (SourceConfig $s) => $s->kind === 'user');
+
+        return $user?->config['base_url']
+            ?? $enabled->first()?->config['base_url']
+            ?? rtrim(config('source.api_url'), '/');
     }
 
     /** "18:52" when the source has paused this phone, else null. */

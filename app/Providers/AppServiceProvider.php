@@ -115,10 +115,10 @@ class AppServiceProvider extends ServiceProvider
 
             $row = SourceConfig::query()
                 ->where('kind', 'user')
-                ->where('enabled', true)
+                ->orderByDesc('created_at')
                 ->first();
 
-            if ($row === null) {
+            if ($row === null || $row->blocked) {
                 return;
             }
 

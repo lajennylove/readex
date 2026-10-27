@@ -93,12 +93,21 @@ class Settings extends NativeComponent implements HasResumeBar
 
     public ?string $seasonalError = null;
 
+    /**
+     * Opt-in override for the covers CDN host. Needed for upstreams whose cover images
+     * sit on a sibling host (e.g. uploads subdomain) rather than the API host itself.
+     */
+    public string $coversUrl = '';
+
+    public ?string $coversError = null;
+
     public function mount(SettingsRepository $settings): void
     {
         $this->language = $settings->language();
         $this->ratings = $settings->contentRatings();
         $this->quality = $settings->imageQuality();
         $this->seasonalUrl = $settings->seasonalUrl() ?? '';
+        $this->coversUrl = $settings->coversUrl() ?? '';
         $this->run = RefreshAllData::running();
         $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
         $this->cacheBytes = app(ImageCache::class)->usage();
@@ -129,6 +138,32 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->seasonalUrl = '';
         $this->seasonalError = null;
         app(SettingsRepository::class)->setSeasonalUrl(null);
+    }
+
+    public function changeCoversUrl(string $value): void
+    {
+        $this->coversUrl = trim($value);
+    }
+
+    public function saveCoversUrl(): void
+    {
+        $this->coversError = null;
+        $url = trim($this->coversUrl);
+
+        if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) === false) {
+            $this->coversError = 'That doesn\'t look like a URL.';
+
+            return;
+        }
+
+        app(SettingsRepository::class)->setCoversUrl($url === '' ? null : $url);
+    }
+
+    public function clearCoversUrl(): void
+    {
+        $this->coversUrl = '';
+        $this->coversError = null;
+        app(SettingsRepository::class)->setCoversUrl(null);
     }
 
     public function navTitle(): string
@@ -363,6 +398,8 @@ class Settings extends NativeComponent implements HasResumeBar
             'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
             'seasonalUrl' => $this->seasonalUrl,
             'seasonalError' => $this->seasonalError,
+            'coversUrl' => $this->coversUrl,
+            'coversError' => $this->coversError,
         ]);
     }
 }

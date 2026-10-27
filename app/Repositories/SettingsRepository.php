@@ -153,6 +153,24 @@ final class SettingsRepository
     }
 
     /**
+     * Opt-in override for the covers CDN. An upstream whose cover images sit on a different
+     * host than the API (and that doesn't publish `_meta.json`) needs this filled in by the
+     * user — otherwise CoverStore composes URLs against the API host and the fetches 404.
+     */
+    public function coversUrl(): ?string
+    {
+        $value = $this->read('covers_url');
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    public function setCoversUrl(?string $url): void
+    {
+        $url = $url === null ? null : trim($url);
+        $this->write('covers_url', $url === '' ? null : $url);
+    }
+
+    /**
      * Search keeps its title and tag until the field is emptied or the chip deselected.
      *
      * @return array{query: string, tag_id: ?string}

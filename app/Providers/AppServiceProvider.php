@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Adapters\Http\RateLimit\LimitsTable;
 use App\Jobs\EnforceLogCap;
 use App\Models\SourceConfig;
+use App\Repositories\SettingsRepository;
 use App\Sources\SourceRegistry;
 use App\Storage\CacheLink;
 use App\Storage\LocalStorageBridge;
@@ -127,18 +128,45 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            $parent = preg_replace('#/[^/]+$#', '', $url) ?: $url;
+            $parent = self::parentOf($url);
             $meta = (array) ($row->config['meta'] ?? []);
+            $coversOverride = app(SettingsRepository::class)->coversUrl();
 
             config([
                 'source.api_url' => $url,
                 'source.static_json' => (bool) ($meta['static_json'] ?? false),
-                'source.covers_url' => (string) ($meta['covers_url'] ?? $parent.'/covers'),
+                'source.covers_url' => (string) ($coversOverride ?? $meta['covers_url'] ?? $parent.'/covers'),
                 'source.report_url' => (string) ($meta['report_url'] ?? $parent.'/report'),
                 'source.status_family' => (string) ($meta['status_family'] ?? config('source.status_family')),
             ]);
         } catch (Throwable) {
             // Boot must survive a missing or unreadable sources row.
         }
+    }
+
+    /**
+     * Returns the parent of a URL: scheme + host + path with the last `/segment` stripped.
+     * When the URL is bare `scheme://host[:port]` with no path, returns it unchanged so
+     * `$parent.'/covers'` does not produce a malformed URL like `https:/covers`.
+     */
+    private static function parentOf(string $url): string
+    {
+        $parts = parse_url($url);
+        $scheme = $parts['scheme'] ?? 'https';
+        $host = $parts['host'] ?? '';
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $path = $parts['path'] ?? '';
+
+        if ($host === '') {
+            return rtrim($url, '/');
+        }
+
+        $base = $scheme.'://'.$host.$port;
+
+        if ($path === '' || $path === '/' || ! str_contains(rtrim($path, '/'), '/')) {
+            return $base;
+        }
+
+        return $base.preg_replace('#/[^/]+/?$#', '', $path);
     }
 }

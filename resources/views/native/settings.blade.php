@@ -23,6 +23,24 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">Covers URL</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">An alternate host for cover images. Only needed when your source serves covers from a different host than its API (e.g. an "uploads" subdomain). Leave empty to use the API host.</native:text>
+            <native:outlined_text_input
+                placeholder="https://uploads.example.org/covers"
+                value="{{ $coversUrl }}"
+                @change="changeCoversUrl" />
+            @if ($coversError)
+                <native:text class="text-sm text-theme-destructive">{{ $coversError }}</native:text>
+            @endif
+            <native:row class="w-full gap-2">
+                <native:button label="Save" variant="secondary" @press="saveCoversUrl" />
+                @if ($coversUrl !== '')
+                    <native:button label="Clear" variant="secondary" @press="clearCoversUrl" />
+                @endif
+            </native:row>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Curated list</native:text>
             <native:text class="text-xs text-theme-on-surface-variant">A JSON URL ({{ '{' }}id, name, manga_ids{{ '}' }}) that fills a "This season" row on Home. Off by default — the row doesn't appear until you save one.</native:text>
             <native:outlined_text_input

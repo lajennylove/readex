@@ -3,10 +3,13 @@
 namespace App\Adapters\Http\RateLimit;
 
 use Carbon\CarbonImmutable;
+use Closure;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Sleep;
+use Throwable;
 
 /**
  * Decides when each source request may go out. All state lives in SQLite so the UI
@@ -29,7 +32,7 @@ final class RequestController
         $deadline = $this->now() + $maxWait;
 
         while (true) {
-            $result = DB::transaction(fn () => $this->tryTake($call, $priority, $resolution));
+            $result = $this->serialize(fn () => $this->tryTake($call, $priority, $resolution));
 
             if ($result instanceof Slot || $result->retryAt > $deadline) {
                 return $result;
@@ -41,7 +44,7 @@ final class RequestController
 
     public function record(Slot $slot, ?Response $response): void
     {
-        DB::transaction(function () use ($slot, $response) {
+        $this->serialize(function () use ($slot, $response) {
             $now = $this->now();
             $status = $response?->status();
             $banned = $response !== null && $this->isBan($response);
@@ -99,6 +102,43 @@ final class RequestController
             $lastMinute,
             $lastHour,
         );
+    }
+
+    /**
+     * Runs a critical bucket update under a SQLite transaction, resilient to a stale Laravel
+     * transaction-level counter. Under NativePHP's async/forked workers the per-connection
+     * counter can survive from a parent process whose actual SQLite transaction is already
+     * gone: Laravel then issues `SAVEPOINT trans2` / `RELEASE SAVEPOINT trans2`, SQLite
+     * replies "no such savepoint: trans2", and the whole refresh step surfaces as
+     * "Something went wrong". When that happens we fully drop the connection (which
+     * resets the counter), reconnect and retry once.
+     */
+    private function serialize(Closure $work): mixed
+    {
+        try {
+            return DB::transaction($work);
+        } catch (QueryException $e) {
+            if (! $this->isStaleSavepoint($e)) {
+                throw $e;
+            }
+        } catch (Throwable $e) {
+            if (! $this->isStaleSavepoint($e)) {
+                throw $e;
+            }
+        }
+
+        DB::disconnect();
+
+        return DB::transaction($work);
+    }
+
+    private function isStaleSavepoint(Throwable $e): bool
+    {
+        $message = $e->getMessage();
+
+        return str_contains($message, 'no such savepoint')
+            || str_contains($message, 'SAVEPOINT')
+            || str_contains($message, 'cannot start a transaction within a transaction');
     }
 
     private function tryTake(Call $call, Priority $priority, Resolution $resolution): Slot|Busy

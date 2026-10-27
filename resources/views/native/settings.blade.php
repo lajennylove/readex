@@ -23,6 +23,24 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">Source URL</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">The content source API endpoint. Changing it wipes your Library, downloads and reading progress.</native:text>
+            <native:outlined_text_input
+                placeholder="https://api.example.org"
+                value="{{ $sourceUrl }}"
+                @change="changeSourceUrl" />
+            @if ($sourceError)
+                <native:text class="text-sm text-theme-destructive">{{ $sourceError }}</native:text>
+            @endif
+            <native:row class="w-full gap-2 items-center">
+                <native:button label="Change" variant="secondary" @press="askSaveSourceUrl" />
+                @if ($sourceSaved)
+                    <native:text class="text-sm text-theme-on-surface-variant">Saved</native:text>
+                @endif
+            </native:row>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Covers URL</native:text>
             <native:text class="text-xs text-theme-on-surface-variant">An alternate host for cover images. Only needed when your source serves covers from a different host than its API (e.g. an "uploads" subdomain). Leave empty to use the API host.</native:text>
             <native:outlined_text_input

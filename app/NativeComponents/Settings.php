@@ -23,6 +23,7 @@ use App\Storage\StorageBridge;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use InvalidArgumentException;
 use Native\Mobile\Attributes\Poll;
 use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Events\Alert\ButtonPressed;
@@ -89,6 +90,13 @@ class Settings extends NativeComponent implements HasResumeBar
      * placeholder so a reviewer sees what shape the field expects without the row quietly
      * fetching a hardcoded list.
      */
+    /** Active source API URL. Changing it wipes content (destructive) and prompts first. */
+    public string $sourceUrl = '';
+
+    public ?string $sourceError = null;
+
+    public bool $sourceSaved = false;
+
     public string $seasonalUrl = '';
 
     public ?string $seasonalError = null;
@@ -112,12 +120,43 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->language = $settings->language();
         $this->ratings = $settings->contentRatings();
         $this->quality = $settings->imageQuality();
+        $this->sourceUrl = $this->providerUrl();
         $this->seasonalUrl = $settings->seasonalUrl() ?? '';
         $this->coversUrl = $settings->coversUrl() ?? '';
         $this->run = RefreshAllData::running();
         $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
         $this->cacheBytes = app(ImageCache::class)->usage();
         $this->storageLow = app(DiskSpaceGuard::class)->isLow();
+    }
+
+    public function changeSourceUrl(string $value): void
+    {
+        $this->sourceUrl = trim($value);
+        $this->sourceSaved = false;
+        $this->sourceError = null;
+    }
+
+    public function askSaveSourceUrl(): void
+    {
+        $this->sourceError = null;
+        $url = trim($this->sourceUrl);
+        $current = $this->providerUrl();
+
+        if ($url === '' || $url === $current) {
+            return;
+        }
+
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            $this->sourceError = 'That doesn\'t look like a URL.';
+
+            return;
+        }
+
+        Dialog::alert(
+            'Change your source URL?',
+            'This clears your Library, downloads and reading progress. Language, ratings and the Covers/This season URLs are kept.',
+            [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Change', 'style' => 'destructive']],
+        )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === 'Change' ? $this->swapSource($url) : null);
     }
 
     public function changeSeasonalUrl(string $value): void
@@ -279,6 +318,47 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->replace('/');
     }
 
+    /**
+     * Destructive source swap: wipes content tables + sources, re-saves preserved prefs,
+     * then adds the new URL as the active source and routes back to Home.
+     */
+    private function swapSource(string $newUrl): void
+    {
+        $settings = app(SettingsRepository::class);
+
+        $language = $settings->language();
+        $ratings = $settings->contentRatings();
+        $quality = $settings->imageQuality();
+        $seasonalUrl = $settings->seasonalUrl();
+        $coversUrl = $settings->coversUrl();
+
+        app(FactoryReset::class)->wipe();
+
+        $settings->acknowledgeEula();
+        $settings->setLanguage($language);
+        $settings->setContentRatings($ratings);
+        $settings->setImageQuality($quality);
+
+        if ($seasonalUrl !== null) {
+            $settings->setSeasonalUrl($seasonalUrl);
+        }
+
+        if ($coversUrl !== null) {
+            $settings->setCoversUrl($coversUrl);
+        }
+
+        try {
+            app(SourceRepository::class)->addFromSetup($newUrl);
+        } catch (InvalidArgumentException $e) {
+            $this->sourceError = $e->getMessage();
+
+            return;
+        }
+
+        $settings->markSetupDone();
+        $this->replace('/home');
+    }
+
     private function canRefresh(): bool
     {
         $this->refreshNote = null;
@@ -410,6 +490,9 @@ class Settings extends NativeComponent implements HasResumeBar
             'providerLabel' => $provider,
             'providerUrl' => $this->providerUrl(),
             'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
+            'sourceUrl' => $this->sourceUrl,
+            'sourceError' => $this->sourceError,
+            'sourceSaved' => $this->sourceSaved,
             'seasonalUrl' => $this->seasonalUrl,
             'seasonalError' => $this->seasonalError,
             'seasonalSaved' => $this->seasonalSaved,

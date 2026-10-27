@@ -55,6 +55,12 @@ class Setup extends NativeComponent
     /** Why the last Continue tap's source check failed (bad URL shape, or it didn't answer). */
     public ?string $sourceError = null;
 
+    /** Optional covers CDN override, used only when the source's images live on a sibling host. */
+    public string $coversUrl = '';
+
+    /** Optional curated-list JSON URL that fills the "This season" row on Home. */
+    public string $seasonalUrl = '';
+
     public string $language = 'en';
 
     public ?string $run = null;
@@ -76,6 +82,16 @@ class Setup extends NativeComponent
     public function changeSourceUrl(string $value): void
     {
         $this->sourceUrl = $value;
+    }
+
+    public function changeCoversUrl(string $value): void
+    {
+        $this->coversUrl = trim($value);
+    }
+
+    public function changeSeasonalUrl(string $value): void
+    {
+        $this->seasonalUrl = trim($value);
     }
 
     public function chooseLanguage(string $name): void
@@ -110,6 +126,14 @@ class Setup extends NativeComponent
 
         $settings->setLanguage($this->language);
         $settings->setContentRatings($this->ratings);
+
+        if ($this->coversUrl !== '') {
+            $settings->setCoversUrl($this->coversUrl);
+        }
+
+        if ($this->seasonalUrl !== '') {
+            $settings->setSeasonalUrl($this->seasonalUrl);
+        }
 
         $run = $this->run = (string) Str::uuid();
         LoadProgress::start($run);
@@ -191,6 +215,10 @@ class Setup extends NativeComponent
         return view('native.setup', [
             'languageName' => Languages::name($this->language),
             'languageNames' => array_values(Languages::NAMES),
+            'sourceUrl' => $this->sourceUrl,
+            'sourceError' => $this->sourceError,
+            'coversUrl' => $this->coversUrl,
+            'seasonalUrl' => $this->seasonalUrl,
         ]);
     }
 }

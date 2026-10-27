@@ -194,6 +194,12 @@ final class SettingsRepository
 
     private function write(string $key, mixed $value): void
     {
+        if ($value === null) {
+            Setting::query()->whereKey($key)->delete();
+
+            return;
+        }
+
         Setting::updateOrCreate(['key' => $key], ['value' => $value]);
     }
 }

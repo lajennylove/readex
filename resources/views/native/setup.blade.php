@@ -14,7 +14,19 @@
                     @endif
                 </native:column>
 
-                <native:text class="text-sm text-theme-on-surface-variant">Pick how you read. You can change both later in Settings.</native:text>
+                <native:column class="w-full gap-2">
+                    <native:text class="text-base font-bold text-theme-on-background">Covers URL (optional)</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">Only needed when your source serves cover images from a different host than its API.</native:text>
+                    <native:outlined_text_input placeholder="https://uploads.example.org/covers" value="{{ $coversUrl }}" @change="changeCoversUrl" />
+                </native:column>
+
+                <native:column class="w-full gap-2">
+                    <native:text class="text-base font-bold text-theme-on-background">This season (optional)</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">A JSON URL for the latest content suggestions.</native:text>
+                    <native:outlined_text_input placeholder="https://example.org/seasonal-list.json" value="{{ $seasonalUrl }}" @change="changeSeasonalUrl" />
+                </native:column>
+
+                <native:text class="text-sm text-theme-on-surface-variant">Pick how you read. You can change all of these later in Settings.</native:text>
 
                 <native:select label="Reading language" value="{{ $languageName }}" :options="$languageNames" @change="chooseLanguage" />
 

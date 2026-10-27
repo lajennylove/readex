@@ -11,6 +11,8 @@ use App\Models\Manga;
 use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
+use Closure;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +51,7 @@ final class HomeRepository
         // so Home hides the row entirely (its own empty state would otherwise read "nothing
         // new yet", which isn't the right story for a user who hasn't opted in).
         if ($this->settings->seasonalUrl() === null) {
-            DB::transaction(fn () => $this->replace(self::SEASON, []));
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
 
             return;
         }
@@ -61,7 +63,7 @@ final class HomeRepository
                 // Hard 400/404/405 on the seasonal JSON itself (e.g. the stored URL is dead against
                 // the current source): degrade silently to a no-op, same shape as "no URL set".
                 if ($e instanceof ApiError && in_array($e->status, [400, 404, 405], true)) {
-                    DB::transaction(fn () => $this->replace(self::SEASON, []));
+                    $this->transactional(fn () => $this->replace(self::SEASON, []));
 
                     return;
                 }
@@ -86,7 +88,7 @@ final class HomeRepository
             // the user swapped to another source): drop the stale list so Home hides the row
             // rather than surfacing "Something went wrong". The user's saved URL is untouched.
             if (in_array($e->status, [400, 404, 405], true)) {
-                DB::transaction(fn () => $this->replace(self::SEASON, []));
+                $this->transactional(fn () => $this->replace(self::SEASON, []));
 
                 return;
             }
@@ -94,7 +96,7 @@ final class HomeRepository
             throw $e;
         }
 
-        DB::transaction(function () use ($manga) {
+        $this->transactional(function () use ($manga) {
             $this->replace(self::SEASON, array_merge(...array_map($this->manga->storeManga(...), $manga)));
         });
     }
@@ -121,7 +123,7 @@ final class HomeRepository
             // A source that doesn't serve /manga (e.g. a demo URL without the API suffix)
             // shouldn't surface as "Something went wrong"; leave the row empty instead.
             if (in_array($e->status, [404, 405], true)) {
-                DB::transaction(fn () => $this->replace(self::POPULAR, []));
+                $this->transactional(fn () => $this->replace(self::POPULAR, []));
 
                 return;
             }
@@ -129,7 +131,7 @@ final class HomeRepository
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
     }
 
     /**
@@ -174,7 +176,7 @@ final class HomeRepository
             // A source that doesn't serve /chapter (e.g. a demo URL without the API suffix)
             // shouldn't surface as "Something went wrong"; leave the row empty instead.
             if (in_array($e->status, [404, 405], true)) {
-                DB::transaction(fn () => $this->replace(self::LATEST, []));
+                $this->transactional(fn () => $this->replace(self::LATEST, []));
 
                 return;
             }
@@ -199,7 +201,7 @@ final class HomeRepository
             'includes' => ['cover_art'],
         ], $priority);
 
-        DB::transaction(function () use ($newest, $manga) {
+        $this->transactional(function () use ($newest, $manga) {
             $this->manga->storeManga($manga);
             $old = MangaListEntry::query()->where('list_key', self::LATEST)->pluck('chapter_id')->filter();
 
@@ -253,6 +255,47 @@ final class HomeRepository
      * @param  list<string>  $mangaIds
      * @param  array<string, string>  $chapterIds  manga id => chapter id (Latest updates)
      */
+    /**
+     * `DB::transaction($work)` with a one-shot retry when the first attempt hits a
+     * transient SQLite I/O error (code 10) or a stale savepoint from a prior aborted
+     * transaction on this connection. Multiple NativePHP async workers may race on the
+     * same SQLite file; the fresh connection on retry resets `transactionLevel`.
+     * A persistent failure stays silent — the data was already pulled, Freshness
+     * reads it stale next tick and the row refreshes again.
+     */
+    private function transactional(Closure $work): void
+    {
+        try {
+            DB::transaction($work);
+
+            return;
+        } catch (QueryException $e) {
+            if (! self::isTransient($e)) {
+                throw $e;
+            }
+        }
+
+        DB::disconnect();
+
+        try {
+            DB::transaction($work);
+        } catch (QueryException $e) {
+            if (! self::isTransient($e)) {
+                throw $e;
+            }
+        }
+    }
+
+    private static function isTransient(QueryException $e): bool
+    {
+        $msg = $e->getMessage();
+
+        return str_contains($msg, 'disk I/O error')
+            || str_contains($msg, 'savepoint')
+            || str_contains($msg, 'within a transaction')
+            || str_contains($msg, 'database is locked');
+    }
+
     private function replace(string $key, array $mangaIds, array $chapterIds = []): void
     {
         MangaListEntry::query()->where('list_key', $key)->delete();

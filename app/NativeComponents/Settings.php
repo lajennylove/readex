@@ -93,6 +93,9 @@ class Settings extends NativeComponent implements HasResumeBar
 
     public ?string $seasonalError = null;
 
+    /** Transient "Saved" affordance next to the This-season Save button; cleared on next edit. */
+    public bool $seasonalSaved = false;
+
     /**
      * Opt-in override for the covers CDN host. Needed for upstreams whose cover images
      * sit on a sibling host (e.g. uploads subdomain) rather than the API host itself.
@@ -100,6 +103,9 @@ class Settings extends NativeComponent implements HasResumeBar
     public string $coversUrl = '';
 
     public ?string $coversError = null;
+
+    /** Transient "Saved" affordance next to the Covers URL Save button; cleared on next edit. */
+    public bool $coversSaved = false;
 
     public function mount(SettingsRepository $settings): void
     {
@@ -117,6 +123,7 @@ class Settings extends NativeComponent implements HasResumeBar
     public function changeSeasonalUrl(string $value): void
     {
         $this->seasonalUrl = trim($value);
+        $this->seasonalSaved = false;
     }
 
     public function saveSeasonalUrl(): void
@@ -126,23 +133,27 @@ class Settings extends NativeComponent implements HasResumeBar
 
         if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) === false) {
             $this->seasonalError = 'That doesn\'t look like a URL.';
+            $this->seasonalSaved = false;
 
             return;
         }
 
         app(SettingsRepository::class)->setSeasonalUrl($url === '' ? null : $url);
+        $this->seasonalSaved = true;
     }
 
     public function clearSeasonalUrl(): void
     {
         $this->seasonalUrl = '';
         $this->seasonalError = null;
+        $this->seasonalSaved = false;
         app(SettingsRepository::class)->setSeasonalUrl(null);
     }
 
     public function changeCoversUrl(string $value): void
     {
         $this->coversUrl = trim($value);
+        $this->coversSaved = false;
     }
 
     public function saveCoversUrl(): void
@@ -152,17 +163,20 @@ class Settings extends NativeComponent implements HasResumeBar
 
         if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) === false) {
             $this->coversError = 'That doesn\'t look like a URL.';
+            $this->coversSaved = false;
 
             return;
         }
 
         app(SettingsRepository::class)->setCoversUrl($url === '' ? null : $url);
+        $this->coversSaved = true;
     }
 
     public function clearCoversUrl(): void
     {
         $this->coversUrl = '';
         $this->coversError = null;
+        $this->coversSaved = false;
         app(SettingsRepository::class)->setCoversUrl(null);
     }
 
@@ -398,8 +412,10 @@ class Settings extends NativeComponent implements HasResumeBar
             'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
             'seasonalUrl' => $this->seasonalUrl,
             'seasonalError' => $this->seasonalError,
+            'seasonalSaved' => $this->seasonalSaved,
             'coversUrl' => $this->coversUrl,
             'coversError' => $this->coversError,
+            'coversSaved' => $this->coversSaved,
         ]);
     }
 }

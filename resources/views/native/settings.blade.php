@@ -32,10 +32,13 @@
             @if ($coversError)
                 <native:text class="text-sm text-theme-destructive">{{ $coversError }}</native:text>
             @endif
-            <native:row class="w-full gap-2">
+            <native:row class="w-full gap-2 items-center">
                 <native:button label="Save" variant="secondary" @press="saveCoversUrl" />
                 @if ($coversUrl !== '')
                     <native:button label="Clear" variant="secondary" @press="clearCoversUrl" />
+                @endif
+                @if ($coversSaved)
+                    <native:text class="text-sm text-theme-on-surface-variant">Saved</native:text>
                 @endif
             </native:row>
         </native:column>
@@ -50,10 +53,13 @@
             @if ($seasonalError)
                 <native:text class="text-sm text-theme-destructive">{{ $seasonalError }}</native:text>
             @endif
-            <native:row class="w-full gap-2">
+            <native:row class="w-full gap-2 items-center">
                 <native:button label="Save" variant="secondary" @press="saveSeasonalUrl" />
                 @if ($seasonalUrl !== '')
                     <native:button label="Clear" variant="secondary" @press="clearSeasonalUrl" />
+                @endif
+                @if ($seasonalSaved)
+                    <native:text class="text-sm text-theme-on-surface-variant">Saved</native:text>
                 @endif
             </native:row>
         </native:column>

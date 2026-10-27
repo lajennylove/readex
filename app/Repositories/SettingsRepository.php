@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Language\LanguageChain;
 use App\Models\Setting;
+use App\Providers\AppServiceProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -168,6 +169,8 @@ final class SettingsRepository
     {
         $url = $url === null ? null : trim($url);
         $this->write('covers_url', $url === '' ? null : $url);
+
+        AppServiceProvider::activateUserSource();
     }
 
     /**

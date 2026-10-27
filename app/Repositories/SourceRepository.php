@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\SourceConfig;
+use App\Providers\AppServiceProvider;
 use App\Sources\HttpSource;
 use App\Sources\SourceHealthCheck;
 use Illuminate\Http\Client\ConnectionException;
@@ -124,7 +125,7 @@ final class SourceRepository
 
         $key = 'user:'.(string) Str::uuid();
 
-        return SourceConfig::query()->create([
+        $row = SourceConfig::query()->create([
             'key' => $key,
             'label' => $label,
             'kind' => 'user',
@@ -133,6 +134,10 @@ final class SourceRepository
             'config' => ['base_url' => $baseUrl, 'meta' => $this->fetchMeta($baseUrl)],
             'created_at' => Carbon::now(),
         ]);
+
+        AppServiceProvider::activateUserSource();
+
+        return $row;
     }
 
     /**
@@ -211,7 +216,9 @@ final class SourceRepository
         }
 
         $baseUrl = $this->validated($baseUrl);
-        $source->update(['config' => ['base_url' => $baseUrl]]);
+        $source->update(['config' => ['base_url' => $baseUrl, 'meta' => $this->fetchMeta($baseUrl)]]);
+
+        AppServiceProvider::activateUserSource();
 
         return $source->fresh();
     }

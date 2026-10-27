@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
         if (! $this->app->runningUnitTests()) {
             CacheLink::ensure($this->app->make(StorageBridge::class));
             $this->ensureSchema();
-            $this->activateUserSource();
+            self::activateUserSource();
         }
 
         // Incident guardrail (2026-10-25): every queue job attempt — whether it finishes, throws,
@@ -106,7 +106,7 @@ class AppServiceProvider extends ServiceProvider
      * build-time default. Defaults to deriving covers/report URLs from the API host when
      * no metadata was published.
      */
-    private function activateUserSource(): void
+    public static function activateUserSource(): void
     {
         try {
             if (! Schema::hasTable('sources')) {
@@ -140,7 +140,7 @@ class AppServiceProvider extends ServiceProvider
                 'source.status_family' => (string) ($meta['status_family'] ?? config('source.status_family')),
             ]);
         } catch (Throwable) {
-            // Boot must survive a missing or unreadable sources row.
+            // Must survive a missing or unreadable sources row.
         }
     }
 

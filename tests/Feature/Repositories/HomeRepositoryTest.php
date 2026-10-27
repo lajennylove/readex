@@ -87,14 +87,46 @@ it('uses the remembered the source list when the JSON is down (Review Focus 6)',
     expect($this->home->season()->data)->toHaveCount(65);
     Http::assertSent(fn (Request $r) => str_ends_with(parse_url($r->url(), PHP_URL_PATH), '/list/'.SEASON_LIST));
 })->with([
-    'HTTP 404' => fn () => fn () => Http::response('Not Found', 404),
     'no connection' => fn () => fn () => throw new ConnectionException('offline'),
     'not JSON' => fn () => fn () => Http::response('<html>maintenance</html>', 200),
     'JSON without ids' => fn () => fn () => Http::response(['id' => SEASON_LIST], 200),
 ]);
 
+it('degrades silently when the seasonal JSON is 400/404/405 against the active source (bug: swap banner)', function (int $status) {
+    // Hard rejection: the stored URL doesn't match the active source. The remembered list id,
+    // if any, would be from that same stale source — don't chase it, just leave the row empty.
+    $this->settings->setSeasonalListId(SEASON_LIST);
+    fakeSeasonalDown(fn () => Http::response('nope', $status));
+
+    $this->home->refreshSeason();
+
+    expect($this->home->season()->isEmpty())->toBeTrue()
+        ->and(Manga::query()->count())->toBe(0);
+    // Only the JSON call went out — no fallback to /list/{id}.
+    Http::assertSentCount(1);
+})->with([400, 404, 405]);
+
+it('degrades silently when the chained /manga?ids[]= call rejects the saved ids (bug: swap banner)', function (int $status) {
+    // The seasonal JSON serves fine but its ids aren't valid for the active source (e.g. demo
+    // ids after a swap to another source): the chained /manga call 400s. Row stays empty, no
+    // "Something went wrong" banner surfaces.
+    fakeHomeAgain(function (Request $request) use ($status) {
+        if (parse_url($request->url(), PHP_URL_HOST) === SEASONAL_HOST) {
+            return Http::response(SourceFixtures::body('seasonal-json'));
+        }
+
+        return Http::response(['result' => 'error'], $status);
+    });
+
+    $this->home->refreshSeason();
+
+    expect($this->home->season()->isEmpty())->toBeTrue()
+        ->and(Manga::query()->count())->toBe(0);
+})->with([400, 404, 405]);
+
 it('keeps the row empty without a remembered list id, no hardcoded fallback (Review Focus 6)', function () {
-    fakeSeasonalDown(fn () => Http::response('Not Found', 404));
+    // The remaining "down" shape that still bubbles the ApiError up: a non-swallowed status.
+    fakeSeasonalDown(fn () => Http::response('kaboom', 500));
 
     expect(fn () => $this->home->refreshSeason())->toThrow(ApiError::class)
         ->and($this->home->season()->isEmpty())->toBeTrue()

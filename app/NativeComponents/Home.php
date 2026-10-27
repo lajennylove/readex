@@ -69,9 +69,23 @@ class Home extends NativeComponent implements HasResumeBar
     {
         $home = app(HomeRepository::class);
         $seasonalOn = app(SettingsRepository::class)->seasonalUrl() !== null;
+        $season = $seasonalOn ? $home->season() : null;
+
+        // When the stored seasonal URL can't produce usable rows for the active source (e.g. a
+        // demo-source URL left over after a swap to another source — refreshSeason catches the
+        // 400/404 and clears the row), hide the row once we have tried and come back empty,
+        // instead of showing permanent placeholder tiles. Still shown while loading or before
+        // the first refresh so keepFresh() can start one.
+        $sawEmptyAfterRefresh = isset($this->refreshedAt[HomeRepository::SEASON])
+            && ! isset($this->refreshing[HomeRepository::SEASON])
+            && ! isset($this->waiting[HomeRepository::SEASON]);
+
+        if ($season !== null && ($season->data?->isEmpty() ?? true) && $sawEmptyAfterRefresh) {
+            $season = null;
+        }
 
         return array_filter([
-            HomeRepository::SEASON => $seasonalOn ? $home->season() : null,
+            HomeRepository::SEASON => $season,
             HomeRepository::POPULAR => $home->popular(),
             HomeRepository::LATEST => $home->latest(),
         ]);

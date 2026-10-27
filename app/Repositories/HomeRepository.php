@@ -55,22 +55,43 @@ final class HomeRepository
         }
 
         try {
-            $ids = $this->seasonFromJson($priority);
-        } catch (ApiError|ConnectionException|JsonException|UnexpectedValueException $e) {
-            $listId = $this->settings->seasonalListId() ?? throw $e;
-            $ids = $this->seasonFromList($listId, $priority);
-        }
+            try {
+                $ids = $this->seasonFromJson($priority);
+            } catch (ApiError|ConnectionException|JsonException|UnexpectedValueException $e) {
+                // Hard 400/404/405 on the seasonal JSON itself (e.g. the stored URL is dead against
+                // the current source): degrade silently to a no-op, same shape as "no URL set".
+                if ($e instanceof ApiError && in_array($e->status, [400, 404, 405], true)) {
+                    DB::transaction(fn () => $this->replace(self::SEASON, []));
 
-        $manga = [];
+                    return;
+                }
 
-        foreach (array_chunk($ids, config('readex.page_sizes.ids')) as $chunk) {
-            $manga[] = $this->client->get('/manga', [
-                'ids' => $chunk,
-                'limit' => config('readex.page_sizes.ids'),
-                'contentRating' => $this->settings->contentRatings(),
-                'includes' => ['cover_art'],
-                'order' => ['followedCount' => 'desc'],
-            ], $priority);
+                $listId = $this->settings->seasonalListId() ?? throw $e;
+                $ids = $this->seasonFromList($listId, $priority);
+            }
+
+            $manga = [];
+
+            foreach (array_chunk($ids, config('readex.page_sizes.ids')) as $chunk) {
+                $manga[] = $this->client->get('/manga', [
+                    'ids' => $chunk,
+                    'limit' => config('readex.page_sizes.ids'),
+                    'contentRating' => $this->settings->contentRatings(),
+                    'includes' => ['cover_art'],
+                    'order' => ['followedCount' => 'desc'],
+                ], $priority);
+            }
+        } catch (ApiError $e) {
+            // The chained /manga?ids[]= call rejected the saved ids (e.g. demo-source ids after
+            // the user swapped to another source): drop the stale list so Home hides the row
+            // rather than surfacing "Something went wrong". The user's saved URL is untouched.
+            if (in_array($e->status, [400, 404, 405], true)) {
+                DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+                return;
+            }
+
+            throw $e;
         }
 
         DB::transaction(function () use ($manga) {

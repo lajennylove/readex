@@ -13,6 +13,7 @@ use App\Storage\StorageBridge;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
     {
         if (! $this->app->runningUnitTests()) {
             CacheLink::ensure($this->app->make(StorageBridge::class));
+            $this->ensureSchema();
             $this->activateUserSource();
         }
 
@@ -61,6 +63,26 @@ class AppServiceProvider extends ServiceProvider
     private static function isEnforceLogCap(mixed $job): bool
     {
         return method_exists($job, 'resolveName') && $job->resolveName() === EnforceLogCap::class;
+    }
+
+    /**
+     * Defensive: NativePHP Mobile runs `migrate --force` at launch, but if a shipped
+     * migration never actually created its table (bundle miss, cold boot race, prior
+     * failed run) subsequent requests crash with "no such table". Running migrate here
+     * is a cheap idempotent backstop that keeps the sources table (and any other missing
+     * one) present before the first repository query.
+     */
+    private function ensureSchema(): void
+    {
+        try {
+            if (Schema::hasTable('sources')) {
+                return;
+            }
+
+            Artisan::call('migrate', ['--force' => true]);
+        } catch (Throwable) {
+            // Boot must survive a migration failure; the next request's crash shows the cause.
+        }
     }
 
     /**

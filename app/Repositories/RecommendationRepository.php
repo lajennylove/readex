@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Manga;
 use App\Models\Recommendation;
@@ -50,7 +51,15 @@ final class RecommendationRepository
      */
     public function refresh(string $mangaId, Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get("/manga/{$mangaId}/recommendation", [], $priority);
+        try {
+            $response = $this->client->get("/manga/{$mangaId}/recommendation", [], $priority);
+        } catch (ApiError $e) {
+            if (in_array($e->status, [404, 405], true)) {
+                return;
+            }
+
+            throw $e;
+        }
         $scores = [];
 
         // Each item links the source manga and the recommended one.

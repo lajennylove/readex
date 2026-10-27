@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Adapters\Http\Client;
+use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Statistic;
 use Illuminate\Support\Carbon;
@@ -59,7 +60,15 @@ final class StatisticsRepository
 
     public function refreshDetail(string $id, Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get("/statistics/manga/{$id}", [], $priority);
+        try {
+            $response = $this->client->get("/statistics/manga/{$id}", [], $priority);
+        } catch (ApiError $e) {
+            if (in_array($e->status, [404, 405], true)) {
+                return;
+            }
+
+            throw $e;
+        }
 
         DB::transaction(fn () => $this->store($response['statistics'] ?? [], withDistribution: true));
     }

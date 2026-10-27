@@ -8,6 +8,7 @@ use App\Adapters\Http\RateLimit\Busy;
 use App\Adapters\Http\RateLimit\Call;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Adapters\Http\RateLimit\RequestController;
+use App\Providers\AppServiceProvider;
 use Closure;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Client\ConnectionException;
@@ -154,6 +155,8 @@ final class Client
 
     private function apiUrl(string $path, array $query): string
     {
+        AppServiceProvider::activateUserSource();
+
         $path = '/'.ltrim($path, '/');
 
         if (config('source.static_json') && ! str_ends_with($path, '.json')) {

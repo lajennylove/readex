@@ -151,6 +151,11 @@ final class SettingsRepository
             // (seasonFromList) doesn't still try to refresh against a now-stale list.
             $this->write('seasonal_list_id', null);
         }
+
+        // Bug #7: the previously saved SEASON list (if any) belonged to a different URL — or
+        // to the "no URL set" placeholder clear from DataLoader. Delete it so the next Home
+        // read sees empty + stale and immediately refreshes against the newly configured URL.
+        DB::table('manga_lists')->where('list_key', 'home.season')->delete();
     }
 
     /**

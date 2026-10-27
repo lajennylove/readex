@@ -193,7 +193,9 @@ class Setup extends NativeComponent
     private function enterHome(): void
     {
         $this->phase = self::DONE;
-        app(SettingsRepository::class)->markSetupDone();
+        $settings = app(SettingsRepository::class);
+        $settings->markSetupDone();
+        $settings->markDataRefreshed();
         $this->replace('/home');
     }
 

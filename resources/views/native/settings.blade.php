@@ -5,23 +5,6 @@
             <native:text class="text-xs text-theme-on-surface-variant">Titles and chapters in this language come first, then English.</native:text>
         </native:column>
 
-        @include('native.partials.rating-toggles')
-
-        <native:column class="w-full gap-2">
-            <native:pressable class="w-full" @press="openSources" a11y-label="Sources">
-                <native:row class="w-full items-center justify-between">
-                    <native:text class="text-base text-theme-on-background">Sources</native:text>
-                    <native:text class="text-sm text-theme-on-surface-variant">›</native:text>
-                </native:row>
-            </native:pressable>
-            <native:text class="text-xs text-theme-on-surface-variant">{{ $providerLabel }} plus any content sources you've added. Block, unblock or remove one, or add your own.</native:text>
-        </native:column>
-
-        <native:column class="w-full gap-2">
-            <native:select label="Image quality" value="{{ $qualityName }}" :options="$qualityNames" @change="chooseQuality" />
-            <native:text class="text-xs text-theme-on-surface-variant">HD uses about 8× more space and data. A chapter keeps the quality it was saved in.</native:text>
-        </native:column>
-
         <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Source URL</native:text>
             <native:text class="text-xs text-theme-on-surface-variant">The content source API endpoint. Changing it wipes your Library, downloads and reading progress.</native:text>
@@ -65,7 +48,7 @@
             <native:text class="text-lg font-bold text-theme-on-background">This season</native:text>
             <native:text class="text-xs text-theme-on-surface-variant">A JSON URL for the latest content suggestions.</native:text>
             <native:outlined_text_input
-                placeholder="https://lajennylove.github.io/readex/seasonal/seasonal-list.json"
+                placeholder="https://example.org/seasonal-list.json"
                 value="{{ $seasonalUrl }}"
                 @change="changeSeasonalUrl" />
             @if ($seasonalError)
@@ -80,6 +63,23 @@
                     <native:text class="text-sm text-theme-on-surface-variant">Saved</native:text>
                 @endif
             </native:row>
+        </native:column>
+
+        @include('native.partials.rating-toggles')
+
+        <native:column class="w-full gap-2">
+            <native:pressable class="w-full" @press="openSources" a11y-label="Sources">
+                <native:row class="w-full items-center justify-between">
+                    <native:text class="text-base text-theme-on-background">Sources</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">›</native:text>
+                </native:row>
+            </native:pressable>
+            <native:text class="text-xs text-theme-on-surface-variant">Your provider plus any content sources you've added. Block, unblock or remove one, or add your own.</native:text>
+        </native:column>
+
+        <native:column class="w-full gap-2">
+            <native:select label="Image quality" value="{{ $qualityName }}" :options="$qualityNames" @change="chooseQuality" />
+            <native:text class="text-xs text-theme-on-surface-variant">HD uses about 8× more space and data. A chapter keeps the quality it was saved in.</native:text>
         </native:column>
 
         <native:column class="w-full gap-2">

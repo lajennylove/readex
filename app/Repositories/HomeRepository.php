@@ -107,15 +107,27 @@ final class HomeRepository
     /** Most followed series created in the last `popular_new_days` days, any language (reordered in get()). */
     public function refreshPopular(Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get('/manga', [
-            // Start of the day, so the URL (and the shared-GET cache) stays the same all day.
-            'createdAtSince' => Carbon::now()->utc()->subDays(config('readex.popular_new_days'))->startOfDay()->format('Y-m-d\TH:i:s'),
-            'hasAvailableChapters' => true,
-            'limit' => config('readex.page_sizes.home_row'),
-            'contentRating' => $this->settings->contentRatings(),
-            'includes' => ['cover_art'],
-            'order' => ['followedCount' => 'desc'],
-        ], $priority);
+        try {
+            $response = $this->client->get('/manga', [
+                // Start of the day, so the URL (and the shared-GET cache) stays the same all day.
+                'createdAtSince' => Carbon::now()->utc()->subDays(config('readex.popular_new_days'))->startOfDay()->format('Y-m-d\TH:i:s'),
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+                'order' => ['followedCount' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            // A source that doesn't serve /manga (e.g. a demo URL without the API suffix)
+            // shouldn't surface as "Something went wrong"; leave the row empty instead.
+            if (in_array($e->status, [404, 405], true)) {
+                DB::transaction(fn () => $this->replace(self::POPULAR, []));
+
+                return;
+            }
+
+            throw $e;
+        }
 
         DB::transaction(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
     }
@@ -148,15 +160,27 @@ final class HomeRepository
      */
     public function refreshLatest(Priority $priority = Priority::Interactive): void
     {
-        $response = $this->client->get('/chapter', [
-            'translatedLanguage' => $this->settings->chain()->languages,
-            // Scheduled releases can't be read yet.
-            'includeFutureUpdates' => '0',
-            'limit' => config('readex.page_sizes.latest'),
-            'contentRating' => $this->settings->contentRatings(),
-            'includes' => ['scanlation_group'],
-            'order' => ['readableAt' => 'desc'],
-        ], $priority);
+        try {
+            $response = $this->client->get('/chapter', [
+                'translatedLanguage' => $this->settings->chain()->languages,
+                // Scheduled releases can't be read yet.
+                'includeFutureUpdates' => '0',
+                'limit' => config('readex.page_sizes.latest'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['scanlation_group'],
+                'order' => ['readableAt' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            // A source that doesn't serve /chapter (e.g. a demo URL without the API suffix)
+            // shouldn't surface as "Something went wrong"; leave the row empty instead.
+            if (in_array($e->status, [404, 405], true)) {
+                DB::transaction(fn () => $this->replace(self::LATEST, []));
+
+                return;
+            }
+
+            throw $e;
+        }
 
         $newest = [];
 

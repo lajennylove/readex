@@ -2,7 +2,7 @@
 
 use App\Adapters\Http\Query;
 
-it('builds MangaDex query strings', function (array $params, string $expected) {
+it('builds source query strings', function (array $params, string $expected) {
     expect(Query::build($params))->toBe($expected);
 })->with([
     'scalars' => [['limit' => 100, 'offset' => 0], 'limit=100&offset=0'],

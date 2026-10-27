@@ -85,7 +85,7 @@ it('skips a broken cover and keeps going', function () {
     $covers = [];
     $first = null;
     Loading::fake(function (Request $request) use (&$first) {
-        if (parse_url($request->url(), PHP_URL_HOST) !== 'uploads.mangadex.org') {
+        if (parse_url($request->url(), PHP_URL_HOST) !== 'uploads.source.test') {
             return null;
         }
         $first ??= $request->url();
@@ -111,7 +111,7 @@ it('does not load tags again when Setup already got them', function () {
 
     load();
 
-    expect($asked)->not->toContain('api.mangadex.org/manga/tag')
+    expect($asked)->not->toContain('api.source.test/manga/tag')
         ->and($this->progress[1])->toBe('tags:ok');
 });
 
@@ -143,7 +143,7 @@ it('loads the Home rows interactive and the rest at the given priority (spec §7
     expect(DB::table('rate_buckets')->where('key', 'global:background')->value('tokens'))->toBe($backgroundTokens);
 })->with([
     'Setup' => [Priority::Interactive, null],
-    'Refresh MangaDex data' => [Priority::Bulk, 2.0],
+    'Refresh the source data' => [Priority::Bulk, 2.0],
 ]);
 
 it('keeps step progress in the cache for the screen to poll', function () {

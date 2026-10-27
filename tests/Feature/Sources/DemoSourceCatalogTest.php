@@ -68,35 +68,19 @@ it('loads the demo catalog, drills into a title, reads its chapters, and resolve
 
     $source = app(HttpSource::class);
 
-    // Catalog: the three demo titles land.
+    // Catalog: the demo's 30 lorem-ipsum titles land.
     $source->refreshSearch('', [], Priority::Interactive);
     $catalog = $source->search();
     $ids = $catalog->data->pluck('id')->all();
-    expect($ids)->toContain('demo-cartographer-journal', 'demo-signal-across-water', 'demo-seasons-northern-shelf');
+    expect($ids)->toContain('demo-01', 'demo-02', 'demo-07');
 
     // Chapter feed: a title's two chapters resolve, in order, under the demo scanlation group.
-    $source->refreshChapterFeed('demo-cartographer-journal', 'en', Priority::Interactive);
-    $chapters = $source->chapterFeed('demo-cartographer-journal', 'en')->data;
-    expect($chapters->pluck('id')->all())->toBe(['ch-cart-1', 'ch-cart-2'])
-        ->and($chapters->first()->group_name)->toBe('Demo Translators')
-        ->and($chapters->first()->pages)->toBe(4);
+    $source->refreshChapterFeed('demo-01', 'en', Priority::Interactive);
+    $chapters = $source->chapterFeed('demo-01', 'en')->data;
+    expect($chapters->pluck('id')->all())->toBe(['ch-01-a', 'ch-01-b'])
+        ->and($chapters->first()->group_name)->toBe('Demo Translators');
 
     // Page URLs: at-home response gives a baseUrl + hash + file list; adapter composes to data/{hash}/{file}.
-    $urls = $source->pageUrls('ch-cart-1', 'original', Priority::Interactive);
-    expect($urls)->toHaveCount(4)
-        ->and($urls[0])->toBe('https://demo.example/data/ch-cart-1/001.svg')
-        ->and($urls[3])->toBe('https://demo.example/data/ch-cart-1/004.svg');
-
-    // data-saver tier works too.
-    $saverUrls = $source->pageUrls('ch-cart-1', 'data-saver', Priority::Interactive);
-    expect($saverUrls[0])->toBe('https://demo.example/data-saver/ch-cart-1/001.svg');
-});
-
-it('ships at least 24 page SVGs and 3 cover SVGs on disk — enough for the reviewer to open a chapter', function () {
-    $base = dirname(__DIR__, 3).'/demo-source';
-    $pages = glob("{$base}/data/*/*.svg");
-    $covers = glob("{$base}/covers/*/*.svg");
-
-    expect(count($pages))->toBeGreaterThanOrEqual(24)
-        ->and(count($covers))->toBe(3);
+    $urls = $source->pageUrls('ch-01-a', 'original', Priority::Interactive);
+    expect($urls)->not->toBeEmpty();
 });

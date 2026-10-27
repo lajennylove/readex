@@ -62,7 +62,7 @@ beforeEach(function () {
     ]);
     DB::table('statistics')->insert(['manga_id' => RESET_LIBRARY, 'follows' => 10, 'fetched_at' => Carbon::now()]);
     DB::table('recommendations')->insert(['manga_id' => RESET_LIBRARY, 'recommended_id' => RESET_OTHER, 'position' => 0, 'score' => 0.9, 'fetched_at' => Carbon::now()]);
-    DB::table('at_home')->insert(['chapter_id' => resetChapter(0, 1), 'base_url' => 'https://uploads.mangadex.org', 'hash' => 'h', 'data_files' => '[]', 'data_saver_files' => '[]', 'fetched_at' => Carbon::now()]);
+    DB::table('at_home')->insert(['chapter_id' => resetChapter(0, 1), 'base_url' => 'https://uploads.source.test', 'hash' => 'h', 'data_files' => '[]', 'data_saver_files' => '[]', 'fetched_at' => Carbon::now()]);
 });
 
 function resetChapter(int $series, int $n): string
@@ -78,7 +78,7 @@ function resetUserRows(): array
         ->all();
 }
 
-it('clears MangaDex data and keeps the Library, marked stale (Review Focus 5)', function () {
+it('clears the source data and keeps the Library, marked stale (Review Focus 5)', function () {
     $before = resetUserRows();
     Carbon::setTestNow('2026-10-24 12:05:00');
 

@@ -182,7 +182,7 @@ it('keeps the saved feed when a page fails, marked stale later (Review Focus 4)'
         ->and($result->fetchedAt->toDateTimeString())->toBe('2026-10-24 12:00:00');
 });
 
-it('drops chapters gone from MangaDex, but a stored one stays for the Library', function () {
+it('drops chapters gone from the source, but a stored one stays for the Library', function () {
     SourceFixtures::fake('feed-one-punch-es-la');
     $this->chapters->refresh(FEED_OPM, 'es-la');
     [$stored, $dropped] = Chapter::where('manga_id', FEED_OPM)->orderBy('id')->limit(2)->pluck('id')->all();

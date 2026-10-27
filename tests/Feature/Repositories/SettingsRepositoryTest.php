@@ -118,7 +118,7 @@ it('keeps saved lists when the same ratings come back in another order', functio
         ->and($this->settings->contentRatings())->toBe(['safe', 'suggestive']);
 });
 
-it('stores content ratings in MangaDex order', function () {
+it('stores content ratings in the source order', function () {
     $this->settings->setContentRatings(['pornographic', 'safe', 'erotica']);
 
     expect($this->settings->contentRatings())->toBe(['safe', 'erotica', 'pornographic']);

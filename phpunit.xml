@@ -37,5 +37,15 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Deterministic test-only source URL + rate-limit host bindings. -->
+        <env name="SOURCE_API_URL" value="https://api.source.test"/>
+        <env name="SOURCE_REPORT_URL" value="https://report.source.test/report"/>
+        <env name="SOURCE_COVERS_URL" value="https://uploads.source.test/covers"/>
+        <env name="SOURCE_STATIC_JSON" value="false"/>
+        <env name="SOURCE_HOST_API" value="api.source.test"/>
+        <env name="SOURCE_HOST_COVERS" value="uploads.source.test"/>
+        <env name="SOURCE_HOST_REPORT" value="report.source.test"/>
+        <env name="SOURCE_HOST_FAMILY" value="source.test"/>
+        <env name="SOURCE_STATUS_FAMILY" value="source.test"/>
     </php>
 </phpunit>

@@ -1,11 +1,28 @@
 <?php
 
 /*
-| Copy of the source's documented rate limits (checked 2026-10-22), every row,
-| including endpoints v1 never calls. "capacity" is our budget, "limit" is the source's
-| documented number; header sync scales the budget by capacity/limit when the source
-| reports a different limit.
+| The source's documented rate limits. "capacity" is our budget, "limit" is the
+| source's documented number; header sync scales capacity by capacity/limit when
+| the source reports a different limit at runtime.
+|
+| Host bindings (`hosts` key below) are env-driven so the file ships upstream-
+| neutral: a deployment sets SOURCE_HOST_API / SOURCE_HOST_COVERS / SOURCE_HOST_REPORT
+| / SOURCE_HOST_FAMILY to the real hostnames it talks to; anything that doesn't
+| match a listed host falls through to the generic '*' bucket.
 */
+
+$hosts = ['*' => ['images', null]];
+$family = env('SOURCE_HOST_FAMILY') ?: null;
+foreach ([
+    env('SOURCE_HOST_API') => 'global',
+    env('SOURCE_HOST_COVERS') => 'covers',
+    env('SOURCE_HOST_REPORT') => 'report',
+] as $host => $bucket) {
+    if (! $host) {
+        continue;
+    }
+    $hosts[$host] = [$bucket, $bucket === 'report' ? null : $family];
+}
 
 return [
 
@@ -88,12 +105,8 @@ return [
     ],
 
     // Host => [host bucket, family]. A family is blocked as a whole on 429 / 403 ban.
-    'hosts' => [
-        'api.mangadex.org' => ['global', 'mangadex.org'],
-        'uploads.mangadex.org' => ['covers', 'mangadex.org'],
-        'api.mangadex.network' => ['report', null],
-        '*' => ['images', null],
-    ],
+    // Built from env vars above so no upstream hostname lives in this file.
+    'hosts' => $hosts,
 
     // Extra bucket a prefetch/bulk call must also take, so the user's own screen keeps headroom.
     'background' => [

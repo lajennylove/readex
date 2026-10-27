@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->store = app(CoverStore::class);
 });
 
-const COVER_URL = 'https://uploads.mangadex.org/covers/m1/cover.jpg.256.jpg';
+const COVER_URL = 'https://uploads.source.test/covers/m1/cover.jpg.256.jpg';
 
 describe('path', function () {
     it('is null until the thumbnail is on the phone, then the src through the cache link', function () {
@@ -43,7 +43,7 @@ describe('path', function () {
 
 describe('download', function () {
     it('fetches the 256 px thumbnail through the covers bucket and stores it', function () {
-        Http::fake(['uploads.mangadex.org/*' => Http::response(Covers::jpeg(), 200, ['Content-Type' => 'image/jpeg'])]);
+        Http::fake(['uploads.source.test/*' => Http::response(Covers::jpeg(), 200, ['Content-Type' => 'image/jpeg'])]);
         $manga = Covers::manga('m1');
 
         expect($this->store->download($manga, Priority::Interactive))->toBeTrue()
@@ -52,7 +52,7 @@ describe('download', function () {
             ->and(glob("{$this->caches}/covers/m1/*.part"))->toBe([])
             ->and(DB::table('api_usage')->where('bucket', 'covers')->sum('requests'))->toEqual(1);
 
-        // uploads.mangadex.org is MangaDex's own host: nothing is reported to @Home.
+        // uploads.source.test is the source's own host: nothing is reported to @Home.
         Http::assertSentCount(1);
         Http::assertSent(fn (Request $r) => $r->url() === COVER_URL && $r->method() === 'GET');
     });
@@ -68,7 +68,7 @@ describe('download', function () {
     });
 
     it('stores nothing when the response is not an image', function () {
-        Http::fake(['uploads.mangadex.org/*' => Http::response('<html>captive portal</html>', 200)]);
+        Http::fake(['uploads.source.test/*' => Http::response('<html>captive portal</html>', 200)]);
         $manga = Covers::manga('m1');
 
         expect($this->store->download($manga, Priority::Interactive))->toBeFalse()
@@ -77,7 +77,7 @@ describe('download', function () {
     });
 
     it('sends nothing for a series without a cover or with an unsafe file name', function (?string $file) {
-        Http::fake(['uploads.mangadex.org/*' => Http::response(Covers::jpeg())]);
+        Http::fake(['uploads.source.test/*' => Http::response(Covers::jpeg())]);
 
         expect($this->store->download(Covers::manga('m1', $file), Priority::Interactive))->toBeFalse();
 
@@ -85,7 +85,7 @@ describe('download', function () {
     })->with([null, '../escape.jpg']);
 
     it('replaces the old cover when the series gets a new one', function () {
-        Http::fake(['uploads.mangadex.org/*' => Http::response(Covers::jpeg())]);
+        Http::fake(['uploads.source.test/*' => Http::response(Covers::jpeg())]);
         $manga = Covers::manga('m1', 'old.jpg');
         $old = Covers::store($this->caches, $manga);
         $manga->update(['cover_file' => 'new.png']);

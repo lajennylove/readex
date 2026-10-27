@@ -208,7 +208,7 @@ it('continues with the next chapter once the last one read is finished', functio
     expect(detailButtons(Native::visit('/library/manga/'.DETAIL_RTW)->tree()))->toContain('Continue · Ch. 13');
 });
 
-it('shows the Bayesian rating MangaDex shows, and says so when nobody rated yet', function () {
+it('shows the Bayesian rating the source shows, and says so when nobody rated yet', function () {
     expect(MangaDetail::stats(new Statistic(['rating_avg' => 9.4, 'rating_bayesian' => 7.05, 'follows' => 1200])))->toBe('★ 7.05 · 1,200 follows')
         ->and(MangaDetail::stats(new Statistic(['rating_avg' => null, 'rating_bayesian' => null, 'follows' => 1])))->toBe('No ratings yet · 1 follow')
         ->and(MangaDetail::stats(null))->toBeNull();
@@ -483,7 +483,7 @@ it('has no language switch for a series in one language, and says when it has no
         ->and(detailTexts($screen->tree()))->toContain('No chapters yet');
 });
 
-it('shows pulsing chapter rows while the first chapter list waits for MangaDex', function () {
+it('shows pulsing chapter rows while the first chapter list waits for the source', function () {
     detailSeries(DETAIL_SEEDED, ['en']);
     ChapterFeed::query()->where('manga_id', DETAIL_SEEDED)->delete();
     $busy = true;

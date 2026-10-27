@@ -12,7 +12,7 @@ function httpResponse(int $status, string $body): Response
     return new Response(new Psr7Response($status, [], $body));
 }
 
-it('uses the MangaDex error detail, then the title, then the HTTP reason', function (string $body, string $message) {
+it('uses the source error detail, then the title, then the HTTP reason', function (string $body, string $message) {
     $error = ApiError::fromResponse(httpResponse(400, $body));
 
     expect($error->status)->toBe(400)

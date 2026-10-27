@@ -1,7 +1,7 @@
 <?php
 
 // Recorded by `php artisan fixtures:record` (real API, through the RequestController).
-// name => [api.mangadex.org path or full https:// URL, query]. Later tasks add their entries here and record them with --only.
+// name => [source API path or full https:// URL, query]. Later tasks add their entries here and record them with --only.
 
 $allRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 
@@ -142,9 +142,9 @@ return [
     // Home (Task 7). Record in this order: the later entries read the ids out of the earlier files.
 
     // Community JSON on GitHub Pages: {id, name, manga_ids} (70 ids, sorted by id, no ranking).
-    'seasonal-json' => ['https://antsylich.github.io/mangadex-seasonal/seasonal-list.json', []],
+    'seasonal-json' => ['https://example.github.io/seasonal-list.json', []],
 
-    // Fallback: the MangaDex custom list behind the JSON, its manga are `relationships`.
+    // Fallback: the custom source-side list behind the JSON, its manga are `relationships`.
     'seasonal-list' => ['/list/68ab4f4e-6f01-4898-9038-c5eee066be27', []],
 
     'season-manga' => ['/manga', [

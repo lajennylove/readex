@@ -22,7 +22,7 @@ beforeEach(function () {
 
 function api(string $path = '/manga'): Call
 {
-    return Call::get('https://api.mangadex.org'.$path);
+    return Call::get('https://api.source.test'.$path);
 }
 
 function clock(): float
@@ -115,7 +115,7 @@ describe('priorities', function () {
 });
 
 describe('rate-limit headers', function () {
-    it('never keeps more tokens than MangaDex says remain, minus the margin', function () {
+    it('never keeps more tokens than the source says remain, minus the margin', function () {
         $slot = $this->rc->acquire(api('/at-home/server/a'), Priority::Interactive, 0);
 
         $this->rc->record($slot, reply(200, ['X-RateLimit-Limit' => '40', 'X-RateLimit-Remaining' => '10', 'X-RateLimit-Retry-After' => (string) (T0 + 40)]));

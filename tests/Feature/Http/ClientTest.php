@@ -28,7 +28,7 @@ function usage(string $bucket): int
 describe('requests', function () {
     it('sends the app User-Agent and never a Via header', function () {
         config(['source.contact' => 'jenny@example.com']);
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => []])]);
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok', 'data' => []])]);
 
         $this->client->get('/manga/tag');
 
@@ -40,17 +40,17 @@ describe('requests', function () {
         expect($this->client->userAgent())->toBe('ReaDex/0.1.0');
     });
 
-    it('builds MangaDex query strings', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => []])]);
+    it('builds the source query strings', function () {
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok', 'data' => []])]);
 
         $this->client->get('manga', ['limit' => 100, 'contentRating' => ['safe', 'suggestive'], 'order' => ['followedCount' => 'desc']]);
 
-        Http::assertSent(fn (Request $r) => $r->url() === 'https://api.mangadex.org/manga?limit=100'
+        Http::assertSent(fn (Request $r) => $r->url() === 'https://api.source.test/manga?limit=100'
             .'&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive&order%5BfollowedCount%5D=desc');
     });
 
     it('decodes empty objects and empty arrays the same way', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(
+        Http::fake(['api.source.test/*' => Http::response(
             '{"result":"ok","data":{"attributes":{"links":{},"altTitles":[],"description":[]}}}',
         )]);
 
@@ -60,7 +60,7 @@ describe('requests', function () {
     });
 
     it('always goes through the request controller', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok'])]);
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok'])]);
 
         $this->client->get('/manga');
         $this->client->get('/at-home/server/abc');
@@ -71,7 +71,7 @@ describe('requests', function () {
     });
 
     it('hands the rate-limit headers to the controller', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok'], 200, [
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok'], 200, [
             'X-RateLimit-Limit' => '40',
             'X-RateLimit-Remaining' => '2',
             'X-RateLimit-Retry-After' => (string) (1_792_756_800 + 45),
@@ -88,7 +88,7 @@ describe('errors', function () {
     it('throws RequestDeferred without sending when no slot frees up in time', function () {
         Http::fake();
         DB::table('rate_buckets')->insert([
-            'key' => 'family:mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+            'key' => 'family:source.test', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
             'updated_at' => 1_792_756_800, 'blocked_until' => 1_792_756_800 + 60, 'strikes' => 0, 'probing' => false,
         ]);
 
@@ -98,8 +98,8 @@ describe('errors', function () {
         Http::assertNothingSent();
     });
 
-    it('throws ApiError with the MangaDex detail and still records the response', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(
+    it('throws ApiError with the the source detail and still records the response', function () {
+        Http::fake(['api.source.test/*' => Http::response(
             ['result' => 'error', 'errors' => [['status' => 404, 'title' => 'not_found', 'detail' => 'Manga not found']]],
             404,
         )]);
@@ -111,7 +111,7 @@ describe('errors', function () {
     });
 
     it('records a connection failure and rethrows it', function () {
-        Http::fake(['api.mangadex.org/*' => Http::failedConnection()]);
+        Http::fake(['api.source.test/*' => Http::failedConnection()]);
 
         expect(fn () => $this->client->get('/manga'))->toThrow(ConnectionException::class);
 
@@ -119,10 +119,10 @@ describe('errors', function () {
     });
 
     it('pauses everything after a 429 from the client', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error'], 429, ['Retry-After' => '30'])]);
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'error'], 429, ['Retry-After' => '30'])]);
 
         expect(fn () => $this->client->get('/manga'))->toThrow(ApiError::class);
-        expect(fn () => $this->client->download('https://uploads.mangadex.org/covers/a/b.jpg.256.jpg', maxWait: 0))
+        expect(fn () => $this->client->download('https://uploads.source.test/covers/a/b.jpg.256.jpg', maxWait: 0))
             ->toThrow(RequestDeferred::class);
 
         Http::assertSentCount(1);
@@ -131,7 +131,7 @@ describe('errors', function () {
 
 describe('sharing identical GETs', function () {
     it('sends one call when the same GET is asked twice within 5 seconds', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => [1]])]);
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok', 'data' => [1]])]);
 
         $first = $this->client->get('/manga/abc/aggregate', ['translatedLanguage' => ['es-la']]);
         $second = $this->client->get('/manga/abc/aggregate', ['translatedLanguage' => ['es-la']], Priority::Prefetch);
@@ -141,8 +141,8 @@ describe('sharing identical GETs', function () {
     });
 
     it('waits for a call already in flight instead of sending a second one', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => ['a second call']])]);
-        $url = 'https://api.mangadex.org/manga/abc/feed';
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok', 'data' => ['a second call']])]);
+        $url = 'https://api.source.test/manga/abc/feed';
         $key = 'source:get:'.sha1($url);
         $store = Cache::store(config('source.share_store'));
         $inFlight = $store->lock($key.':lock', 30);
@@ -158,7 +158,7 @@ describe('sharing identical GETs', function () {
     });
 
     it('sends again once the shared answer is older than 5 seconds', function () {
-        Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok'])]);
+        Http::fake(['api.source.test/*' => Http::response(['result' => 'ok'])]);
 
         $this->client->get('/manga/abc');
         Carbon::setTestNow(Carbon::now()->addSeconds(6));
@@ -168,7 +168,7 @@ describe('sharing identical GETs', function () {
     });
 
     it('does not share failed answers', function () {
-        Http::fakeSequence('api.mangadex.org/*')
+        Http::fakeSequence('api.source.test/*')
             ->push(['result' => 'error'], 503)
             ->push(['result' => 'ok', 'data' => [1]]);
 
@@ -180,36 +180,36 @@ describe('sharing identical GETs', function () {
 describe('downloads and @Home reports', function () {
     it('reports @Home image results to the network', function () {
         Http::fake([
-            'cdn.example.mangadex.network/*' => Http::response('JPEGBYTES', 200, ['X-Cache' => 'HIT']),
-            'api.mangadex.network/report' => Http::response(['result' => 'ok']),
+            'cdn.example.source.network.test/*' => Http::response('JPEGBYTES', 200, ['X-Cache' => 'HIT']),
+            'report.source.test/report' => Http::response(['result' => 'ok']),
         ]);
 
-        $bytes = $this->client->download('https://cdn.example.mangadex.network/data-saver/hash/1.jpg', Priority::Prefetch);
+        $bytes = $this->client->download('https://cdn.example.source.network.test/data-saver/hash/1.jpg', Priority::Prefetch);
 
         expect($bytes)->toBe('JPEGBYTES');
-        Http::assertSent(fn (Request $r) => $r->url() === 'https://api.mangadex.network/report'
+        Http::assertSent(fn (Request $r) => $r->url() === 'https://report.source.test/report'
             && $r->method() === 'POST'
-            && $r['url'] === 'https://cdn.example.mangadex.network/data-saver/hash/1.jpg'
+            && $r['url'] === 'https://cdn.example.source.network.test/data-saver/hash/1.jpg'
             && $r['success'] === true && $r['cached'] === true && $r['bytes'] === 9
             && is_int($r['duration']));
     });
 
     it('reports failed @Home images too', function () {
         Http::fake([
-            'cdn.example.mangadex.network/*' => Http::response('', 502),
-            'api.mangadex.network/report' => Http::response(['result' => 'ok']),
+            'cdn.example.source.network.test/*' => Http::response('', 502),
+            'report.source.test/report' => Http::response(['result' => 'ok']),
         ]);
 
-        expect(fn () => $this->client->download('https://cdn.example.mangadex.network/data/hash/1.png'))
+        expect(fn () => $this->client->download('https://cdn.example.source.network.test/data/hash/1.png'))
             ->toThrow(ApiError::class);
 
         Http::assertSent(fn (Request $r) => str_contains($r->url(), '/report') && $r['success'] === false && $r['bytes'] === 0);
     });
 
-    it('does not report mangadex.org hosts', function () {
-        Http::fake(['uploads.mangadex.org/*' => Http::response('COVER')]);
+    it('does not report source.test hosts', function () {
+        Http::fake(['uploads.source.test/*' => Http::response('COVER')]);
 
-        $this->client->download('https://uploads.mangadex.org/covers/a/b.jpg.256.jpg');
+        $this->client->download('https://uploads.source.test/covers/a/b.jpg.256.jpg');
 
         Http::assertSentCount(1);
         expect(usage('covers'))->toBe(1);
@@ -217,12 +217,12 @@ describe('downloads and @Home reports', function () {
 
     it('drops the report instead of waiting when the report bucket is empty', function () {
         Http::fake([
-            'cdn.example.mangadex.network/*' => Http::response('JPEG'),
-            'api.mangadex.network/report' => Http::response(['result' => 'ok']),
+            'cdn.example.source.network.test/*' => Http::response('JPEG'),
+            'report.source.test/report' => Http::response(['result' => 'ok']),
         ]);
 
         foreach (range(1, 3) as $page) {
-            $this->client->download("https://cdn.example.mangadex.network/data/hash/{$page}.jpg");
+            $this->client->download("https://cdn.example.source.network.test/data/hash/{$page}.jpg");
         }
 
         expect(usage('report'))->toBe(2);
@@ -231,11 +231,11 @@ describe('downloads and @Home reports', function () {
 
     it('never throws when the report itself fails', function () {
         Http::fake([
-            'cdn.example.mangadex.network/*' => Http::response('JPEG'),
-            'api.mangadex.network/report' => Http::failedConnection(),
+            'cdn.example.source.network.test/*' => Http::response('JPEG'),
+            'report.source.test/report' => Http::failedConnection(),
         ]);
 
-        expect($this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg'))->toBe('JPEG');
+        expect($this->client->download('https://cdn.example.source.network.test/data/hash/1.jpg'))->toBe('JPEG');
     });
 
     it('sends the report with 2 s / 3 s timeouts and the page with the usual 5 s / 20 s', function () {
@@ -246,21 +246,21 @@ describe('downloads and @Home reports', function () {
             return str_contains($request->url(), '/report') ? Http::response(['result' => 'ok']) : Http::response('JPEG');
         });
 
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/1.jpg');
 
         expect($timeouts)->toBe([
-            'cdn.example.mangadex.network' => [5, 20],
-            'api.mangadex.network' => [2, 3],
+            'cdn.example.source.network.test' => [5, 20],
+            'report.source.test' => [2, 3],
         ]);
     });
 
     it('still returns the page when the report fails', function (Closure $report) {
         Http::fake([
-            'cdn.example.mangadex.network/*' => Http::response('JPEG'),
-            'api.mangadex.network/report' => $report,
+            'cdn.example.source.network.test/*' => Http::response('JPEG'),
+            'report.source.test/report' => $report,
         ]);
 
-        expect($this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg'))->toBe('JPEG');
+        expect($this->client->download('https://cdn.example.source.network.test/data/hash/1.jpg'))->toBe('JPEG');
     })->with([
         'with a 522' => fn () => fn () => Http::response('', 522),
         'with a timeout' => fn () => fn () => throw new ConnectionException('cURL error 28: Operation timed out after 3001 milliseconds'),
@@ -277,20 +277,20 @@ describe('downloads and @Home reports', function () {
         });
 
         $reportTokens = fn () => DB::table('rate_buckets')->where('key', 'report')->value('tokens');
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/1.jpg');
         $tokens = $reportTokens();
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/2.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/2.jpg');
 
         expect($reportTokens())->toBe($tokens);
 
         Carbon::setTestNow(Carbon::now()->addSeconds(59));
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/3.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/3.jpg');
 
         expect($reports)->toBe(1)
             ->and(usage('report'))->toBe(1);
 
         Carbon::setTestNow(Carbon::now()->addSecond());
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/4.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/4.jpg');
 
         expect($reports)->toBe(2)
             ->and(usage('report'))->toBe(2);
@@ -301,12 +301,12 @@ describe('downloads and @Home reports', function () {
 
     it('keeps reporting while reports succeed', function () {
         Http::fake([
-            'cdn.example.mangadex.network/*' => Http::response('JPEG'),
-            'api.mangadex.network/report' => Http::response(['result' => 'ok']),
+            'cdn.example.source.network.test/*' => Http::response('JPEG'),
+            'report.source.test/report' => Http::response(['result' => 'ok']),
         ]);
 
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/1.jpg');
-        $this->client->download('https://cdn.example.mangadex.network/data/hash/2.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/1.jpg');
+        $this->client->download('https://cdn.example.source.network.test/data/hash/2.jpg');
 
         expect(usage('report'))->toBe(2);
         Http::assertSentCount(4);

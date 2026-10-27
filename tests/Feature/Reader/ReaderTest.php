@@ -106,7 +106,7 @@ it('reopens a chapter left on page 12 of 43 on page 12, with a Pages 1–11 row 
 
     expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan | Pages 1–11', 'Page 12', 'Page 13'])
         ->and(readerFind($screen->tree(), 'virtual_list')['props']['count'])->toBe(1 + 32 + 1)
-        ->and(Pages::requested())->toBe(array_map(fn (int $n) => "a.mangadex.network/data-saver/h1/p{$n}.jpg", [12, 13, 14, 15, 16]));
+        ->and(Pages::requested())->toBe(array_map(fn (int $n) => "a.source.network.test/data-saver/h1/p{$n}.jpg", [12, 13, 14, 15, 16]));
     $screen->assertNavTitle('Ch. 12 · 12 / 43');
 });
 
@@ -207,8 +207,8 @@ it('keeps a missing page waiting while offline and asks again every 15 s unless 
     expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
 });
 
-it('says MangaDex is having trouble, not Not available, when the lookup meets a 503, and asks again every 15 s unless the phone has no connection', function () {
-    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
+it('says the source is having trouble, not Not available, when the lookup meets a 503, and asks again every 15 s unless the phone has no connection', function () {
+    Http::fake(['https://api.source.test/at-home/server/*' => Http::response(['result' => 'error', 'errors' => [['status' => 503]]], 503)]);
     Pages::chapter('c1', ['pages' => 3]);
 
     $screen = Native::visit('/home/read/c1')->assertNavBarVisible()->assertNavTitle('Ch. 12 · 1 / 3');
@@ -236,11 +236,11 @@ it('says MangaDex is having trouble, not Not available, when the lookup meets a 
     expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
 });
 
-it('keeps a missing page saying MangaDex is having trouble while the lookup meets a 503', function () {
+it('keeps a missing page saying the source is having trouble while the lookup meets a 503', function () {
     $store = app(PageStore::class);
     $store->begin(Pages::chapter('c1', ['pages' => 4]), 'data-saver', 4);
     $store->put('c1', 0, Pages::image());
-    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response('', 503)]);
+    Http::fake(['https://api.source.test/at-home/server/*' => Http::response('', 503)]);
 
     $screen = Native::visit('/home/read/c1');
     $placeholder = readerFind($screen->tree(), 'virtual_list')['children'][2];
@@ -365,11 +365,11 @@ it('never hides the bar while loading, offline, unavailable, retrying, failed, e
         readerOffline();
     }, fn (array $tree) => expect(readerTexts($tree))->toContain('Needs internet')],
     'unavailable' => [function () {
-        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
+        Http::fake(['https://api.source.test/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.source.network.test', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
         Pages::chapter('c1', ['pages' => 3]);
     }, fn (array $tree) => expect(readerTexts($tree))->toContain('Not available')],
     'retrying' => [function () {
-        Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response('', 503)]);
+        Http::fake(['https://api.source.test/at-home/server/*' => Http::response('', 503)]);
         Pages::chapter('c1', ['pages' => 3]);
     }, fn (array $tree) => expect(readerTexts($tree))->toContain('The provider is having trouble')],
     'failed' => [function () {
@@ -385,7 +385,7 @@ it('never hides the bar while loading, offline, unavailable, retrying, failed, e
 ]);
 
 it('goes back to the series from a chapter that is not available', function () {
-    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
+    Http::fake(['https://api.source.test/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.source.network.test', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
     Pages::chapter('c1', ['pages' => 3]);
 
     $reader = Native::visit('/home/manga/m1')->call('readChapter', 'c1')->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Read'])->assertNavigatedTo('/home/read/c1')
@@ -501,8 +501,8 @@ it('says Something went wrong with a Retry when the fetch fails unexpectedly, an
     expect(readerRows($screen->tree()))->toBe(['Ch. 12 · The Witch | Scanlation: Blackhole Scan', 'Page 1', 'Page 2']);
 });
 
-it('has a Retry on Not available, which asks MangaDex again', function () {
-    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error', 'errors' => [['status' => 404]]], 404)]);
+it('has a Retry on Not available, which asks the source again', function () {
+    Http::fake(['api.source.test/*' => Http::response(['result' => 'error', 'errors' => [['status' => 404]]], 404)]);
     Pages::chapter('c1', ['pages' => 3]);
 
     $screen = Native::visit('/home/read/c1');
@@ -517,7 +517,7 @@ it('has a Retry on Not available, which asks MangaDex again', function () {
 });
 
 it('says Not available when @Home has no pages', function () {
-    Http::fake(['https://api.mangadex.org/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
+    Http::fake(['https://api.source.test/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.source.network.test', 'chapter' => ['hash' => 'h', 'data' => [], 'dataSaver' => []]])]);
     Pages::chapter('c1', ['pages' => 3]);
 
     expect(readerTexts(Native::visit('/home/read/c1')->tree()))->toContain('Not available');

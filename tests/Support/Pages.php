@@ -20,27 +20,31 @@ final class Pages
     }
 
     /**
-     * Fake MangaDex for page downloads. Each /at-home/server lookup answers the next base URL
-     * (the last one repeats); images go to `$image(Request)` (default: a real JPEG); @Home
-     * reports answer ok. Anything else throws.
+     * Fake the source for page downloads. Each /at-home/server lookup answers the next base URL
+     * (the last one repeats); images go to `$image(Request)` (default: a real JPEG); image
+     * reports answer ok. Anything else throws. Hosts come from config so test fixtures
+     * stay upstream-neutral.
      */
-    public static function fake(array $servers = ['https://a.mangadex.network'], int $count = 3, ?Closure $image = null): void
+    public static function fake(array $servers = ['https://a.source.network.test'], int $count = 3, ?Closure $image = null): void
     {
         $image ??= fn () => Http::response(self::image());
         $lookups = 0;
+        $apiPrefix = rtrim((string) config('source.api_url'), '/').'/at-home/server/';
+        $reportHost = (string) parse_url((string) config('source.report_url'), PHP_URL_HOST);
+        $imageFamily = '.source.network.test';
 
-        Http::fake(function (Request $request) use ($servers, $count, $image, &$lookups) {
+        Http::fake(function (Request $request) use ($servers, $count, $image, $apiPrefix, $reportHost, $imageFamily, &$lookups) {
             $host = (string) parse_url($request->url(), PHP_URL_HOST);
 
-            if (str_starts_with($request->url(), 'https://api.mangadex.org/at-home/server/')) {
+            if (str_starts_with($request->url(), $apiPrefix)) {
                 return Http::response(self::atHome($servers[min($lookups++, count($servers) - 1)], $count));
             }
 
-            if ($host === 'api.mangadex.network') {
+            if ($reportHost !== '' && $host === $reportHost) {
                 return Http::response(['result' => 'ok']);
             }
 
-            if (str_ends_with($host, '.mangadex.network')) {
+            if (str_ends_with($host, $imageFamily)) {
                 return $image($request);
             }
 
@@ -51,9 +55,11 @@ final class Pages
     /** @return list<string> image requests in order as "host/path" (no lookups, no reports) */
     public static function requested(): array
     {
+        $reportHost = (string) parse_url((string) config('source.report_url'), PHP_URL_HOST);
+
         return Http::recorded()
             ->map(fn (array $pair) => parse_url($pair[0]->url(), PHP_URL_HOST).parse_url($pair[0]->url(), PHP_URL_PATH))
-            ->filter(fn (string $url) => ! str_starts_with($url, 'api.'))
+            ->filter(fn (string $url) => ! str_starts_with($url, 'api.') && ($reportHost === '' || ! str_starts_with($url, $reportHost)))
             ->values()->all();
     }
 

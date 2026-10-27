@@ -64,7 +64,7 @@ function ratingToggle(string $label, bool $on): Closure
     return fn (array $node) => ($node['props']['a11y_label'] ?? null) === $label && ($node['props']['value'] ?? null) === $on;
 }
 
-/** Types MangaDex's own API URL into the source field — the shortest path through Continue in most tests. */
+/** Types the source's own API URL into the source field — the shortest path through Continue in most tests. */
 function withBuiltInSource(TestableComponent $screen): TestableComponent
 {
     return $screen->call('changeSourceUrl', config('source.api_url'));
@@ -207,7 +207,7 @@ it('keeps the reader on Setup with an error when the source URL fails its health
     expect(app(SettingsRepository::class)->setupDone())->toBeFalse();
 });
 
-it('saves whatever other source URL the reader typed, labeled by its host, not just MangaDex', function () {
+it('saves whatever other source URL the reader typed, labeled by its host, not just the source', function () {
     Loading::fake(fn (Request $request) => $request->url() === 'https://example.test/api' ? Http::response('', 200) : null);
 
     Native::test(Setup::class)

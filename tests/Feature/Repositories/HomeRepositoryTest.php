@@ -74,7 +74,7 @@ it('loads This season from the JSON, remembers its list id, Spanish series first
         ->and($this->settings->seasonalListId())->toBe(SEASON_LIST);
 });
 
-it('uses the remembered MangaDex list when the JSON is down (Review Focus 6)', function (Closure $github) {
+it('uses the remembered the source list when the JSON is down (Review Focus 6)', function (Closure $github) {
     $this->settings->setSeasonalListId(SEASON_LIST);
     fakeSeasonalDown($github);
 

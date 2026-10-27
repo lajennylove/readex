@@ -45,7 +45,7 @@ beforeEach(function () {
         $fixtures = SourceFixtures::stub('tags', 'search-one-punch', 'search-one-punch-p1', 'search-one-punch-p2', 'browse-cooking');
 
         Http::fake(function (Request $request) use ($override, $fixtures) {
-            if (! str_contains($request->url(), 'uploads.mangadex.org/covers/')) {
+            if (! str_contains($request->url(), 'uploads.source.test/covers/')) {
                 $this->asked[] = rawurldecode($request->url());
             }
 
@@ -317,7 +317,7 @@ it('loads the next batch once when the window nears the end, earlier tiles keep 
     expect($screen->get('more'))->toBeFalse();
 });
 
-it('asks for one batch while it waits for a busy MangaDex, then picks up the job result', function () {
+it('asks for one batch while it waits for a busy the source, then picks up the job result', function () {
     ($this->fake)(fn (Request $request) => str_contains($request->url(), 'offset=10') ? throw busy() : null);
     $screen = Native::test(Search::class)->call('searchFor', 'one punch');
 
@@ -362,7 +362,7 @@ it('waits for the window to get near the end before loading more', function () {
         ->and(asked($this->asked, 'offset=60'))->toBe(1)
         ->and(searchNodes($screen->tree(), 'virtual_list')[0]['props'])->toMatchArray(['window_from' => 4, 'window_to' => 15]);
 
-    // Past the 60 s no-loop guard: still nothing asked, MangaDex said there's no more.
+    // Past the 60 s no-loop guard: still nothing asked, the source said there's no more.
     Carbon::setTestNow(Carbon::now()->addMinutes(2));
     $screen->call('windowChanged', 5, 19);
     expect($this->asked)->toHaveCount(1);
@@ -476,7 +476,7 @@ it('says nothing is saved for this search and offers Retry when offline (spec §
     expect(tileTitles($screen->tree()))->toHaveCount(10);
 });
 
-it('says MangaDex is having trouble, without Retry, while a search that met a 503 retries on its own', function () {
+it('says the source is having trouble, without Retry, while a search that met a 503 retries on its own', function () {
     Exceptions::fake();
     ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=') ? Http::response('No server is available to handle this request', 503) : null);
 
@@ -494,7 +494,7 @@ it('says MangaDex is having trouble, without Retry, while a search that met a 50
     expect(tileTitles($screen->tree()))->toHaveCount(10);
 });
 
-it('still says nothing is saved for this search and offers Retry when MangaDex rejects it', function () {
+it('still says nothing is saved for this search and offers Retry when the source rejects it', function () {
     Exceptions::fake();
     ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=')
         ? Http::response(['result' => 'error', 'errors' => [['status' => 400, 'title' => 'Bad Request', 'detail' => 'bad']]], 400)
@@ -508,7 +508,7 @@ it('still says nothing is saved for this search and offers Retry when MangaDex r
     expect(searchNodes($screen->tree(), 'button'))->toHaveCount(1);
 });
 
-it('says MangaDex is having trouble, without Retry, while a tag list that met a 503 retries on its own', function () {
+it('says the source is having trouble, without Retry, while a tag list that met a 503 retries on its own', function () {
     ($this->fake)(fn (Request $request) => str_contains($request->url(), '/manga/tag') ? Http::response('No server is available to handle this request', 503) : null);
 
     $screen = Native::test(Search::class)
@@ -517,7 +517,7 @@ it('says MangaDex is having trouble, without Retry, while a tag list that met a 
     expect(searchNodes($screen->tree(), 'button'))->toBe([]);
 });
 
-it('still says no tags are saved and offers Retry when MangaDex rejects the tag list', function () {
+it('still says no tags are saved and offers Retry when the source rejects the tag list', function () {
     Exceptions::fake();
     ($this->fake)(fn (Request $request) => str_contains($request->url(), '/manga/tag') ? Http::response(['result' => 'error', 'errors' => []], 400) : null);
 
@@ -536,7 +536,7 @@ it("forgets the old search's retry when the search changes", function () {
     $screen->call('searchFor', '')->assertSet('retryDueAt', []);
 });
 
-it('says so when MangaDex finds nothing', function () {
+it('says so when the source finds nothing', function () {
     ($this->fake)(fn (Request $request) => str_contains($request->url(), 'title=')
         ? Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 10, 'offset' => 0, 'total' => 0])
         : null);

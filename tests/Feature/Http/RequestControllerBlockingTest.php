@@ -19,7 +19,7 @@ beforeEach(function () {
     Carbon::setTestNow(Carbon::createFromTimestamp(B0));
     Sleep::fake(syncWithCarbon: true);
     $this->rc = app(RequestController::class);
-    $this->api = fn (string $path = '/manga') => Call::get('https://api.mangadex.org'.$path);
+    $this->api = fn (string $path = '/manga') => Call::get('https://api.source.test'.$path);
     $this->at = function (float $t): void {
         Carbon::setTestNow(Carbon::createFromTimestamp(B0)->addMicroseconds((int) round($t * 1_000_000)));
     };
@@ -28,14 +28,14 @@ beforeEach(function () {
 });
 
 describe('429', function () {
-    it('blocks every mangadex.org bucket until the retry time', function () {
+    it('blocks every source.test bucket until the retry time', function () {
         $slot = $this->rc->acquire(($this->api)(), Priority::Interactive, 0);
 
         $this->rc->record($slot, ($this->reply)(429, ['X-RateLimit-Retry-After' => (string) (B0 + 20)]));
 
         $api = $this->rc->acquire(($this->api)('/manga/abc'), Priority::Interactive, 0);
-        $cover = $this->rc->acquire(Call::get('https://uploads.mangadex.org/covers/m/c.jpg.256.jpg'), Priority::Interactive, 0);
-        $image = $this->rc->acquire(Call::get('https://node.mangadex.network/data/h/1.png'), Priority::Interactive, 0);
+        $cover = $this->rc->acquire(Call::get('https://uploads.source.test/covers/m/c.jpg.256.jpg'), Priority::Interactive, 0);
+        $image = $this->rc->acquire(Call::get('https://node.source.network.test/data/h/1.png'), Priority::Interactive, 0);
 
         expect($api)->toBeInstanceOf(Busy::class)
             ->and($api->reason)->toBe(BusyReason::Throttled)
@@ -44,7 +44,7 @@ describe('429', function () {
             ->and($image)->toBeInstanceOf(Slot::class);
     });
 
-    it('waits 60 seconds when MangaDex sends no retry header', function () {
+    it('waits 60 seconds when the source sends no retry header', function () {
         $slot = $this->rc->acquire(($this->api)(), Priority::Interactive, 0);
 
         $this->rc->record($slot, ($this->reply)(429));
@@ -88,7 +88,7 @@ describe('429', function () {
 });
 
 describe('403 ban', function () {
-    it('stops every mangadex.org call for 15 minutes', function () {
+    it('stops every source.test call for 15 minutes', function () {
         $slot = $this->rc->acquire(($this->api)(), Priority::Interactive, 0);
 
         $this->rc->record($slot, ($this->ban)());
@@ -125,7 +125,7 @@ describe('403 ban', function () {
 
     it('caps the ban at 2 hours', function () {
         DB::table('rate_buckets')->insert([
-            'key' => 'family:mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+            'key' => 'family:source.test', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
             'updated_at' => B0, 'blocked_until' => null, 'learned_limit' => null, 'strikes' => 5, 'probing' => true, 'adjusted_at' => B0,
         ]);
         $slot = $this->rc->acquire(($this->api)(), Priority::Interactive, 0);
@@ -145,7 +145,7 @@ describe('403 ban', function () {
 
         expect($this->rc->acquire(($this->api)(), Priority::Interactive, 0))->toBeInstanceOf(Slot::class)
             ->and($this->rc->status()->state)->toBe(ConnectionState::Ok)
-            ->and((int) DB::table('rate_buckets')->where('key', 'family:mangadex.org')->value('strikes'))->toBe(0);
+            ->and((int) DB::table('rate_buckets')->where('key', 'family:source.test')->value('strikes'))->toBe(0);
     });
 
     it('sends another single probe when the first one never reports back (lost probe)', function () {
@@ -201,7 +201,7 @@ describe('usage and status', function () {
     });
 
     it('drops reports first: the report bucket never waits', function () {
-        $report = Call::get('https://api.mangadex.network/report');
+        $report = Call::get('https://report.source.test/report');
         $this->rc->acquire($report, Priority::Prefetch, 0);
         $this->rc->acquire($report, Priority::Prefetch, 0);
 

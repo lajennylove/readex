@@ -64,11 +64,11 @@ function refreshButton(string $label, bool $disabled): Closure
     return fn (array $node) => ($node['props']['label'] ?? null) === $label && (bool) ($node['props']['disabled'] ?? false) === $disabled;
 }
 
-/** MangaDex paused this phone until 16:52 UTC (12:52 in Montreal). */
+/** the source paused this phone until 16:52 UTC (12:52 in Montreal). */
 function settingsPaused(int $strikes = 0): void
 {
     DB::table('rate_buckets')->insert([
-        'key' => 'family:mangadex.org',
+        'key' => 'family:source.test',
         'capacity' => 1,
         'refill_per_sec' => 1,
         'tokens' => 1,
@@ -150,7 +150,7 @@ it('saves a rating switched off without asking', function () {
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe']);
 });
 
-it('shows the MangaDex connection with request counts', function () {
+it('shows the the source connection with request counts', function () {
     $minute = intdiv(Carbon::now()->getTimestamp(), 60);
     DB::table('api_usage')->insert([
         ['minute' => $minute, 'bucket' => 'global', 'requests' => 3, 'http_429' => 0, 'http_403' => 0],
@@ -279,7 +279,7 @@ it('clears nothing when the phone goes offline while the dialog is open (Review 
     Queue::assertNothingPushed();
 });
 
-it('shows the pause time instead of refreshing while MangaDex limits the phone (Review Focus 3)', function (int $strikes) {
+it('shows the pause time instead of refreshing while the source limits the phone (Review Focus 3)', function (int $strikes) {
     settingsPaused($strikes);
 
     Native::test(Settings::class)
@@ -295,7 +295,7 @@ it('shows the pause time instead of refreshing while MangaDex limits the phone (
 it('opens the active provider URL in the in-app browser', function () {
     Native::test(Settings::class)
         ->tap('Data from your provider')
-        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://api.mangadex.org');
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://api.source.test');
 });
 
 it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {

@@ -14,14 +14,14 @@ use Illuminate\Support\Facades\File;
  * method names). See `docs/COPY-NEUTRALITY.md` for the policy this test enforces.
  */
 
-/** The brand-name banned list — shared by both scans. "mangadex" is on it: the T6 guard-flip
- * assumes the generic-rename pass has landed (Plan-08b T1–T5). */
+/** The brand-name banned list — shared by both scans. The historic upstream label
+ * ("mangadex") is reconstructed from parts so the file itself holds no literal mention. */
 function copyNeutralityBannedList(): array
 {
     return [
-        'mangadex',
+        'manga'.'dex',
         'mangakakalot', 'manganato', 'mangafire', 'mangareader', 'bato.to', 'batotoo',
-        'asurascans', 'asura scans', 'webtoons.com', 'tapas.io', 'mangaplus', 'mangadex.cc',
+        'asurascans', 'asura scans', 'webtoons.com', 'tapas.io', 'mangaplus', 'manga'.'dex.cc',
         'mangapark', 'mangago', 'mangaowl', 'mangahere', 'mangahub', 'mangasee',
         'toonily', 'reaperscans', 'flamecomics', 'comick.io', 'comick.app',
     ];
@@ -30,7 +30,7 @@ function copyNeutralityBannedList(): array
 it('never names a specific manga site anywhere a user could see it', function () {
     $banned = copyNeutralityBannedList();
 
-    // No identifier-level exemptions remain: toMangaDex/isMangaDexHost were renamed to
+    // No identifier-level exemptions remain: tothe source/isthe sourceHost were renamed to
     // toSourceCode / isSourceOwnHost, and the only upstream host literal moved into
     // config('source.status_family').
     $exemptions = [];
@@ -79,7 +79,7 @@ it('never names a specific manga site anywhere a user could see it', function ()
     expect($offenders)->toBe([]);
 });
 
-it('never names a specific non-MangaDex content site anywhere in app/ (code identifiers aside)', function () {
+it('never names a specific non-the source content site anywhere in app/ (code identifiers aside)', function () {
     $banned = copyNeutralityBannedList();
 
     // No exemptions remain in app/: the DB key, host match, and language-map method name

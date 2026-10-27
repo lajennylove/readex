@@ -119,7 +119,7 @@ it('keys recommendations by manga and recommended manga', function () {
 });
 
 it('round-trips @Home file lists and chapter dates', function () {
-    AtHome::create(['chapter_id' => 'c1', 'base_url' => 'https://x.mangadex.network', 'hash' => 'h', 'data_files' => ['1.png'], 'data_saver_files' => ['1.jpg'], 'fetched_at' => now()]);
+    AtHome::create(['chapter_id' => 'c1', 'base_url' => 'https://x.source.network.test', 'hash' => 'h', 'data_files' => ['1.png'], 'data_saver_files' => ['1.jpg'], 'fetched_at' => now()]);
     Chapter::create(['id' => 'c1', 'manga_id' => 'a1', 'number' => '82.1', 'volume' => null, 'language' => 'es-la', 'readable_at' => '2026-10-01 10:00:00']);
 
     expect(AtHome::find('c1')->data_saver_files)->toBe(['1.jpg'])

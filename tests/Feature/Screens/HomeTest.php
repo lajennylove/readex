@@ -188,7 +188,7 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
     Native::test(Home::class);
 
     $asked = implode("\n", $this->asked);
-    expect($asked)->toContain('api.mangadex.org/chapter')
+    expect($asked)->toContain('api.source.test/chapter')
         ->not->toContain('antsylich.github.io')
         ->not->toContain('createdAtSince');
 });
@@ -217,9 +217,9 @@ it('says nothing is saved and offers Retry when the first visit is offline (spec
     expect(rowMangas()['season'])->not->toBeEmpty();
 });
 
-it('says MangaDex is having trouble, without Retry, when the first visit meets a MangaDex outage', function () {
+it('says the source is having trouble, without Retry, when the first visit meets a the source outage', function () {
     Exceptions::fake();
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.source.test'
         ? Http::response('No server is available to handle this request', 503)
         : null);
 
@@ -237,9 +237,9 @@ it('says MangaDex is having trouble, without Retry, when the first visit meets a
     expect(rowMangas()['season'])->not->toBeEmpty();
 });
 
-it('still says nothing is saved and offers Retry when MangaDex rejects the first visit', function () {
+it('still says nothing is saved and offers Retry when the source rejects the first visit', function () {
     Exceptions::fake();
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.source.test'
         ? Http::response(['result' => 'error', 'errors' => [['status' => 400, 'title' => 'Bad Request', 'detail' => 'bad']]], 400)
         : null);
 
@@ -261,10 +261,10 @@ it('waits for the background retry instead of offering Retry when The provider i
     Queue::assertPushed(RefreshRepository::class, 3);
 });
 
-it('shows empty rows, not "Nothing saved yet", when MangaDex has nothing', function () {
+it('shows empty rows, not "Nothing saved yet", when the source has nothing', function () {
     Loading::fake(fn (Request $request) => match (true) {
         parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' => Http::response(['id' => 'list-1', 'name' => 'Fall 2026', 'manga_ids' => []]),
-        parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 20, 'offset' => 0, 'total' => 0]),
+        parse_url($request->url(), PHP_URL_HOST) === 'api.source.test' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 20, 'offset' => 0, 'total' => 0]),
         default => null,
     });
 
@@ -297,7 +297,7 @@ it('refreshes every row on pull to refresh, fresh or not', function () {
     $asked = implode("\n", $this->asked);
     expect($asked)->toContain('antsylich.github.io')
         ->toContain('createdAtSince')
-        ->toContain('api.mangadex.org/chapter')
+        ->toContain('api.source.test/chapter')
         ->and(homeNodes($screen->tree(), 'refreshable')[0]['props'])->toHaveKey('on_refresh');
 });
 

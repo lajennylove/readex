@@ -52,7 +52,7 @@ it('sends what comes after the Home rows as bulk (spec §7.1)', function () {
 });
 
 it('keeps the old refresh time when no Home row loaded', function () {
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'uploads.mangadex.org' ? null : Http::response('down', 503));
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'uploads.source.test' ? null : Http::response('down', 503));
     Cache::put(RefreshAllData::RUNNING_KEY, 'r1');
 
     app()->call([new RefreshAllData('r1'), 'handle']);

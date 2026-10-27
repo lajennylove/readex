@@ -132,7 +132,7 @@ it('cancelling edit discards changes', function () {
     expect(app(SourceRepository::class)->find($source->key)->config['base_url'])->toBe('https://a.test');
 });
 
-it('never offers Edit URL for the built-in MangaDex row', function () {
+it('never offers Edit URL for the built-in the source row', function () {
     Native::test(Sources::class)->call('startEdit', HttpSource::KEY)
         ->assertSet('editing', null);
 });

@@ -185,7 +185,7 @@ it('on 5G prefetches nothing, and opening the next chapter still loads it (Revie
     Native::visit('/home/read/t6-r2')->firePoll('checkPages');
 
     expect(app(PageStore::class)->has('t6-r2'))->toBeTrue()
-        ->and(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg', 'a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg']);
+        ->and(Pages::requested())->toBe(['a.source.network.test/data-saver/h1/p1.jpg', 'a.source.network.test/data-saver/h1/p2.jpg', 'a.source.network.test/data-saver/h1/p1.jpg', 'a.source.network.test/data-saver/h1/p2.jpg']);
     Queue::assertNotPushed(PrefetchNext::class);
     Queue::assertNotPushed(DownloadChapter::class);
     expect(app(PageStore::class)->manifest('t6-r3'))->toBeNull();

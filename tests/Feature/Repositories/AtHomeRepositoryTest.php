@@ -90,52 +90,52 @@ describe('refresh', function () {
     });
 
     it('replaces an older lookup', function () {
-        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://old.mangadex.network'))->push(atHomeAnswer('https://new.mangadex.network'))]);
+        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://old.source.network.test'))->push(atHomeAnswer('https://new.source.network.test'))]);
 
         $this->atHome->refresh('c1');
         Carbon::setTestNow(Carbon::now()->addMinutes(11));
         $this->atHome->refresh('c1');
 
         expect(AtHome::query()->count())->toBe(1)
-            ->and($this->atHome->get('c1')->data->base_url)->toBe('https://new.mangadex.network');
+            ->and($this->atHome->get('c1')->data->base_url)->toBe('https://new.source.network.test');
     });
 });
 
 describe('server', function () {
     it('uses a fresh lookup without a call', function () {
-        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://a.mangadex.network'))->push(atHomeAnswer('https://b.mangadex.network'))]);
+        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://a.source.network.test'))->push(atHomeAnswer('https://b.source.network.test'))]);
         $this->atHome->refresh('c1');
         Carbon::setTestNow(Carbon::now()->addMinutes(9));
 
-        expect($this->atHome->server('c1')->base_url)->toBe('https://a.mangadex.network');
+        expect($this->atHome->server('c1')->base_url)->toBe('https://a.source.network.test');
         Http::assertSentCount(1);
     });
 
     it('looks the server up again once stale', function () {
-        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://a.mangadex.network'))->push(atHomeAnswer('https://b.mangadex.network'))]);
+        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://a.source.network.test'))->push(atHomeAnswer('https://b.source.network.test'))]);
         $this->atHome->refresh('c1');
         Carbon::setTestNow(Carbon::now()->addMinutes(10));
 
-        expect($this->atHome->server('c1', Priority::Prefetch)->base_url)->toBe('https://b.mangadex.network');
+        expect($this->atHome->server('c1', Priority::Prefetch)->base_url)->toBe('https://b.source.network.test');
         Http::assertSentCount(2);
     });
 });
 
 describe('forget', function () {
-    it('drops the lookup and the shared response, so the next lookup really asks MangaDex', function () {
-        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://dead.mangadex.network'))->push(atHomeAnswer('https://alive.mangadex.network'))]);
+    it('drops the lookup and the shared response, so the next lookup really asks the source', function () {
+        Http::fake(['*' => Http::sequence()->push(atHomeAnswer('https://dead.source.network.test'))->push(atHomeAnswer('https://alive.source.network.test'))]);
         $this->atHome->refresh('c1');
 
         // Within the client's 5 s shared-GET window: without forgetting it, the dead server would come back.
         $this->atHome->forget('c1');
 
         expect($this->atHome->get('c1')->data)->toBeNull()
-            ->and($this->atHome->server('c1')->base_url)->toBe('https://alive.mangadex.network');
+            ->and($this->atHome->server('c1')->base_url)->toBe('https://alive.source.network.test');
         Http::assertSentCount(2);
     });
 
     it('leaves other chapters alone', function () {
-        Http::fake(['*' => Http::response(atHomeAnswer('https://a.mangadex.network'))]);
+        Http::fake(['*' => Http::response(atHomeAnswer('https://a.source.network.test'))]);
         $this->atHome->refresh('c1');
         $this->atHome->refresh('c2');
 
@@ -168,9 +168,9 @@ describe('pageUrls', function () {
 });
 
 it('asks the at-home endpoint for the chapter', function () {
-    Http::fake(['*' => Http::response(atHomeAnswer('https://a.mangadex.network'))]);
+    Http::fake(['*' => Http::response(atHomeAnswer('https://a.source.network.test'))]);
 
     $this->atHome->refresh('c1');
 
-    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.mangadex.org/at-home/server/c1');
+    Http::assertSent(fn (Request $r) => $r->url() === 'https://api.source.test/at-home/server/c1');
 });

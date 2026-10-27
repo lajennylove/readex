@@ -2,15 +2,24 @@
 
 return [
 
-    'api_url' => env('SOURCE_API_URL', 'https://api.mangadex.org'),
+    // Ships pointed at the GitHub Pages demo so the first launch has something to render.
+    // The user swaps this out at Setup for whatever source URL they actually want to read
+    // from — the app is a transport-and-render tool, not a catalog (CLAUDE.md §1).
+    'api_url' => env('SOURCE_API_URL', 'https://lajennylove.github.io/readex'),
 
-    // Build-time hint for sources that serve plain JSON files (e.g. the GH Pages demo).
-    // When true, Client::apiUrl() rewrites `/path` → `/path.json` before appending the query.
-    'static_json' => (bool) env('SOURCE_STATIC_JSON', false),
+    // Build-time hint for sources that serve plain JSON files (the demo does). When true,
+    // Client::apiUrl() rewrites `/path` → `/path.json` before appending the query.
+    'static_json' => (bool) env('SOURCE_STATIC_JSON', true),
 
-    'report_url' => env('SOURCE_REPORT_URL', 'https://api.mangadex.network/report'),
+    // Where image-fetch reports go. Empty is a valid value (no reports). The demo serves
+    // one at /report that accepts and discards; a real upstream wires its own endpoint.
+    'report_url' => env('SOURCE_REPORT_URL', 'https://lajennylove.github.io/readex/report'),
 
-    'covers_url' => env('SOURCE_COVERS_URL', 'https://uploads.mangadex.org/covers'),
+    // Legacy fallback: used only when a source's API response doesn't include an absolute
+    // cover URL. The demo (and any truly agnostic source) embeds the full image URL in
+    // `cover_art.attributes.fileName` and CoverStore::url() returns it verbatim — this
+    // concat path is kept for upstreams that still return a bare filename.
+    'covers_url' => env('SOURCE_COVERS_URL', 'https://lajennylove.github.io/readex/covers'),
 
     'app_version' => env('NATIVEPHP_APP_VERSION', '0.1.0'),
 
@@ -33,7 +42,10 @@ return [
 
     'share_store' => env('SOURCE_SHARE_STORE', 'database'),
 
-    'status_family' => 'mangadex.org',
+    // Hostname family the configured source serves from. Used by Client::isSourceOwnHost
+    // to decide whether an image URL came from the source itself (so no inline report).
+    // Empty = treat every image URL as off-source.
+    'status_family' => env('SOURCE_STATUS_FAMILY', ''),
 
     'controller' => [
         'throttle_default_seconds' => 60,

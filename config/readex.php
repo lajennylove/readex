@@ -125,6 +125,6 @@ return [
         'android_poll_ms' => 15000,
     ],
 
-    'seasonal_url' => 'https://antsylich.github.io/mangadex-seasonal/seasonal-list.json',
+    'seasonal_url' => 'https://antsylich.github.io/source-seasonal/seasonal-list.json',
 
 ];

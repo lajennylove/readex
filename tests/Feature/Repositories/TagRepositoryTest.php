@@ -40,7 +40,7 @@ it('saves every tag, sorted by group then English name', function () {
     expect($groups)->toBe($sorted);
 });
 
-it('removes tags MangaDex no longer sends', function () {
+it('removes tags the source no longer sends', function () {
     Tag::create(['id' => '00000000-0000-0000-0000-000000000000', 'group' => 'genre', 'name' => ['en' => 'Gone'], 'fetched_at' => Carbon::now()]);
     SourceFixtures::fake('tags');
 

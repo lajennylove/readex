@@ -34,7 +34,8 @@ final class Loading
                 return Http::response('', 200);
             }
 
-            if (parse_url($request->url(), PHP_URL_HOST) === 'uploads.mangadex.org') {
+            $coversHost = (string) parse_url((string) config('source.covers_url'), PHP_URL_HOST);
+            if ($coversHost !== '' && parse_url($request->url(), PHP_URL_HOST) === $coversHost) {
                 $covers[] = $request->url();
 
                 return Http::response($jpeg, 200, ['Content-Type' => 'image/jpeg']);

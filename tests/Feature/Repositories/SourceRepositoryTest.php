@@ -12,7 +12,7 @@ beforeEach(function () {
     $this->repo = app(SourceRepository::class);
 });
 
-it('seeds the built-in MangaDex row once, idempotently', function () {
+it('seeds the built-in the source row once, idempotently', function () {
     $this->repo->seedBuiltIn();
     $this->repo->seedBuiltIn();
 
@@ -100,18 +100,18 @@ it('enabled() excludes blocked and disabled sources', function () {
     expect($this->repo->enabled()->pluck('key')->all())->toBe([HttpSource::KEY]);
 });
 
-it('matches a typed URL against the built-in MangaDex API loosely (trailing slash, case)', function () {
-    expect($this->repo->matchesBuiltIn('https://api.mangadex.org'))->toBeTrue()
-        ->and($this->repo->matchesBuiltIn('https://API.MANGADEX.ORG/'))->toBeTrue()
+it('matches a typed URL against the built-in the source API loosely (trailing slash, case)', function () {
+    expect($this->repo->matchesBuiltIn('https://api.source.test'))->toBeTrue()
+        ->and($this->repo->matchesBuiltIn('https://API.SOURCE.TEST/'))->toBeTrue()
         ->and($this->repo->matchesBuiltIn('https://example.test'))->toBeFalse();
 });
 
-it('addFromSetup enables the built-in row instead of duplicating it when the URL is MangaDex\'s own', function () {
-    Http::fake(['https://api.mangadex.org' => Http::response('', 200)]);
+it('addFromSetup enables the built-in row instead of duplicating it when the URL is the source\'s own', function () {
+    Http::fake(['https://api.source.test' => Http::response('', 200)]);
     $this->repo->seedBuiltIn();
     $this->repo->setEnabled(HttpSource::KEY, false);
 
-    $source = $this->repo->addFromSetup('https://api.mangadex.org');
+    $source = $this->repo->addFromSetup('https://api.source.test');
 
     expect($source->key)->toBe(HttpSource::KEY)
         ->and($source->enabled)->toBeTrue()

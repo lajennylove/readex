@@ -208,7 +208,7 @@ it('says busy and queues the retry job when there is no request slot', function 
     expect(FakeRefreshTarget::$calls)->toHaveCount(1);
 });
 
-it('shows when MangaDex stops limiting the phone, in the phone time zone', function (BusyReason $reason) {
+it('shows when the source stops limiting the phone, in the phone time zone', function (BusyReason $reason) {
     staleRow();
     FakeRefreshTarget::$script = [deferred($reason)];
 
@@ -221,7 +221,7 @@ it('shows when MangaDex stops limiting the phone, in the phone time zone', funct
 it('says something went wrong for a 4xx answer, without a crash screen, and leaves it for pull to refresh', function () {
     Exceptions::fake();
     staleRow();
-    FakeRefreshTarget::$script = [new ApiError(400, 'MangaDex HTTP 400: boom')];
+    FakeRefreshTarget::$script = [new ApiError(400, 'the source HTTP 400: boom')];
 
     $screen = Native::test(RefreshingScreen::class)
         ->assertSet('items', ['saved'])
@@ -239,10 +239,10 @@ it('says something went wrong for a 4xx answer, without a crash screen, and leav
     Queue::assertNothingPushed();
 });
 
-it('says MangaDex is having trouble on a 503 and retries from the poll after 15 seconds, then every 60', function () {
+it('says the source is having trouble on a 503 and retries from the poll after 15 seconds, then every 60', function () {
     Exceptions::fake();
     staleRow();
-    $outage = fn () => new ApiError(503, 'MangaDex HTTP 503: No server is available to handle this request');
+    $outage = fn () => new ApiError(503, 'the source HTTP 503: No server is available to handle this request');
     FakeRefreshTarget::$script = [$outage(), $outage(), $outage()];
 
     $screen = Native::test(RefreshingScreen::class)
@@ -277,10 +277,10 @@ it('says MangaDex is having trouble on a 503 and retries from the poll after 15 
     Queue::assertNothingPushed();
 });
 
-it('says MangaDex is having trouble for any 5xx answer, without reporting it', function (int $status) {
+it('says the source is having trouble for any 5xx answer, without reporting it', function (int $status) {
     Exceptions::fake();
     staleRow();
-    FakeRefreshTarget::$script = [new ApiError($status, "MangaDex HTTP {$status}: down")];
+    FakeRefreshTarget::$script = [new ApiError($status, "the source HTTP {$status}: down")];
 
     $screen = Native::test(RefreshingScreen::class)
         ->assertSet('items', ['saved'])
@@ -295,7 +295,7 @@ it('says MangaDex is having trouble for any 5xx answer, without reporting it', f
 it('captures API errors 500 to 599 as Unavailable, unreported, and any other status as a reported failure', function (int $status, string $expected) {
     Exceptions::fake();
 
-    $outcome = Outcome::capture(fn () => throw new ApiError($status, "MangaDex HTTP {$status}: x"));
+    $outcome = Outcome::capture(fn () => throw new ApiError($status, "the source HTTP {$status}: x"));
 
     expect($outcome->status->value)->toBe($expected);
     $expected === 'failed' ? Exceptions::assertReported(ApiError::class) : Exceptions::assertNothingReported();
@@ -306,9 +306,9 @@ it('captures API errors 500 to 599 as Unavailable, unreported, and any other sta
     [600, 'failed'],
 ]);
 
-it('goes back to the 15 second rhythm when a MangaDex outage turns into a dropped connection', function () {
+it('goes back to the 15 second rhythm when a the source outage turns into a dropped connection', function () {
     staleRow();
-    $outage = fn () => new ApiError(503, 'MangaDex HTTP 503: down');
+    $outage = fn () => new ApiError(503, 'the source HTTP 503: down');
     FakeRefreshTarget::$script = [$outage(), $outage(), new ConnectionException('down'), $outage()];
     $screen = Native::test(RefreshingScreen::class);
 
@@ -325,9 +325,9 @@ it('goes back to the 15 second rhythm when a MangaDex outage turns into a droppe
     $screen->assertSee('All good');
 });
 
-it('does not retry a MangaDex outage while the phone says it has no connection', function () {
+it('does not retry a the source outage while the phone says it has no connection', function () {
     staleRow();
-    FakeRefreshTarget::$script = [new ApiError(503, 'MangaDex HTTP 503: down')];
+    FakeRefreshTarget::$script = [new ApiError(503, 'the source HTTP 503: down')];
     Native::fakeBridge()->respondTo('Network.Status', ['connected' => false]);
 
     $screen = Native::test(RefreshingScreen::class);
@@ -386,9 +386,9 @@ it('ignores a job result from before the screen started waiting', function () {
         ->assertSee('The provider is busy');
 });
 
-it('retries from the poll when the job lands a MangaDex outage', function () {
+it('retries from the poll when the job lands a the source outage', function () {
     staleRow();
-    FakeRefreshTarget::$script = [deferred(BusyReason::Saturated), new ApiError(503, 'MangaDex HTTP 503: down')];
+    FakeRefreshTarget::$script = [deferred(BusyReason::Saturated), new ApiError(503, 'the source HTTP 503: down')];
     $screen = Native::test(RefreshingScreen::class)->assertSee('The provider is busy');
 
     $this->travel(5)->seconds();

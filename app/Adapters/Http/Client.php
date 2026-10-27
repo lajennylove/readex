@@ -65,6 +65,8 @@ final class Client
      */
     public function download(string $url, Priority $priority = Priority::Interactive, float $maxWait = 10.0): string
     {
+        AppServiceProvider::activateUserSource();
+
         $call = Call::get($url);
         $report = ! $this->isSourceOwnHost($call->host());
         $started = hrtime(true);

@@ -8,6 +8,7 @@ use App\Adapters\Http\Exceptions\RequestDeferred;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadCovers;
 use App\Models\Manga;
+use App\Providers\AppServiceProvider;
 use App\Storage\DiskSpaceGuard;
 use App\Storage\Exceptions\DiskSpaceLow;
 use App\Storage\StorageBridge;
@@ -115,13 +116,14 @@ final class CoverStore
 
     public function url(Manga $manga): string
     {
-        // A source whose API already returns an absolute image URL in `cover_art.attributes.fileName`
-        // (e.g. the GH Pages demo serving placehold.co placeholders) sidesteps the covers-CDN config
-        // entirely: we use what the response gave us, verbatim, instead of forcing a `covers_url` env
-        // on an "agnostic reader" that is supposed to need one URL from the user.
         if (preg_match('#^https?://#i', $manga->cover_file) === 1) {
             return $manga->cover_file;
         }
+
+        // The composed URL depends on config('source.covers_url'). Under NativePHP's
+        // persistent runtime the boot-time swap may have no-op'd (the user hadn't saved
+        // their source yet), so re-apply the active source's config before reading it.
+        AppServiceProvider::activateUserSource();
 
         $size = config('readex.covers.size');
 

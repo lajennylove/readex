@@ -305,10 +305,11 @@ it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {
         ->assertNavigatedTo('/settings/sources');
 });
 
-it('credits scanlation groups in the About row', function () {
+it('credits the source and its groups in the About row', function () {
     Native::test(Settings::class)
         ->assertSee('Data from your provider')
-        ->assertSee('Chapters are translated by the scanlation groups credited on each chapter.')
+        ->assertSee('The chapters are provided by')
+        ->assertSee('and the groups credited on each chapter.')
         ->assertSee('ReaDex '.config('source.app_version'));
 });
 

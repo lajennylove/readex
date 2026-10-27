@@ -356,6 +356,15 @@ class Settings extends NativeComponent implements HasResumeBar
         }
 
         $settings->markSetupDone();
+
+        // Setup's loader runs on first install; a Source URL swap wipes the same data (via
+        // FactoryReset) but used to leave the subsequent refill to whatever Home happened to
+        // request. That skipped the tags row — the Search tab's tag browser stayed empty (or,
+        // worse, stuck on the previous source's catalog until something else forced a refresh,
+        // like toggling a content rating). Kick off the full refill now, against the new source
+        // that `addFromSetup` just activated, so tags/season/popular/latest/covers all land.
+        RefreshAllData::start((string) Str::uuid());
+
         $this->replace('/home');
     }
 

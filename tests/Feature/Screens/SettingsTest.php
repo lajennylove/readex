@@ -427,6 +427,25 @@ it('asks before a factory reset with alarming wording; Cancel deletes nothing (P
         ->and(LibraryEntry::query()->count())->toBeGreaterThan(0);
 });
 
+it('kicks off the full refill (incl. tags) after a Source URL swap', function () {
+    settingsSavedData();
+    app(SettingsRepository::class)->markSetupDone();
+    app(SettingsRepository::class)->acknowledgeEula();
+    Loading::fake(fn (Request $request) => $request->url() === 'https://new.example.test' ? Http::response('', 200) : null);
+
+    Native::test(Settings::class)
+        ->call('changeSourceUrl', 'https://new.example.test')
+        ->call('askSaveSourceUrl')
+        ->emitNative(ButtonPressed::class, ['index' => 1, 'label' => 'Change'])
+        ->assertReplacedWith('/home');
+
+    // The swap wiped the demo-source tag catalog; the dispatched refill will repopulate
+    // against the new source so Search's tag browser isn't stuck on the old chips.
+    expect(DB::table('tags')->count())->toBe(0)
+        ->and(RefreshAllData::running())->not->toBeNull();
+    Queue::assertPushed(RefreshAllData::class, 1);
+});
+
 it('wipes every table and file on confirm, and routes back to the real first-run flow', function () {
     settingsSavedData();
     app(SettingsRepository::class)->markSetupDone();

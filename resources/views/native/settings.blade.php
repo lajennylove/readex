@@ -41,8 +41,8 @@
         </native:column>
 
         <native:column class="w-full gap-2">
-            <native:text class="text-lg font-bold text-theme-on-background">Curated list</native:text>
-            <native:text class="text-xs text-theme-on-surface-variant">A JSON URL ({{ '{' }}id, name, manga_ids{{ '}' }}) that fills a "This season" row on Home. Off by default — the row doesn't appear until you save one.</native:text>
+            <native:text class="text-lg font-bold text-theme-on-background">This season</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">A JSON URL for the latest content suggestions.</native:text>
             <native:outlined_text_input
                 placeholder="https://lajennylove.github.io/readex/seasonal/seasonal-list.json"
                 value="{{ $seasonalUrl }}"

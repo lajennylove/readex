@@ -25,11 +25,19 @@ final class SourceHealthCheck
 {
     public const TIMEOUT_SECONDS = 8;
 
-    /** True when the URL answers 2xx within the timeout; false on any error, timeout or non-2xx. */
+    /**
+     * True when the URL answers anything short of a server error within the timeout; false on
+     * a connection failure, timeout or 5xx. We treat 4xx (incl. 404) as "reachable but no root
+     * document" because many real APIs return 404 at their bare root while serving real
+     * endpoints just fine (the GH Pages demo is one example — / lists the directory, /api/
+     * does not have an index.html).
+     */
     public function check(string $url): bool
     {
         try {
-            return Http::connectTimeout(self::TIMEOUT_SECONDS)->timeout(self::TIMEOUT_SECONDS)->get($url)->successful();
+            $response = Http::connectTimeout(self::TIMEOUT_SECONDS)->timeout(self::TIMEOUT_SECONDS)->get($url);
+
+            return $response->status() < 500;
         } catch (ConnectionException) {
             return false;
         }

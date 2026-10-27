@@ -5,7 +5,7 @@ return [
     // Ships pointed at the GitHub Pages demo so the first launch has something to render.
     // The user swaps this out at Setup for whatever source URL they actually want to read
     // from — the app is a transport-and-render tool, not a catalog (CLAUDE.md §1).
-    'api_url' => env('SOURCE_API_URL', 'https://lajennylove.github.io/readex'),
+    'api_url' => env('SOURCE_API_URL', 'https://lajennylove.github.io/readex/api'),
 
     // Build-time hint for sources that serve plain JSON files (the demo does). When true,
     // Client::apiUrl() rewrites `/path` → `/path.json` before appending the query.

@@ -47,6 +47,11 @@ return [
     // Empty = treat every image URL as off-source.
     'status_family' => env('SOURCE_STATUS_FAMILY', ''),
 
+    // Path (relative to the API root) at which a source may publish an optional metadata
+    // document: {covers_url, report_url, status_family, static_json}. SourceRepository
+    // fetches it once at setup and AppServiceProvider swaps the values into runtime config.
+    'meta_path' => env('SOURCE_META_PATH', '/_meta.json'),
+
     'controller' => [
         'throttle_default_seconds' => 60,
         'throttle_factor' => 0.5,

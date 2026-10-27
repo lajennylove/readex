@@ -16,7 +16,7 @@ use Native\Mobile\Facades\Dialog;
  * (built-in source first, never removable), add a source from a generic name + URL/API
  * endpoint (never a suggested or pre-filled third-party name), block/unblock any source
  * (simple local block, D45 §6 item 3 — no reporting backend), remove a user-added source, and
- * (Jenny 2026-10-24 18:05 EDT) edit a user source's URL from here later, same health-check
+ * edit a user source's URL from here later, same health-check
  * validation as adding it the first time or at first-run Setup.
  */
 class Sources extends NativeComponent
@@ -80,8 +80,8 @@ class Sources extends NativeComponent
             'This source is removed from ReaDex. It is not affected on its own end.',
             [['label' => 'Cancel', 'style' => 'cancel'], ['label' => self::REMOVE, 'style' => 'destructive']],
         )->buttonPressed(fn (ButtonPressed $pressed) => $pressed->label === self::REMOVE
-            ? app(SourceRepository::class)->remove($key)
-            : null);
+        ? app(SourceRepository::class)->remove($key)
+        : null);
     }
 
     public function startEdit(string $key): void

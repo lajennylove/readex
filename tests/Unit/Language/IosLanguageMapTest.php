@@ -12,7 +12,7 @@ it('maps iPhone language tags to the source codes', function (?string $tag, stri
     'Portugal' => ['pt-PT', 'pt'],
     'Simplified Chinese' => ['zh-Hans-CN', 'zh'],
     'Traditional Chinese' => ['zh-Hant-TW', 'zh-hk'],
-    'Canadian French (Jenny)' => ['fr-CA', 'fr'],
+    'Canadian French (user)' => ['fr-CA', 'fr'],
     'Japanese' => ['ja-JP', 'ja'],
     'unknown language' => ['xx-YY', 'en'],
     'nothing' => [null, 'en'],

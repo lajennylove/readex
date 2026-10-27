@@ -178,11 +178,21 @@ final class CoverStore
     {
         $file = (string) $manga->cover_file;
 
-        if ($file === '' || basename($file) !== $file || basename((string) $manga->id) !== $manga->id) {
+        if ($file === '' || basename((string) $manga->id) !== $manga->id) {
             return null;
         }
 
-        return "covers/{$manga->id}/{$file}.".config('readex.covers.size').'.jpg';
+        $size = config('readex.covers.size');
+
+        if (preg_match('#^https?://#i', $file) === 1) {
+            return "covers/{$manga->id}/".sha1($file).".{$size}.jpg";
+        }
+
+        if (basename($file) !== $file) {
+            return null;
+        }
+
+        return "covers/{$manga->id}/{$file}.{$size}.jpg";
     }
 
     private function absolute(string $relative): string

@@ -32,7 +32,7 @@ it('lists the built-in source first, seeding it if missing', function () {
         ->and($sources->first()->key)->toBe(HttpSource::KEY);
 });
 
-it('adds a user source from a generic name + URL once it health-checks ok (Jenny 2026-10-24 17:54 EDT)', function () {
+it('adds a user source from a generic name + URL once it health-checks ok', function () {
     Http::fake(['https://example.test/api' => Http::response('', 200)]);
 
     $source = $this->repo->add('My Source', 'https://example.test/api');

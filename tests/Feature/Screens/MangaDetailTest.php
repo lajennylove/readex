@@ -438,7 +438,7 @@ it('keeps each language chip bound to one stable native node reference across re
 });
 
 it('shows a chip for every advertised language even when only one has fetched chapters (bugfix 0023)', function () {
-    // Jenny reads in Spanish and sees an "ES" badge on the tile (derived from
+    // a Spanish-reading user reads and sees an "ES" badge on the tile (derived from
     // `Manga::available_languages`). Opening the series must give her a Spanish chip in the
     // Chapters tab — otherwise the badge is a lie and she can't reach her reading language.
     // Regression for bugfix/0023-detail-missing-language-chip.

@@ -6,7 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Plan-08 Task 3 (D45, Jenny 2026-10-24 17:54 EDT): before a source URL is saved — at
+ * Plan-08 Task 3 (D45): before a source URL is saved — at
  * first-run Setup or later from Settings → Sources — the app makes one request to it and
  * confirms it answers with a healthy (2xx) status. A source that doesn't respond, or answers
  * with an error, is never saved; the user is told to check it.
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Http;
  * sees exactly what every user sees" argument in the review notes (see
  * Plan-08-Multi-Source-and-Apple-Safety.md § Review Notes). If a generic GET turns out to be
  * too strict for a real source later (e.g. one that 404s its bare root but works fine under a
- * sub-path), that is a real-world case to revisit with Jenny, not something to special-case now.
+ * sub-path), that is a real-world case to revisit, not something to special-case now.
  */
 final class SourceHealthCheck
 {

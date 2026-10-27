@@ -90,7 +90,7 @@ it('removes a user source after confirming, keeps it if cancelled', function () 
     expect(SourceConfig::query()->find($source->key))->toBeNull();
 });
 
-it('edits a user source URL after a health check (Jenny 2026-10-24 18:05 EDT)', function () {
+it('edits a user source URL after a health check', function () {
     Http::fake(['https://a.test' => Http::response('', 200), 'https://b.test' => Http::response('', 200)]);
     $source = app(SourceRepository::class)->add('My Source', 'https://a.test');
 

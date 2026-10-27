@@ -34,7 +34,7 @@ use Native\Mobile\Facades\Network;
  * "Refresh provider data" (§7.1), the provider connection row (§5.1a) and credits.
  * Storage: the image cache and "Clear image cache" (§11.1); iCloud comes with downloads.
  *
- * Plan-08 Task “screen audit” (Jenny 2026-10-24 18:29 EDT): section headings and field labels
+ * Plan-08 Task “screen audit”-- section headings and field labels
  * are generic ("Provider data" / "Provider connection" / "Refresh provider data") so the screen
  * doesn't read as hardcoded to one named service. The attribution text below them
  * (`providerLabel()`/`providerUrl()`) stays generic too; the real source name and host show on
@@ -183,7 +183,7 @@ class Settings extends NativeComponent implements HasResumeBar
     }
 
     /**
-     * Plan-08 Task 4 (Jenny 2026-10-24 18:29 EDT): "warn the user when tap it [that] this action
+     * Plan-08 Task 4-- "warn the user when tap it [that] this action
      * will delete everything and prompt if this is really intended". Deliberately more alarming
      * wording than Clear image cache / Refresh provider data — this is the one action in
      * Settings with no undo and no exception (every table, every file, every setting, the
@@ -221,8 +221,7 @@ class Settings extends NativeComponent implements HasResumeBar
 
     /**
      * Everything gone; the next route check behaves exactly like a fresh install, because
-     * `eula_acknowledged` and `setup_done` are gone along with every other row (Jenny: "take the
-     * user to the splash window to add a new API source and select their settings").
+     * `eula_acknowledged` and `setup_done` are gone along with every other row.
      */
     private function factoryReset(): void
     {
@@ -279,7 +278,7 @@ class Settings extends NativeComponent implements HasResumeBar
     private function providerUrl(): string
     {
         return app(SourceRepository::class)->enabled()->first()?->config['base_url']
-            ?? rtrim(config('source.api_url'), '/');
+        ?? rtrim(config('source.api_url'), '/');
     }
 
     /** "18:52" when the source has paused this phone, else null. */
@@ -288,8 +287,8 @@ class Settings extends NativeComponent implements HasResumeBar
         $status ??= app(RequestController::class)->status();
 
         return $status->state === ConnectionState::Paused && $status->pausedUntil !== null
-            ? $this->localTime($status->pausedUntil, 'H:i')
-            : null;
+        ? $this->localTime($status->pausedUntil, 'H:i')
+        : null;
     }
 
     /** @return array{state: string, usage: string} */

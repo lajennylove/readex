@@ -75,7 +75,7 @@ it('labels the rating toggles with theme text, since the iOS toggle label ignore
 
     foreach (['Safe', 'Suggestive', 'Erotica', 'Pornographic'] as $label) {
         $screen->assertElement('text', fn (array $node) => ($node['props']['text'] ?? null) === $label
-            && ($node['props']['color'] ?? null) === config('native-ui.theme.dark.on-background'));
+        && ($node['props']['color'] ?? null) === config('native-ui.theme.dark.on-background'));
     }
 
     $screen->assertMissingElement('toggle', fn (array $node) => isset($node['props']['label']));
@@ -126,7 +126,7 @@ it('asks "I\'m 18 or older" before showing erotica; Cancel keeps the old set (Re
         ->toggle("setRating('erotica')", true)
         ->assertSet('ratings', ['safe', 'suggestive'])
         ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Adult content'
-            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], "I'm 18 or older"]);
+        && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], "I'm 18 or older"]);
 
     $flipped = toggleId($screen->tree(), 'Erotica');
 
@@ -184,7 +184,7 @@ it('saves the content rating the reader picked', function () {
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe']);
 });
 
-it('keeps the reader on Setup with an error when the source field is left empty (Jenny: you need to add your API source)', function () {
+it('keeps the reader on Setup with an error when the source field is left empty', function () {
     Native::test(Setup::class)
         ->tap('Continue')
         ->assertSet('phase', Setup::SETTINGS)

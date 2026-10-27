@@ -5,13 +5,16 @@ namespace App\Repositories;
 use App\Models\SourceConfig;
 use App\Sources\HttpSource;
 use App\Sources\SourceHealthCheck;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Throwable;
 
 /**
- * Phase 8 Task 2/3 (Plan-08 §2, D45 §2/§6 item 3, Jenny 2026-10-24 17:54 EDT): the `sources`
+ * Phase 8 Task 2/3 (Plan-08 §2, D45 §2/§6 item 3): the `sources`
  * table — which sources are configured, enabled and blocked. The built-in row is
  * seeded once and can never be removed (only blocked/unblocked, like any other source);
  * user-added sources hold a generic `config` blob (base URL / API endpoint, optional
@@ -19,9 +22,7 @@ use InvalidArgumentException;
  * per D45 §2 (no app-curated source list).
  *
  * Every URL a user types — at first-run Setup or later from Settings → Sources — is health
- * checked (one GET, expect 2xx) before it's saved (Jenny: "validate if we get any valid
- * response from the api (status) before saving it. Otherwise ask the user to check that
- * source."). A URL that matches the built-in source's own real API URL is recognized
+ * checked (one GET, expect 2xx) before it's saved. A URL that matches the built-in source's own real API URL is recognized
  * as "the built-in source", not duplicated as a second row — see `matchesBuiltIn()`.
  */
 final class SourceRepository
@@ -105,13 +106,48 @@ final class SourceRepository
             'kind' => 'user',
             'enabled' => true,
             'blocked' => false,
-            'config' => ['base_url' => $baseUrl],
+            'config' => ['base_url' => $baseUrl, 'meta' => $this->fetchMeta($baseUrl)],
             'created_at' => Carbon::now(),
         ]);
     }
 
     /**
-     * Setup's one-field version (Jenny 2026-10-24 17:54 EDT): the URL is the only thing asked
+     * Optional source-published metadata (covers_url, report_url, status_family, static_json).
+     * Any failure or malformed response returns an empty array — the caller derives sensible
+     * defaults instead.
+     *
+     * @return array<string, mixed>
+     */
+    private function fetchMeta(string $baseUrl): array
+    {
+        $path = (string) config('source.meta_path', '/_meta.json');
+        $url = rtrim($baseUrl, '/').$path;
+
+        try {
+            $response = Http::connectTimeout(SourceHealthCheck::TIMEOUT_SECONDS)
+                ->timeout(SourceHealthCheck::TIMEOUT_SECONDS)
+                ->get($url);
+        } catch (ConnectionException|Throwable) {
+            return [];
+        }
+
+        if (! $response->successful()) {
+            return [];
+        }
+
+        $body = $response->json();
+
+        if (! is_array($body)) {
+            return [];
+        }
+
+        $allowed = ['covers_url', 'report_url', 'status_family', 'static_json'];
+
+        return array_intersect_key($body, array_flip($allowed));
+    }
+
+    /**
+     * Setup's one-field version-- the URL is the only thing asked
      * for, health-checked the same way. A URL that matches the built-in source's own API just enables the
      * already-seeded built-in row (never a second row for the same real endpoint); anything else
      * becomes a new user source, labeled after its host (generic, never a suggested name).

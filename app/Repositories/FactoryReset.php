@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 /**
- * Plan-08 Task 4 (Jenny 2026-10-24 18:29 EDT): "a full destructible restore ... delete all the
+ * Plan-08 Task 4-- "a full destructible restore ... delete all the
  * downloads, caches, settings in the database, everything ... restore the app to factory
  * settings (as just installed new)". Unlike `DataReset::clearRemoteData()` (§7.1, "Refresh
  * provider data" — keeps the Library, progress, downloads, settings), this clears absolutely

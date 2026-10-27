@@ -24,7 +24,7 @@ use Native\Mobile\Edge\NativeComponent;
 use Native\Mobile\Facades\Network;
 
 /**
- * First run (spec §9, reworked Plan-08 Task 3 — Jenny 2026-10-24 17:54 EDT): a content
+ * First run (spec §9, reworked Plan-08 Task 3): a content
  * source URL (empty by default, no pre-filled URL, health-checked before saving),
  * then language + content rating, then the DataLoader steps with progress. Home opens when
  * every step is done, or after `setup_cutoff_seconds` once a Home row has loaded; empty rows
@@ -46,7 +46,7 @@ class Setup extends NativeComponent
     public string $phase = self::SETTINGS;
 
     /**
-     * The content source URL/API endpoint (Jenny 2026-10-24 17:54 EDT): empty by default —
+     * The content source URL/API endpoint-- empty by default —
      * never pre-filled with the built-in source's own URL — so the sources table only ever holds what the
      * user actually typed in and loaded from, never a hardcoded preference (D45 §2 proof point).
      */
@@ -85,9 +85,7 @@ class Setup extends NativeComponent
 
     /**
      * Continue, and Retry after "First launch needs internet". The source URL is required and
-     * health-checked first (Jenny: "we need to explain the user than they need to add there
-     * their API service they want to use" / "validate if we get any valid response from the api
-     * (status) before saving it"); a failed check keeps the reader on this screen with an error
+     * health-checked first before saving it"); a failed check keeps the reader on this screen with an error
      * instead of silently falling back to anything built in.
      */
     public function continueSetup(): void

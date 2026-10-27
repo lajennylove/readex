@@ -208,8 +208,7 @@ final class DownloadQueue
     }
 
     /**
-     * Cancelled chapters are **deleted** from the queue (not kept as `done`), per Jenny's
-     * call: a cancelled chapter isn't "done", it's "not going to happen", so excluding it
+     * Cancelled chapters are **deleted** from the queue (not kept as `done`), per the* call: a cancelled chapter isn't "done", it's "not going to happen", so excluding it
      * from the denominator ("3 / 54" → "3 / 53") is more honest. A `downloading` row is
      * flagged `canceling` first so the running worker halts between pages; the worker
      * then deletes the row rather than marking it done.

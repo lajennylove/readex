@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Adapters\Http\RateLimit\LimitsTable;
 use App\Jobs\EnforceLogCap;
+use App\Models\SourceConfig;
 use App\Sources\SourceRegistry;
 use App\Storage\CacheLink;
 use App\Storage\LocalStorageBridge;
@@ -13,7 +14,9 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     {
         if (! $this->app->runningUnitTests()) {
             CacheLink::ensure($this->app->make(StorageBridge::class));
+            $this->activateUserSource();
         }
 
         // Incident guardrail (2026-10-25): every queue job attempt — whether it finishes, throws,
@@ -57,5 +61,48 @@ class AppServiceProvider extends ServiceProvider
     private static function isEnforceLogCap(mixed $job): bool
     {
         return method_exists($job, 'resolveName') && $job->resolveName() === EnforceLogCap::class;
+    }
+
+    /**
+     * Swap `source.*` runtime config to the active user source URL (and any metadata it
+     * published at `/_meta.json`) so every outbound call uses the user's upstream, not the
+     * build-time default. Defaults to deriving covers/report URLs from the API host when
+     * no metadata was published.
+     */
+    private function activateUserSource(): void
+    {
+        try {
+            if (! Schema::hasTable('sources')) {
+                return;
+            }
+
+            $row = SourceConfig::query()
+                ->where('kind', 'user')
+                ->where('enabled', true)
+                ->first();
+
+            if ($row === null) {
+                return;
+            }
+
+            $url = rtrim((string) ($row->config['base_url'] ?? ''), '/');
+
+            if ($url === '') {
+                return;
+            }
+
+            $parent = preg_replace('#/[^/]+$#', '', $url) ?: $url;
+            $meta = (array) ($row->config['meta'] ?? []);
+
+            config([
+                'source.api_url' => $url,
+                'source.static_json' => (bool) ($meta['static_json'] ?? false),
+                'source.covers_url' => (string) ($meta['covers_url'] ?? $parent.'/covers'),
+                'source.report_url' => (string) ($meta['report_url'] ?? $parent.'/report'),
+                'source.status_family' => (string) ($meta['status_family'] ?? config('source.status_family')),
+            ]);
+        } catch (Throwable) {
+            // Boot must survive a missing or unreadable sources row.
+        }
     }
 }

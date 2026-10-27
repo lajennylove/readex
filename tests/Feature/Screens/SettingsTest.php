@@ -180,7 +180,7 @@ it('asks before refreshing; Cancel clears nothing', function () {
     Native::test(Settings::class)
         ->tap('Refresh provider data')
         ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Refresh provider data'
-            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Refresh', 'style' => 'destructive']])
+        && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Refresh', 'style' => 'destructive']])
         ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel'])
         ->assertSet('run', null);
 
@@ -244,7 +244,7 @@ it('enables the button again with the time of the refill once it lands', functio
     $screen->firePoll('checkRefill')
         ->assertElement('button', refreshButton('Refresh provider data', false))
         ->assertSee('Last refreshed Oct 24, 08:00.')
-        // The finished steps stay, so a step that failed can be seen.
+    // The finished steps stay, so a step that failed can be seen.
         ->assertSee('Categories')
         ->assertSee('Done')
         ->assertDontSee('Loading…');
@@ -381,7 +381,7 @@ it('asks before clearing the image cache; Cancel clears nothing', function () {
     Native::test(Settings::class)
         ->tap('Clear image cache')
         ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Clear image cache'
-            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Clear', 'style' => 'destructive']])
+        && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Clear', 'style' => 'destructive']])
         ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel']);
 
     expect(app(PageStore::class)->has('t6-a'))->toBeTrue();
@@ -412,14 +412,14 @@ it('clears the image cache but the open chapter, keeps progress, Library and dow
     Queue::assertNothingPushed();
 });
 
-it('asks before a factory reset with alarming wording; Cancel deletes nothing (Plan-08 Task 4, Jenny 2026-10-24 18:29 EDT)', function () {
+it('asks before a factory reset with alarming wording; Cancel deletes nothing (Plan-08 Task 4)', function () {
     settingsSavedData();
 
     Native::test(Settings::class)
         ->tap('Delete everything')
         ->assertNativeCalled('Dialog.Alert', fn (array $p) => $p['title'] === 'Delete everything?'
-            && str_contains($p['message'], "can't be undone")
-            && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Delete everything', 'style' => 'destructive']])
+        && str_contains($p['message'], "can't be undone")
+        && $p['buttons'] === [['label' => 'Cancel', 'style' => 'cancel'], ['label' => 'Delete everything', 'style' => 'destructive']])
         ->emitNative(ButtonPressed::class, ['index' => 0, 'label' => 'Cancel'])
         ->assertNoNavigation();
 

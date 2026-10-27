@@ -68,12 +68,13 @@ class Home extends NativeComponent implements HasResumeBar
     private function rows(): array
     {
         $home = app(HomeRepository::class);
+        $seasonalOn = app(SettingsRepository::class)->seasonalUrl() !== null;
 
-        return [
-            HomeRepository::SEASON => $home->season(),
+        return array_filter([
+            HomeRepository::SEASON => $seasonalOn ? $home->season() : null,
             HomeRepository::POPULAR => $home->popular(),
             HomeRepository::LATEST => $home->latest(),
-        ];
+        ]);
     }
 
     /** @return list<Manga> */

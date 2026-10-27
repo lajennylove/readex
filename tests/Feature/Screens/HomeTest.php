@@ -189,12 +189,12 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
 
     $asked = implode("\n", $this->asked);
     expect($asked)->toContain('api.source.test/chapter')
-        ->not->toContain('antsylich.github.io')
+        ->not->toContain('example.github.io')
         ->not->toContain('createdAtSince');
 });
 
 it('keeps an empty row in place with placeholders while the others load (Review Focus 2)', function () {
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'example.github.io' ? Http::response('down', 503) : null);
 
     $screen = Native::test(Home::class)->assertSee('This season')->assertSee('The provider is having trouble, retrying');
 
@@ -263,7 +263,7 @@ it('waits for the background retry instead of offering Retry when The provider i
 
 it('shows empty rows, not "Nothing saved yet", when the source has nothing', function () {
     Loading::fake(fn (Request $request) => match (true) {
-        parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' => Http::response(['id' => 'list-1', 'name' => 'Fall 2026', 'manga_ids' => []]),
+        parse_url($request->url(), PHP_URL_HOST) === 'example.github.io' => Http::response(['id' => 'list-1', 'name' => 'Fall 2026', 'manga_ids' => []]),
         parse_url($request->url(), PHP_URL_HOST) === 'api.source.test' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 20, 'offset' => 0, 'total' => 0]),
         default => null,
     });
@@ -295,7 +295,7 @@ it('refreshes every row on pull to refresh, fresh or not', function () {
     $screen->call('pullToRefresh');
 
     $asked = implode("\n", $this->asked);
-    expect($asked)->toContain('antsylich.github.io')
+    expect($asked)->toContain('example.github.io')
         ->toContain('createdAtSince')
         ->toContain('api.source.test/chapter')
         ->and(homeNodes($screen->tree(), 'refreshable')[0]['props'])->toHaveKey('on_refresh');

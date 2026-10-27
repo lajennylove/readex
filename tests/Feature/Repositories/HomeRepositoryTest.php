@@ -19,12 +19,16 @@ use Illuminate\Support\Sleep;
 use Tests\Support\SourceFixtures;
 
 const SEASON_LIST = '68ab4f4e-6f01-4898-9038-c5eee066be27';
-const SEASONAL_HOST = 'antsylich.github.io';
+const SEASONAL_HOST = 'example.github.io';
+const SEASONAL_URL = 'https://example.github.io/seasonal-list.json';
 
 beforeEach(function () {
     Carbon::setTestNow('2026-10-24 12:00:00');
     Sleep::fake(syncWithCarbon: true);
     $this->settings = app(SettingsRepository::class);
+    // Opt the row in for the whole file (Plan-10 seasonalUrl gate) so these tests
+    // keep exercising the fetch path; a dedicated test below covers the "unset -> hidden" path.
+    $this->settings->setSeasonalUrl(SEASONAL_URL);
     $this->home = app(HomeRepository::class);
 });
 

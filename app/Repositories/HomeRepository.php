@@ -45,6 +45,15 @@ final class HomeRepository
      */
     public function refreshSeason(Priority $priority = Priority::Interactive): void
     {
+        // Opt-in: no curated-list URL set → the row doesn't exist. We clear the stored list
+        // so Home hides the row entirely (its own empty state would otherwise read "nothing
+        // new yet", which isn't the right story for a user who hasn't opted in).
+        if ($this->settings->seasonalUrl() === null) {
+            DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
         try {
             $ids = $this->seasonFromJson($priority);
         } catch (ApiError|ConnectionException|JsonException|UnexpectedValueException $e) {
@@ -162,7 +171,11 @@ final class HomeRepository
     /** @return list<string> */
     private function seasonFromJson(Priority $priority): array
     {
-        $json = $this->client->getJson(config('readex.seasonal_url'), $priority);
+        $url = $this->settings->seasonalUrl();
+        if ($url === null) {
+            throw new UnexpectedValueException('No curated-list URL configured.');
+        }
+        $json = $this->client->getJson($url, $priority);
         $ids = $json['manga_ids'] ?? null;
 
         if (! is_array($ids) || ! is_string($json['id'] ?? null)) {

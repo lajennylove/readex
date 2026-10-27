@@ -129,6 +129,30 @@ final class SettingsRepository
     }
 
     /**
+     * Opt-in URL for the "This season" row's curated JSON (shape: {id, name, manga_ids}).
+     * The row stays hidden on Home until a URL is saved; it comes back empty on Factory reset
+     * so a fresh install never fetches a hardcoded list.
+     */
+    public function seasonalUrl(): ?string
+    {
+        $value = $this->read('seasonal_url');
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    public function setSeasonalUrl(?string $url): void
+    {
+        $url = $url === null ? null : trim($url);
+        $this->write('seasonal_url', $url === '' ? null : $url);
+
+        if ($url === null || $url === '') {
+            // Clearing the URL also clears the learned list id so the fallback path
+            // (seasonFromList) doesn't still try to refresh against a now-stale list.
+            $this->write('seasonal_list_id', null);
+        }
+    }
+
+    /**
      * Search keeps its title and tag until the field is emptied or the chip deselected.
      *
      * @return array{query: string, tag_id: ?string}

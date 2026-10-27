@@ -23,6 +23,24 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">Curated list</native:text>
+            <native:text class="text-xs text-theme-on-surface-variant">A JSON URL ({{ '{' }}id, name, manga_ids{{ '}' }}) that fills a "This season" row on Home. Off by default — the row doesn't appear until you save one.</native:text>
+            <native:outlined_text_input
+                placeholder="https://lajennylove.github.io/readex/seasonal/seasonal-list.json"
+                value="{{ $seasonalUrl }}"
+                @change="changeSeasonalUrl" />
+            @if ($seasonalError)
+                <native:text class="text-sm text-theme-destructive">{{ $seasonalError }}</native:text>
+            @endif
+            <native:row class="w-full gap-2">
+                <native:button label="Save" variant="secondary" @press="saveSeasonalUrl" />
+                @if ($seasonalUrl !== '')
+                    <native:button label="Clear" variant="secondary" @press="clearSeasonalUrl" />
+                @endif
+            </native:row>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Provider data</native:text>
             <native:row class="w-full items-center justify-between">
                 <native:text class="text-base text-theme-on-background">Provider connection</native:text>

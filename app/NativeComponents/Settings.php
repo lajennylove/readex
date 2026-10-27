@@ -82,15 +82,52 @@ class Settings extends NativeComponent implements HasResumeBar
      */
     public bool $storageLow = false;
 
+    /**
+     * The opt-in URL for the "This season" row's curated JSON. Empty by default; while
+     * empty, Home hides the row entirely. The screen shows a sample URL as its text-input
+     * placeholder so a reviewer sees what shape the field expects without the row quietly
+     * fetching a hardcoded list.
+     */
+    public string $seasonalUrl = '';
+
+    public ?string $seasonalError = null;
+
     public function mount(SettingsRepository $settings): void
     {
         $this->language = $settings->language();
         $this->ratings = $settings->contentRatings();
         $this->quality = $settings->imageQuality();
+        $this->seasonalUrl = $settings->seasonalUrl() ?? '';
         $this->run = RefreshAllData::running();
         $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
         $this->cacheBytes = app(ImageCache::class)->usage();
         $this->storageLow = app(DiskSpaceGuard::class)->isLow();
+    }
+
+    public function changeSeasonalUrl(string $value): void
+    {
+        $this->seasonalUrl = trim($value);
+    }
+
+    public function saveSeasonalUrl(): void
+    {
+        $this->seasonalError = null;
+        $url = trim($this->seasonalUrl);
+
+        if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) === false) {
+            $this->seasonalError = 'That doesn\'t look like a URL.';
+
+            return;
+        }
+
+        app(SettingsRepository::class)->setSeasonalUrl($url === '' ? null : $url);
+    }
+
+    public function clearSeasonalUrl(): void
+    {
+        $this->seasonalUrl = '';
+        $this->seasonalError = null;
+        app(SettingsRepository::class)->setSeasonalUrl(null);
     }
 
     public function navTitle(): string
@@ -319,6 +356,8 @@ class Settings extends NativeComponent implements HasResumeBar
             'providerLabel' => $provider,
             'providerUrl' => $this->providerUrl(),
             'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
+            'seasonalUrl' => $this->seasonalUrl,
+            'seasonalError' => $this->seasonalError,
         ]);
     }
 }

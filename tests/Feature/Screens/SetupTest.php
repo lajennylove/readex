@@ -250,7 +250,7 @@ it('also catches no connection when the phone claims to be online', function () 
 });
 
 it('opens Home when rows load but one keeps failing', function () {
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'antsylich.github.io' ? Http::response('down', 503) : null);
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'example.github.io' ? Http::response('down', 503) : null);
 
     $screen = withBuiltInSource(Native::test(Setup::class))->tap('Continue')->assertReplacedWith('/home');
 

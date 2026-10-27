@@ -2,6 +2,7 @@
 
 namespace Tests\Support;
 
+use App\Repositories\SettingsRepository;
 use Closure;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -21,6 +22,10 @@ final class Loading
     public static function fake(?Closure $override = null, array &$covers = []): void
     {
         Http::swap(new Factory(app('events')));
+        // Opt the "This season" row in so SourceFixtures still gets exercised; a dedicated
+        // HomeRepositoryTest covers the "unset -> hidden" path.
+        app(SettingsRepository::class)
+            ->setSeasonalUrl('https://example.github.io/seasonal-list.json');
         $fixtures = SourceFixtures::stub(...self::FIXTURES);
         $jpeg = Covers::jpeg();
 

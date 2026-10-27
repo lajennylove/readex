@@ -80,8 +80,22 @@ class AppServiceProvider extends ServiceProvider
             }
 
             Artisan::call('migrate', ['--force' => true]);
+
+            if (Schema::hasTable('sources')) {
+                return;
+            }
+
+            Schema::create('sources', function ($table) {
+                $table->string('key')->primary();
+                $table->string('label');
+                $table->string('kind');
+                $table->boolean('enabled')->default(true);
+                $table->boolean('blocked')->default(false);
+                $table->json('config')->nullable();
+                $table->timestamp('created_at');
+            });
         } catch (Throwable) {
-            // Boot must survive a migration failure; the next request's crash shows the cause.
+            // Boot must survive a schema failure; the next request's crash shows the cause.
         }
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
@@ -32,6 +33,8 @@ final class SourceRepository
     /** Ensures the built-in row exists, called once at boot (idempotent). Keeps the label in sync with the adapter's current label on existing installs. */
     public function seedBuiltIn(): void
     {
+        self::ensureSourcesTable();
+
         $label = app(HttpSource::class)->label();
 
         $row = SourceConfig::query()->firstOrCreate(
@@ -42,6 +45,27 @@ final class SourceRepository
         if ($row->label !== $label) {
             $row->update(['label' => $label]);
         }
+    }
+
+    /**
+     * Point-of-use guard: if the `sources` table is missing on a device where the shipped
+     * migration never ran, create it in place before the first query hits it. Idempotent.
+     */
+    public static function ensureSourcesTable(): void
+    {
+        if (Schema::hasTable('sources')) {
+            return;
+        }
+
+        Schema::create('sources', function ($table) {
+            $table->string('key')->primary();
+            $table->string('label');
+            $table->string('kind');
+            $table->boolean('enabled')->default(true);
+            $table->boolean('blocked')->default(false);
+            $table->json('config')->nullable();
+            $table->timestamp('created_at');
+        });
     }
 
     /** @return Collection<int, SourceConfig> every configured source, built-in first. */

@@ -127,4 +127,13 @@ return [
 
     'seasonal_url' => 'https://antsylich.github.io/source-seasonal/seasonal-list.json',
 
+    'downloads' => [
+        // Number of chapter downloads the background lane runs in parallel. The per-image
+        // rate still caps aggregate throughput (`source-limits.php:images`), so raising this
+        // reduces per-chapter dispatch latency without hitting @Home nodes any harder on
+        // raw image rate. The reserved "comodin" lane is separate — the user's own Read-Now
+        // never waits behind the background queue.
+        'background_lanes' => (int) env('READEX_DOWNLOADS_BACKGROUND_LANES', 2),
+    ],
+
 ];

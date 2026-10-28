@@ -31,13 +31,22 @@ class Home extends NativeComponent implements HasResumeBar
         HomeRepository::SEASON => 'This season',
         HomeRepository::POPULAR => 'Popular new titles',
         HomeRepository::LATEST => 'Latest updates',
+        HomeRepository::RECENTLY_ADDED => 'Recently added',
+        HomeRepository::SELF_PUBLISHED => 'Self-published',
+        HomeRepository::RECOMMENDED => 'Recommended for you',
     ];
 
     private const REFRESH = [
         HomeRepository::SEASON => 'refreshSeason',
         HomeRepository::POPULAR => 'refreshPopular',
         HomeRepository::LATEST => 'refreshLatest',
+        HomeRepository::RECENTLY_ADDED => 'refreshRecentlyAdded',
+        HomeRepository::SELF_PUBLISHED => 'refreshSelfPublished',
+        HomeRepository::RECOMMENDED => 'refreshRecommended',
     ];
+
+    /** The Recommended for you row is hidden until this many picks are stored (same gating as Season). */
+    private const RECOMMENDED_MIN = 10;
 
     public function navTitle(): string
     {
@@ -84,10 +93,23 @@ class Home extends NativeComponent implements HasResumeBar
             $season = null;
         }
 
+        // Recommended row stays hidden until there are enough stored picks to feel curated.
+        // We still include it while stale so keepFresh() can start the first refresh — once that
+        // refresh comes back thin (few favorites + viewed series, or no on-tag candidates), the
+        // stored list is cleared and this gate hides the row on the next tick.
+        $recommended = $home->recommended();
+
+        if (! $recommended->isStale && ($recommended->data?->count() ?? 0) < self::RECOMMENDED_MIN) {
+            $recommended = null;
+        }
+
         return array_filter([
             HomeRepository::SEASON => $season,
             HomeRepository::POPULAR => $home->popular(),
             HomeRepository::LATEST => $home->latest(),
+            HomeRepository::RECENTLY_ADDED => $home->recentlyAdded(),
+            HomeRepository::SELF_PUBLISHED => $home->selfPublished(),
+            HomeRepository::RECOMMENDED => $recommended,
         ]);
     }
 

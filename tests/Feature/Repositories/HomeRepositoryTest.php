@@ -2,10 +2,12 @@
 
 use App\Adapters\Http\Exceptions\ApiError;
 use App\Models\Chapter;
+use App\Models\Collection;
 use App\Models\Manga;
 use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
+use App\Models\ViewedSeries;
 use App\Repositories\ChapterRepository;
 use App\Repositories\HomeRepository;
 use App\Repositories\LatestUpdate;
@@ -298,3 +300,132 @@ it('sends the reader\'s chain and stores nothing for an empty answer', function 
     Http::assertSentCount(1);
     expect($this->home->latest()->isEmpty())->toBeTrue();
 });
+
+/**
+ * Minimal manga row the repository can read tag_ids and content_rating off of.
+ *
+ * @param  list<string>  $tagIds
+ */
+function recManga(string $id, array $tagIds, string $title = 'Manga'): Manga
+{
+    return Manga::create([
+        'id' => $id,
+        'title' => ['en' => $title],
+        'alt_titles' => [],
+        'description' => [],
+        'content_rating' => 'safe',
+        'available_languages' => ['en'],
+        'tag_ids' => $tagIds,
+        'fetched_at' => Carbon::now(),
+    ]);
+}
+
+/** A /manga entity in the shape the source returns and MangaMapper reads. */
+function recEntity(string $id, array $tagIds, string $title = 'Candidate'): array
+{
+    return [
+        'id' => $id,
+        'type' => 'manga',
+        'attributes' => [
+            'title' => ['en' => $title],
+            'altTitles' => [],
+            'description' => [],
+            'status' => 'ongoing',
+            'year' => 2024,
+            'contentRating' => 'safe',
+            'availableTranslatedLanguages' => ['en'],
+            'originalLanguage' => 'en',
+            'tags' => array_map(fn (string $tagId) => ['id' => $tagId, 'type' => 'tag'], $tagIds),
+        ],
+        'relationships' => [],
+    ];
+}
+
+it('refreshRecommended bails out when both favorites and viewed are thin', function () {
+    // 4 favorites + 9 viewed: both under the gate, nothing goes out, row stays empty.
+    for ($i = 0; $i < 4; $i++) {
+        $m = recManga("fav-{$i}", ['tag-a']);
+        Collection::create(['manga_id' => $m->id, 'favorite' => true]);
+    }
+    for ($i = 0; $i < 9; $i++) {
+        $m = recManga("v-{$i}", ['tag-a']);
+        ViewedSeries::create(['manga_id' => $m->id, 'first_viewed_at' => Carbon::now(), 'last_viewed_at' => Carbon::now()]);
+    }
+    Http::fake();
+
+    $this->home->refreshRecommended();
+
+    expect($this->home->recommended()->isEmpty())->toBeTrue();
+    Http::assertSentCount(0);
+});
+
+it('refreshRecommended clears the row when every candidate is already in favorites or viewed', function () {
+    for ($i = 0; $i < 5; $i++) {
+        $m = recManga("fav-{$i}", ['tag-a']);
+        Collection::create(['manga_id' => $m->id, 'favorite' => true]);
+    }
+
+    Http::fake(fn () => Http::response([
+        'result' => 'ok',
+        'data' => [recEntity('fav-0', ['tag-a']), recEntity('fav-1', ['tag-a'])],
+        'total' => 2,
+    ]));
+
+    $this->home->refreshRecommended();
+
+    expect($this->home->recommended()->isEmpty())->toBeTrue();
+});
+
+it('refreshRecommended ranks candidates by profile overlap and keeps the top 30', function () {
+    // Profile: tag-a weight 15 (5 favorites), tag-b weight 10 (10 viewed).
+    for ($i = 0; $i < 5; $i++) {
+        $m = recManga("fav-{$i}", ['tag-a']);
+        Collection::create(['manga_id' => $m->id, 'favorite' => true]);
+    }
+    for ($i = 0; $i < 10; $i++) {
+        $m = recManga("v-{$i}", ['tag-b']);
+        ViewedSeries::create(['manga_id' => $m->id, 'first_viewed_at' => Carbon::now(), 'last_viewed_at' => Carbon::now()]);
+    }
+
+    $top = [];
+    $mid = [];
+    for ($i = 0; $i < 20; $i++) {
+        $top[] = recEntity("top-{$i}", ['tag-a', 'tag-b']);
+    }
+    for ($i = 0; $i < 15; $i++) {
+        $mid[] = recEntity("mid-{$i}", ['tag-b']);
+    }
+
+    Http::fake(function (Request $request) use ($top, $mid) {
+        $url = rawurldecode($request->url());
+
+        return match (true) {
+            str_contains($url, 'includedTags[]=tag-a') => Http::response(['result' => 'ok', 'data' => $top, 'total' => 20]),
+            str_contains($url, 'includedTags[]=tag-b') => Http::response(['result' => 'ok', 'data' => $mid, 'total' => 15]),
+            default => Http::response(['result' => 'ok', 'data' => [], 'total' => 0]),
+        };
+    });
+
+    $this->home->refreshRecommended();
+
+    $result = $this->home->recommended();
+    $ids = $result->data->map(fn (Manga $m) => $m->id)->all();
+
+    expect($result->data)->toHaveCount(30)
+        ->and(array_slice($ids, 0, 20))->toEqualCanonicalizing(array_map(fn (int $i) => "top-{$i}", range(0, 19)))
+        ->and(array_slice($ids, 20, 10))->toEqualCanonicalizing(array_map(fn (int $i) => "mid-{$i}", range(0, 9)))
+        ->and($result->isStale)->toBeFalse();
+});
+
+it('refreshRecommended silently clears the row when the source answers 400/404/405', function (int $status) {
+    for ($i = 0; $i < 5; $i++) {
+        $m = recManga("fav-{$i}", ['tag-a']);
+        Collection::create(['manga_id' => $m->id, 'favorite' => true]);
+    }
+
+    Http::fake(fn () => Http::response('nope', $status));
+
+    $this->home->refreshRecommended();
+
+    expect($this->home->recommended()->isEmpty())->toBeTrue();
+})->with([400, 404, 405]);

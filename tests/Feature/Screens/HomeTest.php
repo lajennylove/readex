@@ -6,6 +6,8 @@ use App\Adapters\Http\RateLimit\BusyReason;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Jobs\DownloadCovers;
 use App\Jobs\RefreshRepository;
+use App\Models\Manga;
+use App\Models\MangaListEntry;
 use App\NativeComponents\Home;
 use App\NativeComponents\Library;
 use App\NativeComponents\Reader;
@@ -411,4 +413,59 @@ it('renders Home and Library without dropped Tailwind classes', function () {
     Native::test(Library::class)->assertSee('Reading');
 
     expect($dropped)->toBe([]);
+});
+
+it('hides the Recommended for you row until at least 10 picks are stored', function () {
+    fillHome();
+
+    $now = Carbon::now();
+    for ($i = 0; $i < 5; $i++) {
+        $id = "rec-few-{$i}";
+        Manga::create([
+            'id' => $id,
+            'title' => ['en' => "Rec {$i}"],
+            'alt_titles' => [],
+            'description' => [],
+            'content_rating' => 'safe',
+            'available_languages' => ['en'],
+            'tag_ids' => [],
+            'fetched_at' => $now,
+        ]);
+        MangaListEntry::create([
+            'list_key' => HomeRepository::RECOMMENDED,
+            'batch' => 1,
+            'position' => $i,
+            'manga_id' => $id,
+            'fetched_at' => $now,
+        ]);
+    }
+
+    expect(rowLabels(Native::test(Home::class)->tree()))->not->toContain('Recommended for you');
+});
+
+it('shows the Recommended for you row once at least 10 picks are stored', function () {
+    fillHome();
+    $now = Carbon::now();
+    for ($i = 0; $i < 12; $i++) {
+        $id = "rec-{$i}";
+        Manga::create([
+            'id' => $id,
+            'title' => ['en' => "Rec {$i}"],
+            'alt_titles' => [],
+            'description' => [],
+            'content_rating' => 'safe',
+            'available_languages' => ['en'],
+            'tag_ids' => [],
+            'fetched_at' => $now,
+        ]);
+        MangaListEntry::create([
+            'list_key' => HomeRepository::RECOMMENDED,
+            'batch' => 1,
+            'position' => $i,
+            'manga_id' => $id,
+            'fetched_at' => $now,
+        ]);
+    }
+
+    expect(rowLabels(Native::test(Home::class)->tree()))->toContain('Recommended for you');
 });

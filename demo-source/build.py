@@ -57,6 +57,9 @@ TAGS = [
     {"id": "77777777-7777-4777-8777-777777777777", "name": "Slice of Life", "group": "theme"},
     {"id": "88888888-8888-4888-8888-888888888888", "name": "Suspense", "group": "theme"},
     {"id": "99999999-9999-4999-8999-999999999999", "name": "Mature", "group": "content"},
+    # Matches MangaDex's actual Self-Published tag UUID so a user who swaps to MangaDex sees
+    # the Home row backed by the real catalog; demo titles below carry it too.
+    {"id": "891cf039-b895-47f0-9229-bef4c96eccd4", "name": "Self-Published", "group": "format"},
 ]
 
 TAG_BY_NAME = {t["name"]: t["id"] for t in TAGS}
@@ -156,21 +159,21 @@ _LOREM3 = "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
 # -- safe (22) ---------------------------------------------------------------
 _add(1,  "Lorem Ipsum Dolor",        _LOREM,  "safe", ["Action", "Mystery", "Historical"],       2024, 2)
 _add(2,  "Consectetur Adipiscing",   _LOREM2, "safe", ["Action", "Sci-Fi", "Suspense"],          2023, 2)
-_add(3,  "Elit Sed Do Eiusmod",      _LOREM3, "safe", ["Comedy", "Slice of Life"],               2025, 2)
+_add(3,  "Elit Sed Do Eiusmod",      _LOREM3, "safe", ["Comedy", "Slice of Life", "Self-Published"],  2025, 2)
 _add(4,  "Tempor Incididunt",        _LOREM,  "safe", ["Action", "Drama"],                       2022, 2)
 _add(5,  "Labore Et Dolore",         _LOREM2, "safe", ["Mystery", "Suspense", "Historical"],     2024, 2)
 _add(6,  "Magna Aliqua",             _LOREM3, "safe", ["Comedy", "Slice of Life", "Mystery"],    2024, 2)
 _add(7,  "Ut Enim Ad Minim",         _LOREM,  "safe", ["Action", "Sci-Fi"],                      2025, 2)
 _add(8,  "Veniam Quis Nostrud",      _LOREM2, "safe", ["Drama", "Slice of Life"],                2023, 2)
 _add(9,  "Exercitation Ullamco",     _LOREM3, "safe", ["Action", "Comedy", "Sci-Fi"],            2024, 2)
-_add(10, "Laboris Nisi Aliquip",     _LOREM,  "safe", ["Mystery", "Slice of Life"],              2022, 2)
+_add(10, "Laboris Nisi Aliquip",     _LOREM,  "safe", ["Mystery", "Slice of Life", "Self-Published"], 2022, 2)
 _add(11, "Ex Ea Commodo",            _LOREM2, "safe", ["Action", "Sci-Fi", "Historical"],        2024, 2)
 _add(12, "Consequat Duis Aute",      _LOREM3, "safe", ["Comedy", "Slice of Life"],               2025, 2)
 _add(13, "Irure Dolor",              _LOREM,  "safe", ["Action", "Suspense"],                    2023, 2)
 _add(14, "Reprehenderit Voluptate",  _LOREM2, "safe", ["Drama", "Sci-Fi"],                       2024, 2)
 _add(15, "Velit Esse Cillum",        _LOREM3, "safe", ["Action", "Comedy", "Slice of Life"],     2025, 2)
 _add(16, "Fugiat Nulla Pariatur",    _LOREM,  "safe", ["Action", "Mystery"],                      2024, 1)
-_add(17, "Excepteur Sint Occaecat",  _LOREM2, "safe", ["Drama", "Slice of Life", "Comedy"],      2023, 1)
+_add(17, "Excepteur Sint Occaecat",  _LOREM2, "safe", ["Drama", "Slice of Life", "Comedy", "Self-Published"], 2023, 1)
 _add(18, "Cupidatat Non Proident",   _LOREM3, "safe", ["Historical", "Comedy"],                   2022, 1)
 _add(19, "Sunt In Culpa",            _LOREM,  "safe", ["Action", "Sci-Fi", "Suspense"],          2024, 1)
 _add(20, "Qui Officia Deserunt",     _LOREM2, "safe", ["Comedy", "Slice of Life", "Action"],     2025, 1)

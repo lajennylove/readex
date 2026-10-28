@@ -429,3 +429,40 @@ it('refreshRecommended silently clears the row when the source answers 400/404/4
 
     expect($this->home->recommended()->isEmpty())->toBeTrue();
 })->with([400, 404, 405]);
+
+it('loads Recently added, newest-created first', function () {
+    SourceFixtures::fake('recently-added');
+
+    $this->home->refreshRecentlyAdded();
+
+    expect($this->home->recentlyAdded()->data)->toHaveCount(20)
+        ->and($this->home->recentlyAdded()->isStale)->toBeFalse();
+    Http::assertSent(fn (Request $r) => str_contains(rawurldecode($r->url()), 'order[createdAt]=desc'));
+});
+
+it('silently clears Recently added when the source answers 404/405', function (int $status) {
+    fakeHomeAgain(fn () => Http::response('nope', $status));
+
+    $this->home->refreshRecentlyAdded();
+
+    expect($this->home->recentlyAdded()->isEmpty())->toBeTrue();
+})->with([404, 405]);
+
+it('loads Self-published titles, tagged + most followed first', function () {
+    SourceFixtures::fake('self-published');
+
+    $this->home->refreshSelfPublished();
+
+    expect($this->home->selfPublished()->data)->toHaveCount(20)
+        ->and($this->home->selfPublished()->isStale)->toBeFalse();
+    Http::assertSent(fn (Request $r) => str_contains(rawurldecode($r->url()), 'includedTags[]=891cf039-b895-47f0-9229-bef4c96eccd4')
+        && str_contains(rawurldecode($r->url()), 'order[followedCount]=desc'));
+});
+
+it('silently clears Self-published when the source answers 404/405', function (int $status) {
+    fakeHomeAgain(fn () => Http::response('nope', $status));
+
+    $this->home->refreshSelfPublished();
+
+    expect($this->home->selfPublished()->isEmpty())->toBeTrue();
+})->with([404, 405]);

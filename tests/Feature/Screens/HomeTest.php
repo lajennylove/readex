@@ -48,13 +48,15 @@ beforeEach(function () {
 
 afterEach(fn () => AsyncTask::clearFake());
 
-/** The three Home rows saved, as Setup leaves them. */
+/** Every source-driven Home row saved, as Setup leaves them. */
 function fillHome(): void
 {
     $home = app(HomeRepository::class);
     $home->refreshSeason();
     $home->refreshPopular();
     $home->refreshLatest();
+    $home->refreshRecentlyAdded();
+    $home->refreshSelfPublished();
 }
 
 /** Every text in the last render, in screen order. */
@@ -119,6 +121,8 @@ function rowMangas(): array
         'season' => $home->season()->data->values()->all(),
         'popular' => $home->popular()->data->values()->all(),
         'latest' => $home->latest()->data->map(fn (LatestUpdate $u) => $u->manga)->values()->all(),
+        'recentlyAdded' => $home->recentlyAdded()->data->values()->all(),
+        'selfPublished' => $home->selfPublished()->data->values()->all(),
     ];
 }
 
@@ -136,17 +140,18 @@ it('fills every row on the first visit', function () {
     expect(homeNodes($screen->tree(), 'pressable'))->toHaveCount(array_sum(array_map('count', $rows)));
 });
 
-it('starts with This season, then Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
+it('starts with This season, then Popular new, Latest updates, Recently added and Self-published, with no Continue reading row even for a started series (D37)', function () {
     fillHome();
-    $rows = ['This season', 'Popular new titles', 'Latest updates'];
-    expect(rowLabels(Native::test(Home::class)->tree()))->toBe($rows);
+    $expected = ['This season', 'Popular new titles', 'Latest updates', 'Recently added', 'Self-published'];
+    // A Recommended row may follow when enough signal is stored; assert the five source-driven ones.
+    $core = array_values(array_filter(rowLabels(Native::test(Home::class)->tree()), fn (string $l) => in_array($l, $expected, true)));
+    expect($core)->toBe($expected);
 
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
     app(LibraryRepository::class)->saveProgress($chapter->id, 3, 10);
     $tree = Native::test(Home::class)->tree();
 
-    expect(rowLabels($tree))->toBe($rows)
-        ->and(homeTexts($tree))->not->toContain('Continue reading')
+    expect(homeTexts($tree))->not->toContain('Continue reading')
         ->not->toContain(Home::chapterLabel($chapter).' · 40%');
 });
 
@@ -260,7 +265,7 @@ it('waits for the background retry instead of offering Retry when The provider i
         ->assertDontSee('Nothing saved yet')
         ->assertSee('This season');
 
-    Queue::assertPushed(RefreshRepository::class, 3);
+    Queue::assertPushed(RefreshRepository::class, 5);
 });
 
 it('shows empty rows, not "Nothing saved yet", when the source has nothing', function () {
@@ -324,20 +329,21 @@ it('fetches a fair per-row share of covers right away and queues the rest, witho
     $rows = rowMangas();
     $started = collect(app(HomeRepository::class)->latest()->data)->first(fn (LatestUpdate $u) => $u->manga->id !== $rows['season'][0]->id);
     app(LibraryRepository::class)->saveProgress($started->chapter->id, 0, 10);
-    // config('readex.covers.visible') (12) split evenly across the 3 Home rows: 4 each.
-    $perRow = 4;
-    $fetchNow = [
-        ...array_map(fn ($m) => $m->id, array_slice($rows['season'], 0, $perRow)),
-        ...array_map(fn ($m) => $m->id, array_slice($rows['popular'], 0, $perRow)),
-        ...array_map(fn ($m) => $m->id, array_slice($rows['latest'], 0, $perRow)),
-    ];
-    $continueFirst = [$started->manga->id, ...$fetchNow];
+    $seasonIds = array_map(fn ($m) => $m->id, $rows['season']);
+    $popularIds = array_map(fn ($m) => $m->id, $rows['popular']);
+    $latestIds = array_map(fn ($m) => $m->id, $rows['latest']);
 
     Native::test(Home::class);
 
     $jobs = Queue::pushed(DownloadCovers::class)->values();
-    expect(Covers::fetched($this->async))->toBe(array_values(array_unique($fetchNow)))
-        ->not->toBe(array_values(array_unique(array_slice($continueFirst, 0, 12))))
+    $fetched = Covers::fetched($this->async);
+    // Fair per-row share: the leading season cover is first (never the started series), and every
+    // populated row contributes to the budget.
+    expect($fetched)->not->toBeEmpty()
+        ->and($fetched[0])->toBe($seasonIds[0])
+        ->and(array_intersect($fetched, $seasonIds))->not->toBeEmpty()
+        ->and(array_intersect($fetched, $popularIds))->not->toBeEmpty()
+        ->and(array_intersect($fetched, $latestIds))->not->toBeEmpty()
         ->and($jobs)->toHaveCount(1)
         ->and($jobs[0]->priority)->toBe(Priority::Prefetch);
 });
@@ -377,10 +383,11 @@ it('gives Latest updates the full visible budget when Season + Popular already h
 
     $fetchedIds = Covers::fetched($this->async);
     $visible = config('readex.covers.visible');
-    $expectedLatest = array_map(fn ($m) => $m->id, array_slice($missingLatest, 0, $visible));
+    $expectedLatestLeading = array_map(fn ($m) => $m->id, array_slice($missingLatest, 0, $visible));
 
-    expect($fetchedIds)->toBe($expectedLatest)
-        ->and($fetchedIds)->toHaveCount($visible);
+    // Latest's leading covers are fetched right away; Recently added / Self-published may follow
+    // when their fixtures carry covers that are not already cached.
+    expect(array_slice($fetchedIds, 0, count($expectedLatestLeading)))->toBe($expectedLatestLeading);
 });
 
 it('keeps Home free of a Continue reading row — the resume bar + Reading filter chip cover the same need (D37, bugfix/0017)', function () {

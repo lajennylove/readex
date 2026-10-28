@@ -67,6 +67,12 @@ class Home extends NativeComponent implements HasResumeBar
             $rows[] = $this->mangasOf($key, $result);
         }
 
+        // Recommended's row is hidden from rows() until enough picks are stored, so we also
+        // keep its refresh running on its own — the first visit of a user with enough signal
+        // still needs the row to fill before it shows up.
+        $home = app(HomeRepository::class);
+        $this->keepFresh($home->recommended(), Refresh::of([HomeRepository::class, self::REFRESH[HomeRepository::RECOMMENDED]]));
+
         // Each row gets its own fair slice of the fetch-now budget (ShowsTiles::queueRowCovers):
         // a shared budget consumed in screen order starved Latest updates, since Season + Popular
         // alone already exceed it.
@@ -94,14 +100,10 @@ class Home extends NativeComponent implements HasResumeBar
         }
 
         // Recommended row stays hidden until there are enough stored picks to feel curated.
-        // We still include it while stale so keepFresh() can start the first refresh — once that
-        // refresh comes back thin (few favorites + viewed series, or no on-tag candidates), the
-        // stored list is cleared and this gate hides the row on the next tick.
+        // Its refresh is kicked off separately in load() so a user whose signals eventually
+        // produce 10+ picks will see the row appear without having to open it first.
         $recommended = $home->recommended();
-
-        if (! $recommended->isStale && ($recommended->data?->count() ?? 0) < self::RECOMMENDED_MIN) {
-            $recommended = null;
-        }
+        $recommended = ($recommended->data?->count() ?? 0) >= self::RECOMMENDED_MIN ? $recommended : null;
 
         return array_filter([
             HomeRepository::SEASON => $season,

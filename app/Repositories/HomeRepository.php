@@ -36,7 +36,7 @@ final class HomeRepository
 
     public const SELF_PUBLISHED = 'home.self_published';
 
-    /** MangaDex tag UUID for Self-published titles. */
+    /** Source-wide tag UUID for Self-published titles. */
     private const SELF_PUBLISHED_TAG = '891cf039-b895-47f0-9229-bef4c96eccd4';
 
     /** Favorites outweigh glanced-at series by this factor in the tag-affinity profile. */

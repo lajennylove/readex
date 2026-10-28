@@ -7,10 +7,12 @@ use App\Adapters\Http\Exceptions\ApiError;
 use App\Adapters\Http\Mappers\ChapterMapper;
 use App\Adapters\Http\RateLimit\Priority;
 use App\Models\Chapter;
+use App\Models\Collection;
 use App\Models\Manga;
 use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
+use App\Models\ViewedSeries;
 use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\ConnectionException;
@@ -27,6 +29,37 @@ final class HomeRepository
     public const POPULAR = 'home.popular';
 
     public const LATEST = 'home.latest';
+
+    public const RECOMMENDED = 'home.recommended';
+
+    public const RECENTLY_ADDED = 'home.recently_added';
+
+    public const SELF_PUBLISHED = 'home.self_published';
+
+    /** MangaDex tag UUID for Self-published titles. */
+    private const SELF_PUBLISHED_TAG = '891cf039-b895-47f0-9229-bef4c96eccd4';
+
+    /** Favorites outweigh glanced-at series by this factor in the tag-affinity profile. */
+    private const FAVORITE_WEIGHT = 3;
+
+    private const VIEWED_WEIGHT = 1;
+
+    /** Below this (favorites AND viewed), the row stays hidden instead of showing weak picks. */
+    private const MIN_FAVORITES = 5;
+
+    private const MIN_VIEWED = 10;
+
+    /** How many seed tags drive the candidate fetch. */
+    private const SEED_TAGS = 5;
+
+    /** Candidates per seed tag; dedup trims across tags. */
+    private const CANDIDATES_PER_TAG = 60;
+
+    /** Top N by affinity score kept in the row. */
+    private const KEEP = 30;
+
+    /** Row stays hidden unless at least this many recs survived ranking. */
+    private const MIN_RESULTS = 10;
 
     public function __construct(
         private readonly Client $client,
@@ -134,6 +167,65 @@ final class HomeRepository
         $this->transactional(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
     }
 
+    public function recentlyAdded(): Result
+    {
+        return $this->manga->readList(self::RECENTLY_ADDED, self::RECENTLY_ADDED);
+    }
+
+    /** Most-recently-created series on the source, any language (reordered in get()). */
+    public function refreshRecentlyAdded(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga', [
+                'order' => ['createdAt' => 'desc'],
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if (in_array($e->status, [404, 405], true)) {
+                $this->transactional(fn () => $this->replace(self::RECENTLY_ADDED, []));
+
+                return;
+            }
+
+            throw $e;
+        }
+
+        $this->transactional(fn () => $this->replace(self::RECENTLY_ADDED, $this->manga->storeManga($response)));
+    }
+
+    public function selfPublished(): Result
+    {
+        return $this->manga->readList(self::SELF_PUBLISHED, self::SELF_PUBLISHED);
+    }
+
+    /** Most-followed self-published series on the source. */
+    public function refreshSelfPublished(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga', [
+                'includedTags' => [self::SELF_PUBLISHED_TAG],
+                'order' => ['followedCount' => 'desc'],
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if (in_array($e->status, [404, 405], true)) {
+                $this->transactional(fn () => $this->replace(self::SELF_PUBLISHED, []));
+
+                return;
+            }
+
+            throw $e;
+        }
+
+        $this->transactional(fn () => $this->replace(self::SELF_PUBLISHED, $this->manga->storeManga($response)));
+    }
+
     /**
      * Newest first, one tile per series (its newest chapter), never reordered by language:
      * the row is already filtered to the chain (spec §10).
@@ -213,6 +305,125 @@ final class HomeRepository
             $this->replace(self::LATEST, array_keys($newest), array_column($newest, 'id', 'manga_id'));
             $this->forgetChapters($old->diff(array_column($newest, 'id'))->values()->all());
         });
+    }
+
+    public function recommended(): Result
+    {
+        return $this->manga->readList(self::RECOMMENDED, self::RECOMMENDED);
+    }
+
+    /**
+     * Builds a local tag-affinity profile from the user's own favorites + glanced-at series
+     * and asks the active source for series that share those tags, ranked by how many of the
+     * profile's tags they carry. All on-device: no profile ever leaves SQLite. The row stays
+     * hidden until the user has enough signal to produce a non-random recommendation.
+     */
+    public function refreshRecommended(Priority $priority = Priority::Interactive): void
+    {
+        $favorites = Collection::query()->where('favorite', true)->pluck('manga_id')->all();
+        $viewed = ViewedSeries::query()->pluck('manga_id')->all();
+
+        // Thin signal: don't pretend to recommend. Clearing (vs. leaving stale rows) is what
+        // Home::rows() keys off to hide the row entirely.
+        if (count($favorites) < self::MIN_FAVORITES && count($viewed) < self::MIN_VIEWED) {
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        $signals = array_merge(
+            array_map(fn (string $id) => [$id, self::FAVORITE_WEIGHT], $favorites),
+            array_map(fn (string $id) => [$id, self::VIEWED_WEIGHT], $viewed),
+        );
+        $signalIds = array_values(array_unique(array_column($signals, 0)));
+        $knownManga = Manga::query()->findMany($signalIds)->keyBy('id');
+
+        $profile = [];
+        foreach ($signals as [$id, $weight]) {
+            $manga = $knownManga->get($id);
+            foreach ($manga->tag_ids ?? [] as $tagId) {
+                $profile[$tagId] = ($profile[$tagId] ?? 0) + $weight;
+            }
+        }
+
+        if ($profile === []) {
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        arsort($profile);
+        $seedTags = array_slice(array_keys($profile), 0, self::SEED_TAGS);
+
+        $exclude = array_flip(array_merge($favorites, $viewed));
+        $candidates = [];
+
+        try {
+            foreach ($seedTags as $tagId) {
+                $response = $this->client->get('/manga', [
+                    'includedTags' => [$tagId],
+                    'limit' => self::CANDIDATES_PER_TAG,
+                    'contentRating' => $this->settings->contentRatings(),
+                    'includes' => ['cover_art'],
+                    'order' => ['followedCount' => 'desc'],
+                ], $priority);
+
+                foreach ($response['data'] ?? [] as $entity) {
+                    $id = $entity['id'] ?? null;
+                    if (! is_string($id) || isset($exclude[$id]) || isset($candidates[$id])) {
+                        continue;
+                    }
+                    $candidates[$id] = $entity;
+                }
+            }
+        } catch (ApiError $e) {
+            // A source that doesn't serve /manga with these filters (demo URLs, or an API that
+            // ignores includedTags[]): leave the row empty, same shape as the other rows.
+            if (in_array($e->status, [400, 404, 405], true)) {
+                $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+                return;
+            }
+
+            throw $e;
+        }
+
+        if ($candidates === []) {
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        // Store the manga first so we can read tag_ids back the same way MangaMapper writes them,
+        // then score each candidate by Σ profile[tag] over its tag_ids.
+        $storedIds = $this->manga->storeManga(['data' => array_values($candidates)]);
+        $stored = Manga::query()->findMany($storedIds)->keyBy('id');
+
+        $scored = [];
+        foreach ($storedIds as $id) {
+            $manga = $stored->get($id);
+            if ($manga === null) {
+                continue;
+            }
+            $score = 0;
+            foreach ($manga->tag_ids ?? [] as $tagId) {
+                $score += $profile[$tagId] ?? 0;
+            }
+            if ($score > 0) {
+                $scored[$id] = $score;
+            }
+        }
+
+        arsort($scored);
+        $top = array_slice(array_keys($scored), 0, self::KEEP);
+
+        if (count($top) < self::MIN_RESULTS) {
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        $this->transactional(fn () => $this->replace(self::RECOMMENDED, $top));
     }
 
     /** @return list<string> */

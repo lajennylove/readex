@@ -1,0 +1,131 @@
+- generic [active] [ref=f72e1]:
+  - generic:
+    - generic:
+      - progressbar [aria-hidden]
+      - generic: Loading Google Play Console
+  - generic [ref=f72e3]:
+    - banner [ref=f72e4]:
+      - generic [ref=f72e6]:
+        - link [ref=f72e7] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/home
+          - button "Google Play Console logo" [ref=f72e8]
+        - generic [ref=f72e9]:
+          - button "Unread notifications Open notification center" [ref=f72e56]:
+            - img [aria-hidden] [ref=f72e60]: notifications_unread
+            - generic [ref=f72e61]: Unread notifications
+          - generic [ref=f72e12]:
+            - button "Switch developer accounts" [ref=f72e15] [cursor=pointer]:
+              - img [aria-hidden] [ref=f72e17]: more_vert
+            - 'button "Google Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f72e25] [cursor=pointer]'
+    - navigation [ref=f72e64]:
+      - list [ref=f72e65]:
+        - listitem "Home" [ref=f72e68]:
+          - button "Home" [ref=f72e69] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e72]: home
+        - listitem "Manage account" [ref=f72e75]:
+          - button "Manage account" [ref=f72e76] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e79]: badge
+        - listitem "ReaDex" [ref=f72e82]:
+          - button "ReaDex" [ref=f72e85] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e89]: play_prism
+        - listitem "Dashboard" [ref=f72e92]:
+          - button "Dashboard" [ref=f72e93] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e96]: dashboard
+        - listitem "Statistics" [ref=f72e99]:
+          - button "Statistics" [ref=f72e100] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e103]: bar_chart
+        - listitem "Publishing overview" [ref=f72e106]:
+          - button "Publishing overview" [ref=f72e107] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e110]: overview
+        - listitem "Protected with Play" [ref=f72e113]:
+          - button "Protected with Play" [ref=f72e114] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e117]: shield
+        - listitem "Test and release" [ref=f72e120]:
+          - button "Test and release" [ref=f72e121] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e124]: rocket_launch
+        - listitem "Monitor and improve" [ref=f72e127]:
+          - button "Monitor and improve" [ref=f72e128] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e131]: vital_signs
+        - listitem "Grow users" [ref=f72e134]:
+          - button "Grow users" [ref=f72e135] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e138]: finance_mode
+        - listitem "Monetize with Play" [ref=f72e141]:
+          - button "Monetize with Play" [ref=f72e142] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e145]: sell
+    - generic [ref=f72e33]:
+      - generic [ref=f72e149]:
+        - generic [ref=f72e151]:
+          - generic [ref=f72e153]:
+            - link "Go back to Manage account" [ref=f72e156] [cursor=pointer]:
+              - /url: /console/u/0/developers/6723945036989514032/manage-account
+              - img [aria-hidden] [ref=f72e160]: keyboard_backspace
+              - generic [ref=f72e161]: Manage account
+            - heading "Linked services" [level=1] [ref=f72e170]
+          - generic [ref=f72e176]:
+            - heading "Link your accounts and do more with your data" [level=2] [ref=f72e185]
+            - paragraph [ref=f72e186]:
+              - generic [ref=f72e187]: Link your developer account to Google Ads, Google Marketing Platform, and Firebase to access remarketing lists and in-app conversion data, allow automatic tracking of installs, and see in-app purchase tracking, ANRs and crash data
+            - generic [ref=f72e190]:
+              - link "Learn more about Linked services (opens in a new tab)" [ref=f72e192] [cursor=pointer]:
+                - /url: https://support.google.com/googleplay/android-developer/answer/6110967
+                - generic [ref=f72e195]: Learn more
+              - button "Hide detailed description about Linked services" [ref=f72e197]:
+                - generic [ref=f72e200]: Hide
+        - generic [ref=f72e204]:
+          - generic [ref=f72e207]:
+            - generic [ref=f72e212]:
+              - img "Google Ads" [ref=f72e214]
+              - generic [ref=f72e217]:
+                - heading "Google Ads" [level=2] [ref=f72e221]
+                - button "More information about \"Google Ads\"" [ref=f72e224] [cursor=pointer]:
+                  - img [aria-hidden] [ref=f72e225]: help
+            - generic [ref=f72e231]:
+              - img [aria-hidden] [ref=f72e235]: settings
+              - paragraph [ref=f72e237]: Linked Google Ads accounts can access remarketing lists based on your users, and in-app conversion data for your ads
+              - generic [ref=f72e241]:
+                - button "Link Google Ads account" [ref=f72e243]
+                - link "Learn more about linking Google Ads accounts (opens in a new tab)" [ref=f72e247] [cursor=pointer]:
+                  - /url: https://support.google.com/googleplay/android-developer/answer/6110967
+                  - generic [ref=f72e250]: Learn more
+          - generic [ref=f72e253]:
+            - generic [ref=f72e258]:
+              - img "Firebase" [ref=f72e260]
+              - generic [ref=f72e263]:
+                - heading "Firebase" [level=2] [ref=f72e267]
+                - button "More information about \"Firebase\"" [ref=f72e270] [cursor=pointer]:
+                  - img [aria-hidden] [ref=f72e271]: help
+            - generic [ref=f72e277]:
+              - img [aria-hidden] [ref=f72e281]: settings
+              - paragraph [ref=f72e283]: Link your Firebase and Google Play apps to enable integrations that unlock features in Firebase and Google Play
+              - link "Learn more about linking Firebase apps (opens in a new tab)" [ref=f72e288] [cursor=pointer]:
+                - /url: https://support.google.com/googleplay/android-developer/answer/6110967
+                - generic [ref=f72e291]: Learn more
+          - generic [ref=f72e294]:
+            - generic [ref=f72e299]:
+              - img "Google Analytics" [ref=f72e301]
+              - generic [ref=f72e304]:
+                - heading "Google Analytics" [level=2] [ref=f72e308]
+                - button "More information about \"Google Analytics\"" [ref=f72e311] [cursor=pointer]:
+                  - img [aria-hidden] [ref=f72e312]: help
+            - generic [ref=f72e318]:
+              - img [aria-hidden] [ref=f72e322]: settings
+              - paragraph [ref=f72e324]: Linking your app enables sharing in-app purchase and subscription data with Google Analytics.
+              - link "Learn more about linking apps to Google Analytics (opens in a new tab)" [ref=f72e329] [cursor=pointer]:
+                - /url: https://support.google.com/googleplay/android-developer/answer/6110967
+                - generic [ref=f72e332]: Learn more
+      - generic [ref=f72e41]:
+        - generic [ref=f72e333]:
+          - link "Product updates" [ref=f72e334] [cursor=pointer]:
+            - /url: https://play.google.com/console/about/whats-new/
+          - link "Status dashboard" [ref=f72e335] [cursor=pointer]:
+            - /url: https://status.play.google.com/
+          - link "Help" [ref=f72e336] [cursor=pointer]:
+            - /url: /console/u/0/developers/6723945036989514032/help-and-support
+        - generic [ref=f72e337]:
+          - generic [ref=f72e338]: © 2026 Google
+          - link "Privacy" [ref=f72e339] [cursor=pointer]:
+            - /url: https://www.google.com/policies/privacy/
+          - link "Developer Distribution Agreement" [ref=f72e340] [cursor=pointer]:
+            - /url: https://play.google.com/about/developer-distribution-agreement.html
+          - link "Terms of Service" [ref=f72e341] [cursor=pointer]:
+            - /url: https://play.google.com/about/console/terms-of-service/

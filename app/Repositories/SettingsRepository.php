@@ -226,6 +226,29 @@ final class SettingsRepository
         Setting::query()->whereKey('source_is_static_json')->delete();
     }
 
+    /**
+     * The subpath, if any, the HTTP Client appends to the source base URL before each API
+     * path. Written by SourceMetaProber after inspecting /_meta.json and /api/_meta.json:
+     * '/api' when the demo-shape probe lands, '' when it doesn't. Default '/api' preserves
+     * backward compatibility for sources that haven't been probed yet.
+     */
+    public function sourceApiSuffix(): string
+    {
+        $value = $this->read('source_api_suffix');
+
+        return is_string($value) ? $value : '/api';
+    }
+
+    public function setSourceApiSuffix(string $suffix): void
+    {
+        $this->write('source_api_suffix', $suffix);
+    }
+
+    public function clearSourceApiSuffix(): void
+    {
+        Setting::query()->whereKey('source_api_suffix')->delete();
+    }
+
     private function read(string $key): mixed
     {
         return Setting::find($key)?->value;

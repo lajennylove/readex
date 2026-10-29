@@ -1,0 +1,158 @@
+- generic [active] [ref=f68e1]:
+  - generic:
+    - generic:
+      - progressbar [aria-hidden]
+      - generic: Loading Google Play Console
+  - generic [ref=f68e3]:
+    - banner [ref=f68e4]:
+      - generic [ref=f68e6]:
+        - link [ref=f68e7] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/home
+          - button "Google Play Console logo" [ref=f68e8]
+        - generic [ref=f68e9]:
+          - button "Unread notifications Open notification center" [ref=f68e56]:
+            - img [aria-hidden] [ref=f68e60]: notifications_unread
+            - generic [ref=f68e61]: Unread notifications
+          - generic [ref=f68e12]:
+            - button "Switch developer accounts" [ref=f68e15] [cursor=pointer]:
+              - img [aria-hidden] [ref=f68e17]: more_vert
+            - 'button "Google Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f68e25] [cursor=pointer]'
+    - navigation [ref=f68e64]:
+      - list [ref=f68e65]:
+        - listitem "Home" [ref=f68e68]:
+          - button "Home" [ref=f68e69] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e72]: home
+        - listitem "Manage account" [ref=f68e75]:
+          - button "Manage account" [ref=f68e76] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e79]: badge
+        - listitem "ReaDex" [ref=f68e82]:
+          - button "ReaDex" [ref=f68e85] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e89]: play_prism
+        - listitem "Dashboard" [ref=f68e92]:
+          - button "Dashboard" [ref=f68e93] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e96]: dashboard
+        - listitem "Statistics" [ref=f68e99]:
+          - button "Statistics" [ref=f68e100] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e103]: bar_chart
+        - listitem "Publishing overview" [ref=f68e106]:
+          - button "Publishing overview" [ref=f68e107] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e110]: overview
+        - listitem "Protected with Play" [ref=f68e113]:
+          - button "Protected with Play" [ref=f68e114] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e117]: shield
+        - listitem "Test and release" [ref=f68e120]:
+          - button "Test and release" [ref=f68e121] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e124]: rocket_launch
+        - listitem "Monitor and improve" [ref=f68e127]:
+          - button "Monitor and improve" [ref=f68e128] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e131]: vital_signs
+        - listitem "Grow users" [ref=f68e134]:
+          - button "Grow users" [ref=f68e135] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e138]: finance_mode
+        - listitem "Monetize with Play" [ref=f68e141]:
+          - button "Monetize with Play" [ref=f68e142] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e145]: sell
+    - generic [ref=f68e33]:
+      - generic [ref=f68e149]:
+        - generic [ref=f68e158]:
+          - generic [ref=f68e159]:
+            - heading "Manage Jennifer Eileen Martinez Aguilar" [level=1] [ref=f68e164]
+            - link "Help and support" [ref=f68e170] [cursor=pointer]:
+              - /url: /console/u/0/developers/6723945036989514032/help-and-support
+              - img [aria-hidden] [ref=f68e174]: help
+          - generic [ref=f68e176]: "6723945036989514032"
+        - generic [ref=f68e181]:
+          - generic [ref=f68e182]:
+            - generic [ref=f68e184]:
+              - generic [ref=f68e185]:
+                - heading "Account details" [level=2] [ref=f68e194]
+                - paragraph [ref=f68e195]: Manage information about you and this account
+              - link "Manage account details" [ref=f68e198] [cursor=pointer]:
+                - /url: /console/u/0/developers/6723945036989514032/account
+                - img [aria-hidden] [ref=f68e201]: arrow_right_alt
+            - generic [ref=f68e203]:
+              - generic [ref=f68e204]:
+                - heading "Users and permissions" [level=2] [ref=f68e213]
+                - paragraph [ref=f68e214]: Invite new users, manage existing access, and customize permissions
+              - link "Manage users and permissions" [ref=f68e217] [cursor=pointer]:
+                - /url: /console/u/0/developers/6723945036989514032/users-and-permissions
+                - img [aria-hidden] [ref=f68e220]: arrow_right_alt
+          - generic [ref=f68e221]:
+            - generic [ref=f68e223]:
+              - generic [ref=f68e224]:
+                - heading "Activity log" [level=2] [ref=f68e233]
+                - paragraph [ref=f68e234]: View changes that team members have made to your apps and account
+              - link "View activity log" [ref=f68e237] [cursor=pointer]:
+                - /url: /console/u/0/developers/6723945036989514032/activity-log
+                - img [aria-hidden] [ref=f68e240]: arrow_right_alt
+            - generic [ref=f68e242]:
+              - generic [ref=f68e243]:
+                - heading "Tester groups" [level=2] [ref=f68e252]
+                - paragraph [ref=f68e253]: Create and manage lists of testers across your apps
+              - link "See manage email lists page" [ref=f68e256] [cursor=pointer]:
+                - /url: /console/u/0/developers/6723945036989514032/manage-email-lists
+                - img [aria-hidden] [ref=f68e259]: arrow_right_alt
+          - generic [ref=f68e260]:
+            - generic [ref=f68e262]:
+              - generic [ref=f68e263]:
+                - heading "Email notifications" [level=2] [ref=f68e272]
+                - paragraph [ref=f68e273]: Add and manage email addresses to keep team members informed about your apps
+              - link "Manage email notifications" [ref=f68e276] [cursor=pointer]:
+                - /url: /console/u/0/developers/6723945036989514032/notifications
+                - img [aria-hidden] [ref=f68e279]: arrow_right_alt
+            - generic [ref=f68e281]:
+              - generic [ref=f68e282]:
+                - heading "Play apps order management" [level=2] [ref=f68e291]
+                - paragraph [ref=f68e292]: View orders, issue refunds, and cancel subscriptions
+              - link "Manage Play apps orders" [ref=f68e295] [cursor=pointer]:
+                - /url: /console/u/0/developers/6723945036989514032/orders
+                - img [aria-hidden] [ref=f68e298]: arrow_right_alt
+          - generic [ref=f68e301]:
+            - generic [ref=f68e302]:
+              - heading "Play apps reports" [level=2] [ref=f68e311]
+              - paragraph [ref=f68e312]: Download monthly reports generated from your apps to help you track and understand your performance
+            - generic [ref=f68e313]:
+              - generic [ref=f68e314]:
+                - heading "Reviews" [level=3] [ref=f68e323]
+                - link "Download reviews reports" [ref=f68e325] [cursor=pointer]:
+                  - /url: /console/u/0/developers/6723945036989514032/download-reports/reviews
+                  - img [aria-hidden] [ref=f68e328]: arrow_right_alt
+              - generic [ref=f68e329]:
+                - heading "Statistics" [level=3] [ref=f68e338]
+                - link "Download statistics reports" [ref=f68e340] [cursor=pointer]:
+                  - /url: /console/u/0/developers/6723945036989514032/download-reports/statistics
+                  - img [aria-hidden] [ref=f68e343]: arrow_right_alt
+              - generic [ref=f68e344]:
+                - heading "Financial" [level=3] [ref=f68e353]
+                - link "Download financial reports" [ref=f68e355] [cursor=pointer]:
+                  - /url: /console/u/0/developers/6723945036989514032/download-reports/financial
+                  - img [aria-hidden] [ref=f68e358]: arrow_right_alt
+        - generic [ref=f68e362]:
+          - generic [ref=f68e369]:
+            - img [aria-hidden] [ref=f68e373]: settings
+            - heading "Play apps settings" [level=2] [ref=f68e375]
+          - button "Expand Play apps settings" [ref=f68e378] [cursor=pointer]:
+            - img [aria-hidden] [ref=f68e381]: expand_more
+        - generic [ref=f68e383]:
+          - generic [ref=f68e384]:
+            - heading "Android developer verification" [level=2] [ref=f68e393]
+            - paragraph [ref=f68e394]: View, manage, and register package names to meet Android developer verification requirements
+          - link "Start Android developer verification" [ref=f68e397] [cursor=pointer]:
+            - /url: /console/u/0/developers/6723945036989514032/android-developer-verification
+            - img [aria-hidden] [ref=f68e400]: arrow_right_alt
+      - generic [ref=f68e41]:
+        - generic [ref=f68e401]:
+          - link "Product updates" [ref=f68e402] [cursor=pointer]:
+            - /url: https://play.google.com/console/about/whats-new/
+          - link "Status dashboard" [ref=f68e403] [cursor=pointer]:
+            - /url: https://status.play.google.com/
+          - link "Help" [ref=f68e404] [cursor=pointer]:
+            - /url: /console/u/0/developers/6723945036989514032/help-and-support
+        - generic [ref=f68e405]:
+          - generic [ref=f68e406]: © 2026 Google
+          - link "Privacy" [ref=f68e407] [cursor=pointer]:
+            - /url: https://www.google.com/policies/privacy/
+          - link "Developer Distribution Agreement" [ref=f68e408] [cursor=pointer]:
+            - /url: https://play.google.com/about/developer-distribution-agreement.html
+          - link "Terms of Service" [ref=f68e409] [cursor=pointer]:
+            - /url: https://play.google.com/about/console/terms-of-service/

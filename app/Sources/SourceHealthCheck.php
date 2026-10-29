@@ -30,28 +30,21 @@ final class SourceHealthCheck
             return HealthCheckResult::badUrl();
         }
 
-        $endpoint = $baseUrl.'/api/manga/_catalog.json';
-
         try {
             $response = Http::connectTimeout(self::TIMEOUT_SECONDS)
                 ->timeout(self::TIMEOUT_SECONDS)
-                ->get($endpoint);
-        } catch (ConnectionException) {
+                ->get($baseUrl);
+        } catch (\Throwable) {
             return HealthCheckResult::unreachable();
         }
 
-        if (! $response->successful()) {
+        // Any response short of a server error means the URL is reachable. Many real APIs
+        // return 4xx at their bare root (401 Unauthorized, 404 Not Found with a hint JSON,
+        // 405 Method Not Allowed) while serving real endpoints just fine; a 5xx or a timeout
+        // is a genuine signal the URL doesn't answer. This mirrors the browser's "is the host
+        // alive" test rather than enforcing a specific envelope.
+        if ($response->status() >= 500) {
             return HealthCheckResult::unreachable();
-        }
-
-        $body = $response->json();
-
-        if (! is_array($body)
-            || ($body['result'] ?? null) !== 'ok'
-            || ($body['response'] ?? null) !== 'collection'
-            || ! isset($body['data']) || ! is_array($body['data'])
-        ) {
-            return HealthCheckResult::wrongShape();
         }
 
         return HealthCheckResult::ok();

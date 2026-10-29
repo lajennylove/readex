@@ -1,0 +1,59 @@
+- generic [active] [ref=f23e1]:
+  - region "console.cloud.google.com uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic." [ref=f23e2]:
+    - paragraph [ref=f23e3]:
+      - text: console.cloud.google.com uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic.
+      - link "Learn more about how Google uses cookies. Opens in a new tab." [ref=f23e4] [cursor=pointer]:
+        - /url: https://policies.google.com/technologies/cookies?hl=en
+        - text: Learn more
+    - button "OK, got it" [ref=f23e5] [cursor=pointer]
+  - generic [ref=f23e7]:
+    - generic [ref=f23e8]:
+      - complementary "Skip links" [ref=f23e9]:
+        - link "Skip to main content" [ref=f23e10] [cursor=pointer]:
+          - /url: /projectselector2/home/dashboard
+        - button "Keyboard shortcuts" [ref=f23e12]
+        - link [ref=f23e14] [cursor=pointer]:
+          - /url: https://cloud.google.com/docs/accessibility?hl=en_US
+          - generic [ref=f23e15]:
+            - text: Accessibility Help
+            - generic "external, opens new window" [ref=f23e16]:
+              - img "external, opens new window" [ref=f23e17]
+        - link [ref=f23e20] [cursor=pointer]:
+          - /url: https://support.google.com/accessibility/contact/feedback?hl=en_US
+          - generic [ref=f23e21]:
+            - text: Accessibility Feedback
+            - generic "external, opens new window" [ref=f23e22]:
+              - img "external, opens new window" [ref=f23e23]
+      - banner [ref=f23e27]:
+        - generic [ref=f23e28]:
+          - navigation [ref=f23e31]:
+            - button "Navigation menu (.)" [ref=f23e32] [cursor=pointer]
+          - link "Google Cloud Platform Home" [ref=f23e36] [cursor=pointer]:
+            - /url: /
+          - button "No project selected. Hit enter to select a project, folder, or organization." [ref=f23e44]
+        - search "Google Cloud Platform" [ref=f23e50]:
+          - combobox [ref=f23e51]:
+            - searchbox "Enter query to search for resources, docs, products, and more" [ref=f23e52]
+          - button "See all search results" [disabled]:
+            - generic: Search
+        - generic [ref=f23e54]:
+          - button "Open or close Gemini Cloud Assist chat (Option G)" [ref=f23e58] [cursor=pointer]
+          - button "Activate Cloud Shell (G then S)" [ref=f23e65] [cursor=pointer]
+          - button "Open notifications" [ref=f23e72] [cursor=pointer]
+          - button "Settings and utilities" [ref=f23e80] [cursor=pointer]
+    - main [ref=f23e108]:
+      - generic [ref=f23e125]:
+        - heading "Dashboard" [level=1] [ref=f23e131]
+        - generic [ref=f23e136]:
+          - generic [ref=f23e138]:
+            - img "Information" [ref=f23e139]
+            - generic [ref=f23e142]: To view this page, select a project.
+          - generic [ref=f23e146]:
+            - heading "Select a recent project" [level=4] [ref=f23e147]
+            - 'button "My First Project Project ID: project-aeb5d904-1f2d-4fcb-804 Organization: jenny-eileen-mtz-org Accessed just now" [ref=f23e150] [cursor=pointer]':
+              - generic [ref=f23e151]: My First Project
+              - generic [ref=f23e154]:
+                - generic [ref=f23e155]: "Project ID: project-aeb5d904-1f2d-4fcb-804"
+                - generic [ref=f23e156]: "Organization: jenny-eileen-mtz-org"
+                - generic [ref=f23e157]: Accessed just now
+  - iframe [aria-hidden] [ref=f23e159]

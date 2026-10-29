@@ -1,0 +1,70 @@
+- generic [active] [ref=f63e1]:
+  - generic:
+    - generic:
+      - progressbar [aria-hidden]
+      - generic: Loading Google Play Console
+  - generic [ref=f63e3]:
+    - banner [ref=f63e4]:
+      - generic [ref=f63e6]:
+        - link [ref=f63e7] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/home
+          - button "Google Play Console logo" [ref=f63e8]
+        - generic [ref=f63e9]:
+          - button "Unread notifications Open notification center" [ref=f63e15]:
+            - img [aria-hidden] [ref=f63e19]: notifications_unread
+            - generic [ref=f63e20]: Unread notifications
+          - generic [ref=f63e24]:
+            - button "Switch developer accounts" [ref=f63e27] [cursor=pointer]:
+              - img [aria-hidden] [ref=f63e29]: more_vert
+            - 'button "Google Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f63e37] [cursor=pointer]'
+    - navigation [ref=f63e45]:
+      - list [ref=f63e46]:
+        - listitem "Home" [ref=f63e49]:
+          - button "Home" [ref=f63e50] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e53]: home
+        - listitem "Manage account" [ref=f63e56]:
+          - button "Manage account" [ref=f63e57] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e60]: badge
+        - listitem "ReaDex" [ref=f63e63]:
+          - button "ReaDex" [ref=f63e66] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e70]: play_prism
+        - listitem "Dashboard" [ref=f63e73]:
+          - button "Dashboard" [ref=f63e74] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e77]: dashboard
+        - listitem "Statistics" [ref=f63e80]:
+          - button "Statistics" [ref=f63e81] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e84]: bar_chart
+        - listitem "Publishing overview" [ref=f63e87]:
+          - button "Publishing overview" [ref=f63e88] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e91]: overview
+        - listitem "Protected with Play" [ref=f63e94]:
+          - button "Protected with Play" [ref=f63e95] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e98]: shield
+        - listitem "Test and release" [ref=f63e101]:
+          - button "Test and release" [ref=f63e102] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e105]: rocket_launch
+        - listitem "Monitor and improve" [ref=f63e108]:
+          - button "Monitor and improve" [ref=f63e109] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e112]: vital_signs
+        - listitem "Grow users" [ref=f63e115]:
+          - button "Grow users" [ref=f63e116] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e119]: finance_mode
+        - listitem "Monetize with Play" [ref=f63e122]:
+          - button "Monetize with Play" [ref=f63e123] [cursor=pointer]:
+            - img [aria-hidden] [ref=f63e126]: sell
+    - generic [ref=f63e146]:
+      - generic [ref=f63e147]:
+        - link "Product updates" [ref=f63e148] [cursor=pointer]:
+          - /url: https://play.google.com/console/about/whats-new/
+        - link "Status dashboard" [ref=f63e149] [cursor=pointer]:
+          - /url: https://status.play.google.com/
+        - link "Help" [ref=f63e150] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/help-and-support
+      - generic [ref=f63e151]:
+        - generic [ref=f63e152]: © 2026 Google
+        - link "Privacy" [ref=f63e153] [cursor=pointer]:
+          - /url: https://www.google.com/policies/privacy/
+        - link "Developer Distribution Agreement" [ref=f63e154] [cursor=pointer]:
+          - /url: https://play.google.com/about/developer-distribution-agreement.html
+        - link "Terms of Service" [ref=f63e155] [cursor=pointer]:
+          - /url: https://play.google.com/about/console/terms-of-service/

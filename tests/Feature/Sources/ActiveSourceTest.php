@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('composes apiUrl / coversUrl / reportUrl from the user source by default', function () {
+it('appends the stored api suffix to the base URL (default /api)', function () {
     app(SettingsRepository::class)->setSourceUrl('https://api.example.test');
 
     $active = app(ActiveSource::class);
@@ -17,6 +17,14 @@ it('composes apiUrl / coversUrl / reportUrl from the user source by default', fu
         ->and($active->apiUrl())->toBe('https://api.example.test/api')
         ->and($active->coversUrl())->toBe('https://api.example.test/covers')
         ->and($active->reportUrl())->toBe('https://api.example.test/report');
+});
+
+it('appends no suffix after a SourceMetaProber writes an empty one (dynamic REST sources)', function () {
+    $settings = app(SettingsRepository::class);
+    $settings->setSourceUrl('https://api.example.test');
+    $settings->setSourceApiSuffix('');
+
+    expect(app(ActiveSource::class)->apiUrl())->toBe('https://api.example.test');
 });
 
 it('prefers the configured covers URL over the auto-composed sibling', function () {

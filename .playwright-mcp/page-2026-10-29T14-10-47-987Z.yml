@@ -1,0 +1,111 @@
+- generic [ref=f23e1]:
+  - generic [ref=f23e7]:
+    - generic [ref=f23e8]:
+      - complementary [ref=f23e172]:
+        - link [ref=f23e173] [cursor=pointer]:
+          - /url: /projectselector2/home/dashboard
+          - generic [ref=f23e11]: Skip to main content
+        - button [ref=f23e174]:
+          - generic [ref=f23e13]: Keyboard shortcuts
+        - link [ref=f23e175] [cursor=pointer]:
+          - /url: https://cloud.google.com/docs/accessibility?hl=en_US
+          - generic [ref=f23e15]: Accessibility Help
+        - link [ref=f23e178] [cursor=pointer]:
+          - /url: https://support.google.com/accessibility/contact/feedback?hl=en_US
+          - generic [ref=f23e21]: Accessibility Feedback
+      - banner [ref=f23e27]:
+        - generic [ref=f23e28]:
+          - navigation [ref=f23e31]:
+            - button [ref=f23e181] [cursor=pointer]
+          - link [ref=f23e182] [cursor=pointer]:
+            - /url: /
+          - button [ref=f23e183]:
+            - generic [ref=f23e161]: Select a project
+        - search [ref=f23e184]:
+          - combobox [ref=f23e51]:
+            - searchbox [ref=f23e185]
+          - button [disabled]:
+            - generic: Search
+        - generic [ref=f23e53]:
+          - generic [ref=f23e54]:
+            - button [ref=f23e186] [cursor=pointer]
+            - button [ref=f23e187] [cursor=pointer]
+            - button [ref=f23e188] [cursor=pointer]
+            - button [ref=f23e189] [cursor=pointer]
+          - button [ref=f23e190]
+    - main [ref=f23e108]:
+      - generic [ref=f23e125]:
+        - heading [level=1] [ref=f23e191]:
+          - generic [ref=f23e132]: Dashboard
+        - generic [ref=f23e136]:
+          - generic [ref=f23e142]:
+            - generic [ref=f23e143]: To view this page, select a project.
+            - generic [ref=f23e167]:
+              - button [ref=f23e193]:
+                - generic [ref=f23e169]: Select project
+              - button [ref=f23e194]:
+                - generic [ref=f23e171]: Create project
+          - generic [ref=f23e146]:
+            - heading [level=4] [ref=f23e195]: Select a recent project
+            - button [ref=f23e196] [cursor=pointer]:
+              - generic [ref=f23e151]: My First Project
+              - generic [ref=f23e154]:
+                - generic [ref=f23e155]: "Project ID: project-aeb5d904-1f2d-4fcb-804"
+                - generic [ref=f23e156]: "Organization: jenny-eileen-mtz-org"
+                - generic [ref=f23e157]: Accessed just now
+  - iframe [aria-hidden] [ref=f23e159]
+  - dialog "Select resource" [ref=f23e200]:
+    - generic [ref=f23e203]:
+      - generic [ref=f23e204]:
+        - generic [ref=f23e207]:
+          - heading "Select a resource" [level=1] [ref=f23e210]
+          - generic [ref=f23e214]:
+            - button "New project" [ref=f23e216]
+            - button "More actions Select a resource" [ref=f23e219] [cursor=pointer]
+        - generic [ref=f23e224]:
+          - button "Select from organization selector No organization" [ref=f23e227]:
+            - generic [ref=f23e228]:
+              - generic [ref=f23e229]: Select from organization selector
+              - text: No organization
+          - generic [ref=f23e236]:
+            - generic: Search projects and folders
+            - textbox "Search projects and folders" [active] [ref=f23e243]
+        - generic [ref=f23e244]:
+          - tablist [ref=f23e247]:
+            - generic [ref=f23e248]:
+              - tab "Recent" [selected] [ref=f23e249] [cursor=pointer]
+              - tab "Starred" [ref=f23e252] [cursor=pointer]
+              - tab "All" [ref=f23e256] [cursor=pointer]
+          - generic [ref=f23e259]:
+            - tabpanel "Recent" [ref=f23e260]:
+              - grid "Purview picker list , Navigate table with arrow keys. Enter key to interact with cell. Tab to navigate inside cell. Escape to exit cell." [ref=f23e271]:
+                - rowgroup [ref=f23e278]:
+                  - row [ref=f23e279] [cursor=pointer]:
+                    - columnheader "Current resource" [ref=f23e280]
+                    - columnheader "Name" [ref=f23e281]
+                    - columnheader "Type" [ref=f23e284]
+                    - columnheader "ID" [ref=f23e287]
+                    - columnheader "Resource star" [ref=f23e290]
+                - rowgroup [ref=f23e291]:
+                  - row [ref=f23e292] [cursor=pointer]:
+                    - gridcell "Not current" [ref=f23e293]
+                    - gridcell [ref=f23e295]:
+                      - generic [ref=f23e296]:
+                        - button "deploy-automation" [ref=f23e302]
+                        - button "Ancestry information for deploy-automation" [ref=f23e305]
+                    - gridcell "Project" [ref=f23e309]
+                    - gridcell "deploy-automation-513114" [ref=f23e310]
+                    - gridcell [ref=f23e311]:
+                      - button "Add star for deploy-automation" [ref=f23e313]
+                  - row [ref=f23e319] [cursor=pointer]:
+                    - gridcell "Not current" [ref=f23e320]
+                    - gridcell [ref=f23e322]:
+                      - generic [ref=f23e323]:
+                        - button "No organization" [ref=f23e329]
+                        - button "Ancestry information for No organization" [ref=f23e332]
+                    - gridcell "Organization" [ref=f23e336]
+                    - gridcell "0" [ref=f23e337]
+                    - gridcell [ref=f23e338]
+            - tabpanel [aria-hidden] [ref=f23e339]
+            - tabpanel [aria-hidden] [ref=f23e340]
+      - button "Cancel" [ref=f23e342]

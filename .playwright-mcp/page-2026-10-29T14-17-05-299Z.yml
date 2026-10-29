@@ -1,0 +1,10 @@
+- generic [ref=f56e9]:
+  - img "Google Play Console logo" [ref=f56e11]
+  - generic [ref=f56e12]:
+    - button [ref=f56e14] [cursor=pointer]:
+      - generic [ref=f56e16]:
+        - text: jenny.eileen.mtz@gmail.com
+        - img [aria-hidden] [ref=f56e18]: keyboard_arrow_down
+    - heading "Choose developer account" [level=2] [ref=f56e27]
+    - listbox [ref=f56e28]:
+      - option "Jennifer Eileen Martinez Aguilar" [ref=f56e29] [cursor=pointer]

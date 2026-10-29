@@ -1,0 +1,218 @@
+- generic [active] [ref=f47e1]:
+  - region "console.cloud.google.com uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic." [ref=f47e2]:
+    - paragraph [ref=f47e3]:
+      - text: console.cloud.google.com uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic.
+      - link "Learn more about how Google uses cookies. Opens in a new tab." [ref=f47e4] [cursor=pointer]:
+        - /url: https://policies.google.com/technologies/cookies?hl=en
+        - text: Learn more
+    - button "OK, got it" [ref=f47e5] [cursor=pointer]
+  - generic [ref=f47e7]:
+    - generic [ref=f47e8]:
+      - complementary "Skip links" [ref=f47e9]:
+        - link "Skip to main content" [ref=f47e10] [cursor=pointer]:
+          - /url: /iam-admin/serviceaccounts/details/104495729646043155523/keys?project=deploy-automation-513114
+        - button "Keyboard shortcuts" [ref=f47e12]
+        - link [ref=f47e14] [cursor=pointer]:
+          - /url: https://cloud.google.com/docs/accessibility?hl=en_US
+          - generic [ref=f47e15]:
+            - text: Accessibility Help
+            - generic "external, opens new window" [ref=f47e16]:
+              - img "external, opens new window" [ref=f47e17]
+        - link [ref=f47e20] [cursor=pointer]:
+          - /url: https://support.google.com/accessibility/contact/feedback?hl=en_US
+          - generic [ref=f47e21]:
+            - text: Accessibility Feedback
+            - generic "external, opens new window" [ref=f47e22]:
+              - img "external, opens new window" [ref=f47e23]
+      - banner [ref=f47e27]:
+        - generic [ref=f47e28]:
+          - navigation [ref=f47e31]:
+            - button "Navigation menu (.)" [ref=f47e32] [cursor=pointer]
+          - link "Google Cloud Platform Home" [ref=f47e36] [cursor=pointer]:
+            - /url: /?project=deploy-automation-513114
+          - button "No project selected. Hit enter to select a project, folder, or organization." [ref=f47e44]
+        - search "Google Cloud Platform" [ref=f47e50]:
+          - combobox [ref=f47e51]:
+            - searchbox "Enter query to search for resources, docs, products, and more" [ref=f47e52]
+          - button "See all search results" [disabled]:
+            - generic: Search
+        - generic [ref=f47e54]:
+          - button "Open or close Gemini Cloud Assist chat (Option G)" [ref=f47e58] [cursor=pointer]
+          - button "Activate Cloud Shell (G then S)" [ref=f47e65] [cursor=pointer]
+          - button "Open notifications" [ref=f47e72] [cursor=pointer]
+          - button "Settings and utilities" [ref=f47e80] [cursor=pointer]
+    - generic [ref=f47e107]:
+      - navigation "IAM & Admin" [ref=f47e114]:
+        - generic [ref=f47e115]:
+          - generic [ref=f47e116]:
+            - heading [level=2] [ref=f47e117]:
+              - link "IAM & Admin" [ref=f47e118] [cursor=pointer]:
+                - /url: /iam-admin?project=deploy-automation-513114
+            - button "Toggle IAM & Admin navigation menu" [expanded] [ref=f47e127] [cursor=pointer]
+          - generic [ref=f47e133]:
+            - group "Identity & Access" [ref=f47e134]:
+              - heading [level=3] [ref=f47e139]:
+                - button "Identity & Access" [expanded] [ref=f47e140]
+              - list "Identity & Access" [ref=f47e149]:
+                - listitem [ref=f47e150]:
+                  - generic [ref=f47e153]:
+                    - link "IAM, 1 of 9" [ref=f47e154] [cursor=pointer]:
+                      - /url: /iam-admin/iam?project=deploy-automation-513114
+                      - generic [ref=f47e155]: IAM
+                    - button "More options" [ref=f47e162] [cursor=pointer]
+                - listitem [ref=f47e166]:
+                  - generic [ref=f47e169]:
+                    - link "Service Accounts, 2 of 9" [ref=f47e170] [cursor=pointer]:
+                      - /url: /iam-admin/serviceaccounts?project=deploy-automation-513114
+                      - generic [ref=f47e171]: Service Accounts
+                    - button "More options" [ref=f47e178] [cursor=pointer]
+                - listitem [ref=f47e182]:
+                  - generic [ref=f47e185]:
+                    - link "Groups, 3 of 9" [ref=f47e186] [cursor=pointer]:
+                      - /url: /iam-admin/groups?project=deploy-automation-513114
+                      - generic [ref=f47e187]: Groups
+                    - button "More options" [ref=f47e194] [cursor=pointer]
+                - listitem [ref=f47e198]:
+                  - generic [ref=f47e201]:
+                    - link "Privileged Access Manager, 4 of 9" [ref=f47e202] [cursor=pointer]:
+                      - /url: /iam-admin/pam?project=deploy-automation-513114
+                      - generic [ref=f47e203]: Privileged Access Manager
+                    - button "More options" [ref=f47e213] [cursor=pointer]
+                - listitem [ref=f47e217]:
+                  - generic [ref=f47e220]:
+                    - link "Roles, 5 of 9" [ref=f47e221] [cursor=pointer]:
+                      - /url: /iam-admin/roles?project=deploy-automation-513114
+                      - generic [ref=f47e222]: Roles
+                    - button "More options" [ref=f47e229] [cursor=pointer]
+                - listitem [ref=f47e233]:
+                  - generic [ref=f47e236]:
+                    - link "Workload Identity Federation, 6 of 9" [ref=f47e237] [cursor=pointer]:
+                      - /url: /iam-admin/workload-identity-pools?project=deploy-automation-513114
+                      - generic [ref=f47e238]: Workload Identity Federation
+                    - button "More options" [ref=f47e246] [cursor=pointer]
+                - listitem [ref=f47e250]:
+                  - generic [ref=f47e253]:
+                    - link "Workforce Identity Federation, 7 of 9" [ref=f47e254] [cursor=pointer]:
+                      - /url: /iam-admin/workforce-identity-pools?project=deploy-automation-513114
+                      - generic [ref=f47e255]: Workforce Identity Federation
+                    - button "More options" [ref=f47e262] [cursor=pointer]
+                - listitem [ref=f47e266]:
+                  - generic [ref=f47e269]:
+                    - link "Principal Access Boundary, 8 of 9" [ref=f47e270] [cursor=pointer]:
+                      - /url: /iam-admin/principal-access-boundary?project=deploy-automation-513114
+                      - generic [ref=f47e271]: Principal Access Boundary
+                    - button "More options" [ref=f47e278] [cursor=pointer]
+                - listitem [ref=f47e282]:
+                  - generic [ref=f47e285]:
+                    - link "Managed Workload Identities, 9 of 9" [ref=f47e286] [cursor=pointer]:
+                      - /url: /iam-admin/managed-workload-identity-pools?project=deploy-automation-513114
+                      - generic [ref=f47e287]: Managed Workload Identities
+                    - button "More options" [ref=f47e294] [cursor=pointer]
+            - group "Resource Management" [ref=f47e298]:
+              - heading [level=3] [ref=f47e303]:
+                - button "Resource Management" [expanded] [ref=f47e304]
+              - list "Resource Management" [ref=f47e313]:
+                - listitem [ref=f47e314]:
+                  - generic [ref=f47e317]:
+                    - link "Organization Policies, 1 of 5" [ref=f47e318] [cursor=pointer]:
+                      - /url: /iam-admin/orgpolicies?project=deploy-automation-513114
+                      - generic [ref=f47e319]: Organization Policies
+                    - button "More options" [ref=f47e326] [cursor=pointer]
+                - listitem [ref=f47e330]:
+                  - generic [ref=f47e333]:
+                    - link "Asset Inventory, 2 of 5" [ref=f47e334] [cursor=pointer]:
+                      - /url: /iam-admin/asset-inventory?project=deploy-automation-513114
+                      - generic [ref=f47e335]: Asset Inventory
+                    - button "More options" [ref=f47e342] [cursor=pointer]
+                - listitem [ref=f47e346]:
+                  - generic [ref=f47e349]:
+                    - link "Settings, 3 of 5" [ref=f47e350] [cursor=pointer]:
+                      - /url: /iam-admin/settings?project=deploy-automation-513114
+                      - generic [ref=f47e351]: Settings
+                    - button "More options" [ref=f47e358] [cursor=pointer]
+                - listitem [ref=f47e362]:
+                  - generic [ref=f47e365]:
+                    - link "Labels, 4 of 5" [ref=f47e366] [cursor=pointer]:
+                      - /url: /iam-admin/labels?project=deploy-automation-513114
+                      - generic [ref=f47e367]: Labels
+                    - button "More options" [ref=f47e374] [cursor=pointer]
+                - listitem [ref=f47e378]:
+                  - generic [ref=f47e381]:
+                    - link "Tags, 5 of 5" [ref=f47e382] [cursor=pointer]:
+                      - /url: /iam-admin/tags?project=deploy-automation-513114
+                      - generic [ref=f47e383]: Tags
+                    - button "More options" [ref=f47e390] [cursor=pointer]
+            - group "Diagnostic Tools" [ref=f47e394]:
+              - heading [level=3] [ref=f47e399]:
+                - button "Diagnostic Tools" [expanded] [ref=f47e400]
+              - list "Diagnostic Tools" [ref=f47e409]:
+                - listitem [ref=f47e410]:
+                  - generic [ref=f47e413]:
+                    - link "Security Insights, 1 of 3" [ref=f47e414] [cursor=pointer]:
+                      - /url: /iam-admin/security-insights?project=deploy-automation-513114
+                      - generic [ref=f47e420]:
+                        - text: Security Insights
+                        - img "preview" [ref=f47e422]
+                    - button "More options" [ref=f47e424] [cursor=pointer]
+                - listitem [ref=f47e428]:
+                  - generic [ref=f47e431]:
+                    - link "Policy Analyzer, 2 of 3" [ref=f47e432] [cursor=pointer]:
+                      - /url: /iam-admin/analyzer?project=deploy-automation-513114
+                      - generic [ref=f47e433]: Policy Analyzer
+                    - button "More options" [ref=f47e440] [cursor=pointer]
+                - listitem [ref=f47e444]:
+                  - generic [ref=f47e447]:
+                    - link "Policy Troubleshooter, 3 of 3" [ref=f47e448] [cursor=pointer]:
+                      - /url: /iam-admin/troubleshooter?project=deploy-automation-513114
+                      - generic [ref=f47e449]: Policy Troubleshooter
+                    - button "More options" [ref=f47e456] [cursor=pointer]
+            - group "Cloud Administration" [ref=f47e460]:
+              - heading [level=3] [ref=f47e465]:
+                - button "Cloud Administration" [expanded] [ref=f47e466]
+              - list "Cloud Administration" [ref=f47e475]:
+                - listitem [ref=f47e476]:
+                  - generic [ref=f47e479]:
+                    - link "Quotas & System Limits, 1 of 5" [ref=f47e480] [cursor=pointer]:
+                      - /url: /iam-admin/quotas?project=deploy-automation-513114
+                      - generic [ref=f47e481]: Quotas & System Limits
+                    - button "More options" [ref=f47e488] [cursor=pointer]
+                - listitem [ref=f47e492]:
+                  - generic [ref=f47e495]:
+                    - link "Audit logs, 2 of 5" [ref=f47e496] [cursor=pointer]:
+                      - /url: /iam-admin/audit?project=deploy-automation-513114
+                      - generic [ref=f47e497]: Audit logs
+                    - button "More options" [ref=f47e504] [cursor=pointer]
+                - listitem [ref=f47e508]:
+                  - generic [ref=f47e511]:
+                    - link "Identity & Organization, 3 of 5" [ref=f47e512] [cursor=pointer]:
+                      - /url: /iam-admin/cloudidentity/consumer?project=deploy-automation-513114
+                      - generic [ref=f47e513]: Identity & Organization
+                    - button "More options" [ref=f47e520] [cursor=pointer]
+                - listitem [ref=f47e524]:
+                  - generic [ref=f47e527]:
+                    - link "Essential Contacts, 4 of 5" [ref=f47e528] [cursor=pointer]:
+                      - /url: /iam-admin/essential-contacts?project=deploy-automation-513114
+                      - generic [ref=f47e529]: Essential Contacts
+                    - button "More options" [ref=f47e536] [cursor=pointer]
+                - listitem [ref=f47e540]:
+                  - generic [ref=f47e543]:
+                    - link "Privacy & Security, 5 of 5" [ref=f47e544] [cursor=pointer]:
+                      - /url: /iam-admin/privacy?project=deploy-automation-513114
+                      - generic [ref=f47e545]: Privacy & Security
+                    - button "More options" [ref=f47e552] [cursor=pointer]
+            - group "Access Risk" [ref=f47e556]:
+              - heading [level=3] [ref=f47e561]:
+                - button "Access Risk" [expanded] [ref=f47e562]
+              - list "Access Risk" [ref=f47e571]:
+                - listitem [ref=f47e572]:
+                  - generic [ref=f47e575]:
+                    - link "Identity-Aware Proxy, 1 of 1" [ref=f47e576] [cursor=pointer]:
+                      - /url: /iam-admin/iap?project=deploy-automation-513114
+                      - generic [ref=f47e577]: Identity-Aware Proxy
+                    - button "More options" [ref=f47e584] [cursor=pointer]
+          - link "Hierarchically manage resources by project, folder, and organization." [ref=f47e593] [cursor=pointer]:
+            - /url: /cloud-resource-manager?project=deploy-automation-513114
+            - generic [ref=f47e598]: Manage Resources
+      - main [ref=f47e600]:
+        - progressbar [aria-hidden] [ref=f47e608]
+  - iframe [aria-hidden] [ref=f47e624]

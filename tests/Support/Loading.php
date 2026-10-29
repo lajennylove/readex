@@ -30,9 +30,23 @@ final class Loading
                 return $answer;
             }
 
-            if (str_starts_with($request->url(), rtrim(app(ActiveSource::class)->baseUrl(), '/').'/api/manga/_catalog.json')) {
-                // Setup's source-URL health check (feature/0035): probes the catalog
-                // endpoint, expects an envelope with result/response/data.
+            $base = rtrim(app(ActiveSource::class)->baseUrl(), '/');
+
+            if ($request->url() === $base) {
+                // Setup's source-URL health check: SourceHealthCheck hits the base URL and
+                // accepts any <500 response as a sign the host is alive.
+                return Http::response('', 200);
+            }
+
+            if ($request->url() === $base.'/_meta.json' || $request->url() === $base.'/api/_meta.json') {
+                // SourceMetaProber probes both /_meta.json and /api/_meta.json; replying 404
+                // here mirrors a dynamic REST source (no demo-shape metadata).
+                return Http::response('', 404);
+            }
+
+            if (str_starts_with($request->url(), $base.'/api/manga/_catalog.json')) {
+                // Legacy health-check path kept so tests that hard-coded the demo-shape
+                // probe still work.
                 return Http::response(['result' => 'ok', 'response' => 'collection', 'data' => []]);
             }
 

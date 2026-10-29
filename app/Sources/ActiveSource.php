@@ -44,9 +44,15 @@ final class ActiveSource
         return rtrim($url, '/');
     }
 
+    /**
+     * baseUrl + the per-source api suffix. SourceMetaProber writes the suffix after each source
+     * URL change: '/api' when the source turns out to be the demo shape (manga at /api/manga),
+     * '' when it's a dynamic REST source serving at the root. Default '/api' keeps existing
+     * fixtures working for anything that hasn't been probed yet.
+     */
     public function apiUrl(): string
     {
-        return $this->baseUrl().'/api';
+        return $this->baseUrl().$this->settings->sourceApiSuffix();
     }
 
     public function coversUrl(): string

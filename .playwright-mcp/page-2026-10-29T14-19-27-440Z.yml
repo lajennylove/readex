@@ -1,0 +1,35 @@
+- generic [active] [ref=f72e1]:
+  - generic:
+    - generic:
+      - progressbar [aria-hidden]
+      - generic: Loading Google Play Console
+  - generic [ref=f72e3]:
+    - banner [ref=f72e4]:
+      - generic [ref=f72e6]:
+        - link [ref=f72e7] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/home
+          - button "Google Play Console logo" [ref=f72e8]
+        - generic [ref=f72e12]:
+          - button "Switch developer accounts" [ref=f72e15] [cursor=pointer]:
+            - img [aria-hidden] [ref=f72e17]: more_vert
+          - 'button "Google Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f72e25] [cursor=pointer]'
+    - generic [ref=f72e31]:
+      - generic:
+        - navigation:
+          - list
+    - generic [ref=f72e41]:
+      - generic [ref=f72e42]:
+        - link "Product updates" [ref=f72e43] [cursor=pointer]:
+          - /url: https://play.google.com/console/about/whats-new/
+        - link "Status dashboard" [ref=f72e44] [cursor=pointer]:
+          - /url: https://status.play.google.com/
+        - link "Help" [ref=f72e45] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/help-and-support
+      - generic [ref=f72e46]:
+        - generic [ref=f72e47]: © 2026 Google
+        - link "Privacy" [ref=f72e48] [cursor=pointer]:
+          - /url: https://www.google.com/policies/privacy/
+        - link "Developer Distribution Agreement" [ref=f72e49] [cursor=pointer]:
+          - /url: https://play.google.com/about/developer-distribution-agreement.html
+        - link "Terms of Service" [ref=f72e50] [cursor=pointer]:
+          - /url: https://play.google.com/about/console/terms-of-service/

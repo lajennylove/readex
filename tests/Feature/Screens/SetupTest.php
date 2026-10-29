@@ -67,7 +67,12 @@ function ratingToggle(string $label, bool $on): Closure
 /** Types MangaDex's own API URL into the source field — the shortest path through Continue in most tests. */
 function withBuiltInSource(TestableComponent $screen): TestableComponent
 {
-    return $screen->call('changeSourceUrl', app(ActiveSource::class)->baseUrl());
+    $base = app(ActiveSource::class)->baseUrl();
+
+    return $screen
+        ->call('changeSourceUrl', $base)
+        ->call('changeCoversUrl', $base.'/covers')
+        ->call('changeSeasonalUrl', $base.'/seasonal-list.json');
 }
 
 it('labels the rating toggles with theme text, since the iOS toggle label ignores the theme', function () {
@@ -213,12 +218,25 @@ it('keeps the reader on Setup with an error when the source URL fails its health
 
 it('saves whatever source URL the reader typed as the single configured source', function () {
     $catalog = ['result' => 'ok', 'response' => 'collection', 'data' => []];
-    Loading::fake(fn (Request $request) => str_starts_with($request->url(), 'https://example.test/api/manga/_catalog')
-        ? Http::response($catalog)
-        : null);
+    Loading::fake(function (Request $request) use ($catalog) {
+        if ($request->url() === 'https://example.test') {
+            return Http::response('', 200);
+        }
+        if (str_starts_with($request->url(), 'https://example.test/_meta.json')
+            || str_starts_with($request->url(), 'https://example.test/api/_meta.json')) {
+            return Http::response('', 404);
+        }
+        if (str_starts_with($request->url(), 'https://example.test/api/manga/_catalog')) {
+            return Http::response($catalog);
+        }
+
+        return null;
+    });
 
     Native::test(Setup::class)
         ->call('changeSourceUrl', 'https://example.test')
+        ->call('changeCoversUrl', 'https://example.test/covers')
+        ->call('changeSeasonalUrl', 'https://example.test/seasonal.json')
         ->tap('Continue')
         ->assertReplacedWith('/home');
 
@@ -359,17 +377,18 @@ it('saves optional Covers URL and Seasonal URL when the user tapped Continue', f
         ->and($settings->seasonalUrl())->toBe('https://example.source.test/seasonal.json');
 });
 
-it('does not save Covers / Seasonal when the user left them blank', function () {
+it('keeps the reader on Setup with an error when Covers or Seasonal is left blank', function () {
     config()->set('source.api_url_default', null);
     config()->set('source.covers_url_default', null);
     config()->set('source.seasonal_url_default', null);
 
-    Loading::fake(fn ($req) => str_starts_with($req->url(), 'https://example.test/api/manga/_catalog')
-        ? \Illuminate\Support\Facades\Http::response(['result' => 'ok', 'response' => 'collection', 'data' => []]) : null);
+    Native::test(Setup::class)
+        ->call('changeSourceUrl', app(ActiveSource::class)->baseUrl())
+        ->tap('Continue')
+        ->assertSet('phase', Setup::SETTINGS)
+        ->assertSet('coversError', 'Add the covers URL — the host that serves this source\'s cover images.')
+        ->assertNoNavigation();
 
-    withBuiltInSource(Native::test(Setup::class))->tap('Continue');
-
-    $settings = app(SettingsRepository::class);
-    expect($settings->coversUrl())->toBeNull()
-        ->and($settings->seasonalUrl())->toBeNull();
+    expect(app(SettingsRepository::class)->coversUrl())->toBeNull()
+        ->and(app(SettingsRepository::class)->seasonalUrl())->toBeNull();
 });

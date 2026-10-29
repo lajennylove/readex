@@ -1,0 +1,60 @@
+- generic [active] [ref=f76e1]:
+  - generic:
+    - generic:
+      - progressbar [aria-hidden]
+      - generic: Loading Google Play Console
+  - generic [ref=f76e3]:
+    - banner [ref=f76e4]:
+      - generic [ref=f76e6]:
+        - link [ref=f76e7] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/home
+          - button "Google Play Console logo" [ref=f76e8]
+        - generic [ref=f76e9]:
+          - button "Notifications Open notification center" [ref=f76e15]:
+            - img [aria-hidden] [ref=f76e19]: notifications
+            - generic [ref=f76e20]: Notifications
+          - generic [ref=f76e24]:
+            - button "Switch developer accounts" [ref=f76e27] [cursor=pointer]:
+              - img [aria-hidden] [ref=f76e29]: more_vert
+            - 'button "Google Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f76e37] [cursor=pointer]'
+    - generic [ref=f76e43]:
+      - generic:
+        - navigation:
+          - list
+    - generic [ref=f76e45]:
+      - generic [ref=f76e52]:
+        - generic [ref=f76e54]:
+          - generic [ref=f76e56]:
+            - link "Go back to Manage account" [ref=f76e59] [cursor=pointer]:
+              - /url: /console/u/0/developers/6723945036989514032/manage-account
+              - img [aria-hidden] [ref=f76e63]: keyboard_backspace
+              - generic [ref=f76e64]: Manage account
+            - heading "Users and permissions" [level=1] [ref=f76e73]
+          - generic [ref=f76e79]:
+            - heading "Manage who has access to your developer account" [level=2] [ref=f76e88]
+            - paragraph [ref=f76e89]:
+              - generic [ref=f76e90]: Invite new users, manage existing access, and customize permissions. You can choose which apps they can see, what features they can use, and exactly what data they can access on your account.
+            - generic [ref=f76e93]:
+              - link "Learn more about Users and permissions (opens in a new tab)" [ref=f76e95] [cursor=pointer]:
+                - /url: https://play.google.com/console/about/teamandusermanagement
+                - generic [ref=f76e98]: Learn more
+              - button "Hide detailed description about Users and permissions" [ref=f76e100]:
+                - generic [ref=f76e103]: Hide
+        - heading "Permission groups" [level=2] [ref=f76e135]
+        - heading "Email recipients" [level=2] [ref=f76e154]
+      - generic [ref=f76e165]:
+        - generic [ref=f76e166]:
+          - link "Product updates" [ref=f76e167] [cursor=pointer]:
+            - /url: https://play.google.com/console/about/whats-new/
+          - link "Status dashboard" [ref=f76e168] [cursor=pointer]:
+            - /url: https://status.play.google.com/
+          - link "Help" [ref=f76e169] [cursor=pointer]:
+            - /url: /console/u/0/developers/6723945036989514032/help-and-support
+        - generic [ref=f76e170]:
+          - generic [ref=f76e171]: © 2026 Google
+          - link "Privacy" [ref=f76e172] [cursor=pointer]:
+            - /url: https://www.google.com/policies/privacy/
+          - link "Developer Distribution Agreement" [ref=f76e173] [cursor=pointer]:
+            - /url: https://play.google.com/about/developer-distribution-agreement.html
+          - link "Terms of Service" [ref=f76e174] [cursor=pointer]:
+            - /url: https://play.google.com/about/console/terms-of-service/

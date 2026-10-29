@@ -1,0 +1,301 @@
+- generic [active] [ref=f15e1]:
+  - region "console.cloud.google.com uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic." [ref=f15e2]:
+    - paragraph [ref=f15e3]:
+      - text: console.cloud.google.com uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic.
+      - link "Learn more about how Google uses cookies. Opens in a new tab." [ref=f15e4] [cursor=pointer]:
+        - /url: https://policies.google.com/technologies/cookies?hl=en
+        - text: Learn more
+    - button "OK, got it" [ref=f15e5] [cursor=pointer]
+  - generic [ref=f15e7]:
+    - generic [ref=f15e8]:
+      - complementary "Skip links" [ref=f15e9]:
+        - link "Skip to main content" [ref=f15e10] [cursor=pointer]:
+          - /url: /projectcreate
+        - button "Keyboard shortcuts" [ref=f15e12]
+        - link [ref=f15e14] [cursor=pointer]:
+          - /url: https://cloud.google.com/docs/accessibility?hl=en_US
+          - generic [ref=f15e15]:
+            - text: Accessibility Help
+            - generic "external, opens new window" [ref=f15e16]:
+              - img "external, opens new window" [ref=f15e17]
+        - link [ref=f15e20] [cursor=pointer]:
+          - /url: https://support.google.com/accessibility/contact/feedback?hl=en_US
+          - generic [ref=f15e21]:
+            - text: Accessibility Feedback
+            - generic "external, opens new window" [ref=f15e22]:
+              - img "external, opens new window" [ref=f15e23]
+      - banner [ref=f15e27]:
+        - generic [ref=f15e28]:
+          - navigation [ref=f15e31]:
+            - button "Navigation menu (.)" [ref=f15e32] [cursor=pointer]
+          - link "Google Cloud Platform Home" [ref=f15e36] [cursor=pointer]:
+            - /url: /
+          - button "You're currently working in My First Project. Hit enter to switch projects, folders, or organizations" [ref=f15e228]:
+            - generic [ref=f15e229]: My First Project
+        - search "Google Cloud Platform" [ref=f15e41]:
+          - combobox [ref=f15e42]:
+            - searchbox "Enter query to search for resources, docs, products, and more" [ref=f15e43]
+          - button "See all search results" [disabled]:
+            - generic: Search
+        - generic [ref=f15e44]:
+          - generic [ref=f15e45]:
+            - button "Open or close Gemini Cloud Assist chat (Option G)" [ref=f15e237] [cursor=pointer]
+            - button "Free trial status" [ref=f15e244] [cursor=pointer]
+            - button "Activate Cloud Shell (G then S)" [ref=f15e56] [cursor=pointer]
+            - button "Task in progress. Open notifications" [ref=f15e248] [cursor=pointer]:
+              - generic:
+                - progressbar [aria-hidden]
+            - button "Settings and utilities" [ref=f15e71] [cursor=pointer]
+          - 'button "Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f15e79]'
+    - main [ref=f15e101]:
+      - generic [ref=f15e250]:
+        - tablist "Tab bar for home navigation" [ref=f15e252]:
+          - generic [ref=f15e255]:
+            - 'tab "Selected tab: Dashboard" [selected] [ref=f15e256] [cursor=pointer]':
+              - generic [ref=f15e257]: Dashboard
+            - tab "Activity" [ref=f15e259] [cursor=pointer]
+            - tab "Recommendations" [ref=f15e262] [cursor=pointer]
+        - 'tabpanel "Selected tab: Dashboard" [ref=f15e265]':
+          - generic [ref=f15e272]:
+            - generic [ref=f15e275]:
+              - generic [ref=f15e276]:
+                - generic:
+                  - heading [level=1]
+              - button "Customize" [ref=f15e282]
+            - generic [ref=f15e290]:
+              - generic [ref=f15e298]:
+                - generic "Go to Cloud Hub for better visibility" [ref=f15e299]:
+                  - heading "Go to Cloud Hub for better visibility" [level=2] [ref=f15e300]
+                - button "Dismiss promotion" [ref=f15e303] [cursor=pointer]
+                - generic [ref=f15e308]: This dashboard is no longer updated and will shut down in 2027. Cloud Hub offers a more comprehensive view across health, security, cost, optimization, and other data about your projects and applications.
+                - generic [ref=f15e311]:
+                  - link "Go to Cloud Hub" [ref=f15e312] [cursor=pointer]:
+                    - /url: /cloud-hub/home?project=project-aeb5d904-1f2d-4fcb-804
+                  - link "Learn more about Cloud Hub external, opens new window" [ref=f15e314] [cursor=pointer]:
+                    - /url: https://cloud.google.com/hub/docs/overview
+                    - generic [ref=f15e315]:
+                      - text: Learn more
+                      - img "external, opens new window" [ref=f15e316]:
+                        - img "external, opens new window" [ref=f15e317]
+              - generic [ref=f15e322]:
+                - generic [ref=f15e324]:
+                  - generic [ref=f15e328]:
+                    - heading "Project info" [level=2] [ref=f15e338]
+                    - button [ref=f15e341] [cursor=pointer]
+                    - generic [ref=f15e348]:
+                      - list [ref=f15e349]:
+                        - listitem [ref=f15e350]:
+                          - generic [ref=f15e354]:
+                            - generic [ref=f15e355]: Project name
+                            - generic [ref=f15e357]: My First Project
+                        - listitem [ref=f15e359]:
+                          - generic [ref=f15e363]:
+                            - generic [ref=f15e364]: Project number
+                            - generic [ref=f15e366]: "648402855142"
+                        - listitem [ref=f15e368]:
+                          - generic [ref=f15e372]:
+                            - generic [ref=f15e373]: Project ID
+                            - generic [ref=f15e375]: project-aeb5d904-1f2d-4fcb-804
+                      - button "Add people to this project" [ref=f15e379]
+                      - link [ref=f15e382] [cursor=pointer]:
+                        - /url: /iam-admin/settings?project=project-aeb5d904-1f2d-4fcb-804
+                        - paragraph [ref=f15e388]: Go to project settings
+                  - generic [ref=f15e392]:
+                    - heading "Resources" [level=2] [ref=f15e406]
+                    - button [ref=f15e409] [cursor=pointer]
+                    - generic [ref=f15e417]:
+                      - link "BigQuery Data warehouse/analytics" [ref=f15e420] [cursor=pointer]:
+                        - /url: /bigquery?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e430]:
+                          - generic [ref=f15e431]: BigQuery
+                          - generic [ref=f15e433]: Data warehouse/analytics
+                      - link "SQL Managed MySQL, PostgreSQL, SQL Server" [ref=f15e437] [cursor=pointer]:
+                        - /url: /sql?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e447]:
+                          - generic [ref=f15e448]: SQL
+                          - generic [ref=f15e450]: Managed MySQL, PostgreSQL, SQL Server
+                      - link "Compute Engine VMs, GPUs, TPUs, Disks" [ref=f15e454] [cursor=pointer]:
+                        - /url: /compute?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e474]:
+                          - generic [ref=f15e475]: Compute Engine
+                          - generic [ref=f15e477]: VMs, GPUs, TPUs, Disks
+                      - link "Storage Multi-class multi-region object storage" [ref=f15e481] [cursor=pointer]:
+                        - /url: /storage?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e489]:
+                          - generic [ref=f15e490]: Storage
+                          - generic [ref=f15e492]: Multi-class multi-region object storage
+                      - link "Cloud Run functions Event-driven serverless functions" [ref=f15e496] [cursor=pointer]:
+                        - /url: /functions?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e512]:
+                          - generic [ref=f15e513]: Cloud Run functions
+                          - generic [ref=f15e515]: Event-driven serverless functions
+                      - link "Cloud Run Fully managed application platform" [ref=f15e519] [cursor=pointer]:
+                        - /url: /run?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e528]:
+                          - generic [ref=f15e529]: Cloud Run
+                          - generic [ref=f15e531]: Fully managed application platform
+                  - generic [ref=f15e536]:
+                    - heading "Getting Started" [level=2] [ref=f15e546]
+                    - button [ref=f15e549] [cursor=pointer]
+                    - generic [ref=f15e554]:
+                      - generic [ref=f15e556]:
+                        - link "Explore and enable APIs" [ref=f15e560] [cursor=pointer]:
+                          - /url: /apis?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Deploy a prebuilt solution" [ref=f15e576] [cursor=pointer]:
+                          - /url: /marketplace?project=project-aeb5d904-1f2d-4fcb-804
+                        - generic [ref=f15e593]: Add dynamic logging to a running application
+                        - link "Monitor errors with Error Reporting" [ref=f15e613] [cursor=pointer]:
+                          - /url: /errors?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Deploy a Hello World app" [ref=f15e630] [cursor=pointer]:
+                          - /url: https://cloud.google.com/run/docs/quickstarts/build-and-deploy
+                        - link "Take a VM quickstart" [ref=f15e647] [cursor=pointer]:
+                          - /url: /home/dashboard?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Create a Cloud Storage bucket" [ref=f15e675] [cursor=pointer]:
+                          - /url: /home/dashboard?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Create a Cloud Run function" [ref=f15e691] [cursor=pointer]:
+                          - /url: /functions/run_redirect?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Install the Cloud SDK" [ref=f15e715] [cursor=pointer]:
+                          - /url: https://cloud.google.com/sdk/#download
+                      - link [ref=f15e732] [cursor=pointer]:
+                        - /url: /getting-started?project=project-aeb5d904-1f2d-4fcb-804
+                        - paragraph [ref=f15e738]: Explore all tutorials
+                - generic [ref=f15e744]:
+                  - heading "APIs" [level=2] [ref=f15e755]
+                  - button [ref=f15e758] [cursor=pointer]
+                  - generic [ref=f15e763]:
+                    - generic [ref=f15e766]:
+                      - generic "A chart showing the number of API requests per second" [ref=f15e767]: Requests (requests/sec)
+                      - group [ref=f15e777]:
+                        - generic [ref=f15e778]: No data is available for the selected time frame.
+                        - paragraph [ref=f15e796]: Line chart
+                        - generic [ref=f15e797]:
+                          - paragraph
+                          - paragraph
+                          - paragraph
+                    - link [ref=f15e805] [cursor=pointer]:
+                      - /url: /apis/enabled?project=project-aeb5d904-1f2d-4fcb-804&show=all
+                      - paragraph [ref=f15e811]: Go to APIs overview
+                - generic [ref=f15e813]:
+                  - generic [ref=f15e817]:
+                    - heading "Google Cloud Platform status" [level=2] [ref=f15e832]
+                    - button [ref=f15e835] [cursor=pointer]
+                    - generic [ref=f15e840]:
+                      - link "All services normal" [ref=f15e846] [cursor=pointer]:
+                        - /url: /home/dashboard?project=project-aeb5d904-1f2d-4fcb-804
+                      - link [ref=f15e852] [cursor=pointer]:
+                        - /url: https://status.cloud.google.com/
+                        - paragraph [ref=f15e858]: Go to Cloud status dashboard
+                  - generic [ref=f15e862]:
+                    - heading "Billing" [level=2] [ref=f15e880]
+                    - button [ref=f15e883] [cursor=pointer]
+                    - generic [ref=f15e888]:
+                      - generic [ref=f15e890]:
+                        - link "Estimated charges CAD $0.00 For the billing period Oct 1 – 29, 2026" [ref=f15e894] [cursor=pointer]:
+                          - /url: /home/dashboard?project=project-aeb5d904-1f2d-4fcb-804
+                          - generic [ref=f15e896]:
+                            - generic [ref=f15e897]:
+                              - generic:
+                                - generic: Estimated charges
+                                - generic: CAD $0.00
+                            - generic [ref=f15e900]: For the billing period Oct 1 – 29, 2026
+                        - link "Take a tour of billing" [ref=f15e905] [cursor=pointer]:
+                          - /url: /home/dashboard?project=project-aeb5d904-1f2d-4fcb-804
+                      - link [ref=f15e926] [cursor=pointer]:
+                        - /url: /billing/0165EE-398892-AA98AB/reports;grouping=GROUP_BY_SKU;projects=project-aeb5d904-1f2d-4fcb-804?project=project-aeb5d904-1f2d-4fcb-804
+                        - paragraph [ref=f15e932]: View detailed charges
+                  - generic [ref=f15e936]:
+                    - heading "Monitoring" [level=2] [ref=f15e947]
+                    - button [ref=f15e950] [cursor=pointer]
+                    - generic [ref=f15e957]:
+                      - generic [ref=f15e958]:
+                        - link "Create my dashboard" [ref=f15e961] [cursor=pointer]:
+                          - /url: /monitoring/dashboards?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Set up alerting policies" [ref=f15e966] [cursor=pointer]:
+                          - /url: /monitoring/alerting?project=project-aeb5d904-1f2d-4fcb-804
+                        - link "Create uptime checks" [ref=f15e971] [cursor=pointer]:
+                          - /url: /monitoring/uptime?project=project-aeb5d904-1f2d-4fcb-804
+                      - link "View all dashboards" [ref=f15e977] [cursor=pointer]:
+                        - /url: /monitoring/dashboards?project=project-aeb5d904-1f2d-4fcb-804
+                      - link [ref=f15e981] [cursor=pointer]:
+                        - /url: /monitoring?project=project-aeb5d904-1f2d-4fcb-804
+                        - paragraph [ref=f15e987]: Go to Monitoring
+                  - generic [ref=f15e991]:
+                    - heading "Error Reporting" [level=2] [ref=f15e1002]
+                    - button [ref=f15e1005] [cursor=pointer]
+                    - generic [ref=f15e1010]:
+                      - link "No sign of any errors. Have you set up Error Reporting?" [ref=f15e1016] [cursor=pointer]:
+                        - /url: /home/dashboard?project=project-aeb5d904-1f2d-4fcb-804
+                      - link [ref=f15e1022] [cursor=pointer]:
+                        - /url: https://cloud.google.com/error-reporting/docs/setup/
+                        - paragraph [ref=f15e1028]: Learn how to set up Error Reporting
+                  - generic [ref=f15e1032]:
+                    - heading "News" [level=2] [ref=f15e1042]
+                    - button [ref=f15e1045] [cursor=pointer]
+                    - generic [ref=f15e1050]:
+                      - generic [ref=f15e1052]:
+                        - 'link "Near-zero downtime upgrades: Announcing Cloud SQL for MySQL blue-green deployments 22 hours ago" [ref=f15e1056] [cursor=pointer]':
+                          - /url: https://cloud.google.com/blog/products/databases/cloud-sql-blue-green-deployments/
+                          - generic [ref=f15e1058]:
+                            - generic [ref=f15e1059]: "Near-zero downtime upgrades: Announcing Cloud SQL for MySQL blue-green deployments"
+                            - generic [ref=f15e1063]: 22 hours ago
+                        - 'link "Behind the scenes, two months later: How we ship Google Agent Skills like products 22 hours ago" [ref=f15e1068] [cursor=pointer]':
+                          - /url: https://cloud.google.com/blog/topics/developers-practitioners/behind-the-scenes-two-months-later-how-we-ship-google-agent-skills-like-products/
+                          - generic [ref=f15e1070]:
+                            - generic [ref=f15e1071]: "Behind the scenes, two months later: How we ship Google Agent Skills like products"
+                            - generic [ref=f15e1075]: 22 hours ago
+                        - link "How GKE networking scales to support high densities of concurrent AI agents 22 hours ago" [ref=f15e1080] [cursor=pointer]:
+                          - /url: https://cloud.google.com/blog/products/networking/gke-networking-dataplane-for-large-agentic-ai-workloads/
+                          - generic [ref=f15e1082]:
+                            - generic [ref=f15e1083]: How GKE networking scales to support high densities of concurrent AI agents
+                            - generic [ref=f15e1087]: 22 hours ago
+                      - link [ref=f15e1090] [cursor=pointer]:
+                        - /url: https://cloud.google.com/blog
+                        - paragraph [ref=f15e1096]: Read all news
+                      - link [ref=f15e1098] [cursor=pointer]:
+                        - /url: /release-notes?project=project-aeb5d904-1f2d-4fcb-804
+                        - paragraph [ref=f15e1105]: Read all release notes
+                  - generic [ref=f15e1109]:
+                    - heading "Documentation" [level=2] [ref=f15e1119]
+                    - button [ref=f15e1122] [cursor=pointer]
+                    - generic [ref=f15e1129]:
+                      - link "Learn about Compute Engine" [ref=f15e1133] [cursor=pointer]:
+                        - /url: https://cloud.google.com/compute/docs/
+                      - link "Learn about Cloud Storage" [ref=f15e1141] [cursor=pointer]:
+                        - /url: https://cloud.google.com/storage/docs/
+                      - link "Learn about Cloud Run" [ref=f15e1149] [cursor=pointer]:
+                        - /url: https://cloud.google.com/run/docs/
+      - dialog "notification" [ref=f15e1155]:
+        - generic [ref=f15e1160]:
+          - generic "Now viewing project \"My First Project\" in organization \"jenny-eileen-mtz-org\"" [ref=f15e1162]
+          - button [ref=f15e1163] [cursor=pointer]
+  - iframe [aria-hidden] [ref=f15e219]
+  - dialog "Notifications" [ref=f15e1170]:
+    - generic [ref=f15e1172]:
+      - generic [ref=f15e1173]: Notifications
+      - group "Notification item 1 of 3" [ref=f15e1176]:
+        - generic [ref=f15e1181]:
+          - img "Loading This task is in progress." [ref=f15e1182]:
+            - generic [ref=f15e1198]: Loading
+          - 'button "Create Project: deploy-automation" [ref=f15e1200]'
+      - group "Notification item 2 of 3" [ref=f15e1201]:
+        - generic [ref=f15e1205]:
+          - generic [ref=f15e1206]:
+            - img "This task has finished." [ref=f15e1207]
+            - 'button "Create Project: Deploy Automation 1 hour ago" [ref=f15e1212]':
+              - text: "Create Project: Deploy Automation"
+              - generic [ref=f15e1213]: 1 hour ago
+          - button "Navigate to deploy-automation-513112 project" [ref=f15e1215]:
+            - generic [ref=f15e1216]: Select Project
+      - group "Notification item 3 of 3" [ref=f15e1217]:
+        - generic [ref=f15e1222]:
+          - img "This task has finished." [ref=f15e1223]
+          - button "Create Organization and Project 2 hours ago" [ref=f15e1228]:
+            - text: Create Organization and Project
+            - generic [ref=f15e1229]: 2 hours ago
+      - link "See all activities" [ref=f15e1233] [cursor=pointer]:
+        - /url: /logs/query;query=%2528logName%20%3D%20%22projects%2Fproject-aeb5d904-1f2d-4fcb-804%2Flogs%2Fcloudaudit.googleapis.com%252Factivity%22%20OR%20logName%20%3D%20%22projects%2Fproject-aeb5d904-1f2d-4fcb-804%2Flogs%2Fcloudaudit.googleapis.com%252Fdata_access%22%20OR%20labels.activity_type_name:*%2529;timeRange=P7D?project=project-aeb5d904-1f2d-4fcb-804
+  - paragraph [ref=f15e1236]: Loading
+  - paragraph
+  - iframe [aria-hidden] [ref=f15e1237]
+  - iframe [aria-hidden] [ref=f15e1239]
+  - paragraph

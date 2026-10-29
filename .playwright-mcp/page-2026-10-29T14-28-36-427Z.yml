@@ -1,0 +1,230 @@
+- generic [ref=f76e1]:
+  - generic:
+    - generic:
+      - progressbar [aria-hidden]
+      - generic: Loading Google Play Console
+  - generic [ref=f76e3]:
+    - banner [ref=f76e4]:
+      - generic [ref=f76e6]:
+        - link [ref=f76e7] [cursor=pointer]:
+          - /url: /console/u/0/developers/6723945036989514032/home
+          - button "Google Play Console logo" [ref=f76e8]
+        - generic [ref=f76e9]:
+          - button "Unread notifications Open notification center" [ref=f76e175]:
+            - img [aria-hidden] [ref=f76e19]: notifications_unread
+            - generic [ref=f76e20]: Unread notifications
+          - generic [ref=f76e24]:
+            - button "Switch developer accounts" [ref=f76e27] [cursor=pointer]:
+              - img [aria-hidden] [ref=f76e29]: more_vert
+            - 'button "Google Account: Jennifer Eileen Martinez (jenny.eileen.mtz@gmail.com)" [ref=f76e37] [cursor=pointer]'
+    - navigation [ref=f76e177]:
+      - list [ref=f76e178]:
+        - listitem "Home" [ref=f76e181]:
+          - button "Home" [ref=f76e182] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e185]: home
+        - listitem "Manage account" [ref=f76e188]:
+          - button "Manage account" [ref=f76e189] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e192]: badge
+        - listitem "ReaDex" [ref=f76e195]:
+          - button "ReaDex" [ref=f76e198] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e202]: play_prism
+        - listitem "Dashboard" [ref=f76e205]:
+          - button "Dashboard" [ref=f76e206] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e209]: dashboard
+        - listitem "Statistics" [ref=f76e212]:
+          - button "Statistics" [ref=f76e213] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e216]: bar_chart
+        - listitem "Publishing overview" [ref=f76e219]:
+          - button "Publishing overview" [ref=f76e220] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e223]: overview
+        - listitem "Protected with Play" [ref=f76e226]:
+          - button "Protected with Play" [ref=f76e227] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e230]: shield
+        - listitem "Test and release" [ref=f76e233]:
+          - button "Test and release" [ref=f76e234] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e237]: rocket_launch
+        - listitem "Monitor and improve" [ref=f76e240]:
+          - button "Monitor and improve" [ref=f76e241] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e244]: vital_signs
+        - listitem "Grow users" [ref=f76e247]:
+          - button "Grow users" [ref=f76e248] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e251]: finance_mode
+        - listitem "Monetize with Play" [ref=f76e254]:
+          - button "Monetize with Play" [ref=f76e255] [cursor=pointer]:
+            - img [aria-hidden] [ref=f76e258]: sell
+    - generic [ref=f76e45]:
+      - generic [ref=f76e447]:
+        - generic [ref=f76e451]:
+          - generic:
+            - generic:
+              - link "Go back to Users and permissions":
+                - /url: /console/u/0/developers/6723945036989514032/users-and-permissions
+                - generic [ref=f76e456] [cursor=pointer]
+                - img [aria-hidden] [ref=f76e458] [cursor=pointer]: keyboard_backspace
+                - generic [ref=f76e459] [cursor=pointer]: Users and permissions
+          - heading "Invite user" [level=1] [ref=f76e468]
+        - generic [ref=f76e469]:
+          - heading "User details" [level=2] [ref=f76e481]
+          - generic [ref=f76e482]:
+            - generic [ref=f76e485]:
+              - group "Email address" [ref=f76e487]:
+                - generic [ref=f76e493]:
+                  - textbox "user@example.com" [ref=f76e495]: readex-play-upload@deploy-automation-513114.iam.gserviceaccount.com
+                  - paragraph [aria-hidden] [ref=f76e497]
+              - group "Access expiry" [ref=f76e499]:
+                - generic [ref=f76e502]:
+                  - text: Access expiry
+                  - button "More information about \"Access expiry\"" [ref=f76e505] [cursor=pointer]:
+                    - img [aria-hidden] [ref=f76e506]: help
+                - generic [ref=f76e510] [cursor=pointer]:
+                  - checkbox "Set access expiry date" [ref=f76e512]
+                  - generic [ref=f76e513]: Set access expiry date
+            - generic [ref=f76e517]:
+              - generic [ref=f76e524]:
+                - img [aria-hidden] [ref=f76e528]: report
+                - heading "Always check the identity of a new user" [level=4] [ref=f76e530]
+              - paragraph [ref=f76e531]: To prevent scams and account hijacking, always check the identity of a new user before inviting them to your developer account. Only grant the permissions they need. Google will never ask you to add or remove users.
+          - generic [ref=f76e532]:
+            - generic [ref=f76e538]:
+              - heading "Permissions" [level=2] [ref=f76e544]
+              - generic [ref=f76e545]: Choose the apps and areas of your developer account that this user has access to. Grant permissions for individual apps, or use Account permissions to grant access to all apps in your developer account. Some account permissions give additional access.
+            - tablist [ref=f76e553]:
+              - tab "App permissions" [selected] [ref=f76e554] [cursor=pointer]
+              - tab "Account permissions" [ref=f76e557] [cursor=pointer]
+              - tab "Permission groups" [ref=f76e560] [cursor=pointer]
+            - generic [ref=f76e567]:
+              - generic [ref=f76e570]:
+                - heading "App permissions" [level=3] [ref=f76e576]
+                - generic [ref=f76e577]: Grant permissions for 1 or more apps
+              - generic [ref=f76e581]:
+                - img [aria-hidden] [ref=f76e585]: user_attributes
+                - paragraph [ref=f76e587]: Add an app to grant permissions
+                - button "Add app" [ref=f76e595]:
+                  - img [aria-hidden] [ref=f76e600]: arrow_drop_down
+          - generic [ref=f76e608]:
+            - button "Cancel" [ref=f76e667]
+            - button "Invite user" [disabled] [ref=f76e610]
+      - generic [ref=f76e165]:
+        - generic [ref=f76e616]:
+          - link "Product updates" [ref=f76e617] [cursor=pointer]:
+            - /url: https://play.google.com/console/about/whats-new/
+          - link "Status dashboard" [ref=f76e618] [cursor=pointer]:
+            - /url: https://status.play.google.com/
+          - link "Help" [ref=f76e619] [cursor=pointer]:
+            - /url: /console/u/0/developers/6723945036989514032/help-and-support
+        - generic [ref=f76e620]:
+          - generic [ref=f76e621]: © 2026 Google
+          - link "Privacy" [ref=f76e622] [cursor=pointer]:
+            - /url: https://www.google.com/policies/privacy/
+          - link "Developer Distribution Agreement" [ref=f76e623] [cursor=pointer]:
+            - /url: https://play.google.com/about/developer-distribution-agreement.html
+          - link "Terms of Service" [ref=f76e624] [cursor=pointer]:
+            - /url: https://play.google.com/about/console/terms-of-service/
+  - dialog [ref=f76e683]:
+    - generic [ref=f76e685]:
+      - heading "Permissions for ReaDex" [level=2] [ref=f76e686]
+      - button "Close" [ref=f76e687] [cursor=pointer]:
+        - img [aria-hidden] [ref=f76e690]: close
+    - region [active] [ref=f76e691]:
+      - generic [ref=f76e695]:
+        - paragraph [ref=f76e696]: "* — Required"
+        - group "App access" [ref=f76e698]:
+          - generic [ref=f76e699]: App access *
+          - generic [ref=f76e703]:
+            - generic [ref=f76e704] [cursor=pointer]:
+              - checkbox "Admin (all permissions) Users with this permission get all other permissions for this app. They can also invite new users to your developer account, and add and remove permissions for other users who have access to the same apps." [checked] [ref=f76e706]
+              - generic [ref=f76e707]:
+                - text: Admin (all permissions)
+                - generic [ref=f76e708]: Users with this permission get all other permissions for this app. They can also invite new users to your developer account, and add and remove permissions for other users who have access to the same apps.
+            - generic [ref=f76e848]:
+              - generic [ref=f76e855]:
+                - img [aria-hidden] [ref=f76e859]: report
+                - heading "Are you sure you want to give this user app admin permissions?" [level=4] [ref=f76e861]
+              - paragraph [ref=f76e863]:
+                - generic [ref=f76e865]:
+                  - text: This user will have full control of this app. Only give this permission to users if you've checked their identity, and completely trust them.
+                  - strong [ref=f76e866]: "Beware of scams: Google will never ask you to add or remove admins from your app."
+            - generic [ref=f76e710]:
+              - generic:
+                - checkbox "View app information (read-only) View all information for this app, including any associated Play Games Services projects - but not financial data. This permission does not allow users to edit information, or make any changes. To grant access to financial data, give users the 'View financial data' permission." [checked] [disabled]
+              - generic [ref=f76e713]:
+                - text: View app information (read-only)
+                - generic [ref=f76e714]: View all information for this app, including any associated Play Games Services projects - but not financial data. This permission does not allow users to edit information, or make any changes. To grant access to financial data, give users the 'View financial data' permission.
+            - generic [ref=f76e717]:
+              - generic:
+                - checkbox "View app quality information (read-only) This permission allows users to view Android vitals and pre-launch reports, as well as basic information about artifacts, tracks, and releases. Users with this permission are not able to edit information or make any changes. To provide access to any other app data, or to allow these users to make changes, select the \"View app information and download in bulk reports (read only)\" permission before granting access to other account permissions." [checked] [disabled]
+              - generic [ref=f76e718]:
+                - text: View app quality information (read-only)
+                - generic [ref=f76e719]: This permission allows users to view Android vitals and pre-launch reports, as well as basic information about artifacts, tracks, and releases.Users with this permission are not able to edit information or make any changes. To provide access to any other app data, or to allow these users to make changes, select the "View app information and download in bulk reports (read only)" permission before granting access to other account permissions.
+        - group "Draft apps" [ref=f76e723]:
+          - generic [ref=f76e729]:
+            - generic:
+              - checkbox "Edit and delete draft apps This permission does not allow users to publish apps on Google Play" [checked] [disabled]
+            - generic [ref=f76e732]:
+              - text: Edit and delete draft apps
+              - generic [ref=f76e733]: This permission does not allow users to publish apps on Google Play
+        - group "Financial data" [ref=f76e736]:
+          - generic [ref=f76e741]:
+            - generic [ref=f76e742]:
+              - generic:
+                - checkbox "View financial data View financial and sales reports; view buyer metrics on the User acquisition page; access the Purchases API; and view revenue information for any associated Play Games Services projects" [checked] [disabled]
+              - generic [ref=f76e745]:
+                - text: View financial data
+                - generic [ref=f76e746]: View financial and sales reports; view buyer metrics on the User acquisition page; access the Purchases API; and view revenue information for any associated Play Games Services projects
+            - generic [ref=f76e748]:
+              - generic:
+                - checkbox "Manage orders and subscriptions View orders, refund orders, and cancel subscriptions. Users also need the ‘View financial data’ permission to view aggregate financial reports." [checked] [disabled]
+              - generic [ref=f76e751]:
+                - text: Manage orders and subscriptions
+                - generic [ref=f76e752]: View orders, refund orders, and cancel subscriptions. Users also need the ‘View financial data’ permission to view aggregate financial reports.
+        - group "Releases" [ref=f76e755]:
+          - generic [ref=f76e760]:
+            - generic [ref=f76e761]:
+              - generic:
+                - checkbox "Release to production, exclude devices, and use Play App Signing Create, edit, and roll out releases to production; unpublish and republish apps; exclude devices in the device catalog; and use app signing by Google Play to sign APKs. Users with this permission can publish apps to users on Google Play." [checked] [disabled]
+              - generic [ref=f76e764]:
+                - text: Release to production, exclude devices, and use Play App Signing
+                - generic [ref=f76e765]: Create, edit, and roll out releases to production; unpublish and republish apps; exclude devices in the device catalog; and use app signing by Google Play to sign APKs. Users with this permission can publish apps to users on Google Play.
+            - generic [ref=f76e768]:
+              - generic:
+                - checkbox "Release apps to testing tracks Upload draft apps; create, edit, and rollout releases to testing tracks; unpublish and republish apps that have already been published to a testing track; upload and modify .obb files; edit release notes for apps which are not active in production; and upload app bundles for internal sharing. This permission does not allow users to publish apps to production on Google Play." [checked] [disabled]
+              - generic [ref=f76e771]:
+                - text: Release apps to testing tracks
+                - generic [ref=f76e772]: Upload draft apps; create, edit, and rollout releases to testing tracks; unpublish and republish apps that have already been published to a testing track; upload and modify .obb files; edit release notes for apps which are not active in production; and upload app bundles for internal sharing.This permission does not allow users to publish apps to production on Google Play.
+            - generic [ref=f76e775]:
+              - generic:
+                - checkbox "Manage testing tracks and edit tester lists Manage users, groups, and domains on tester lists; disable testing tracks; update country targeting for testing tracks; and set up uploaders and testers for internal app sharing. This permission does not allow users to publish apps to production on Google Play." [checked] [disabled]
+              - generic [ref=f76e778]:
+                - text: Manage testing tracks and edit tester lists
+                - generic [ref=f76e779]: Manage users, groups, and domains on tester lists; disable testing tracks; update country targeting for testing tracks; and set up uploaders and testers for internal app sharing. This permission does not allow users to publish apps to production on Google Play.
+        - group "Store presence" [ref=f76e783]:
+          - generic [ref=f76e789]:
+            - generic:
+              - checkbox "Manage store presence Edit your store listing and run store listing experiments; edit pricing; manage in-app products; edit distribution information and content ratings; create and edit promotions; and create and save filters to sort the device catalog. This permission does not allow users to exclude devices in the device catalog." [checked] [disabled]
+            - generic [ref=f76e792]:
+              - text: Manage store presence
+              - generic [ref=f76e793]: Edit your store listing and run store listing experiments; edit pricing; manage in-app products; edit distribution information and content ratings; create and edit promotions; and create and save filters to sort the device catalog.This permission does not allow users to exclude devices in the device catalog.
+        - group "User feedback" [ref=f76e797]:
+          - generic [ref=f76e803]:
+            - generic:
+              - checkbox "Reply to reviews Reply to reviews on Google Play, report inappropriate reviews, and change the contact information used in suggested replies. Users without this permission can still view ratings and reviews, but can’t reply to them." [checked] [disabled]
+            - generic [ref=f76e806]:
+              - text: Reply to reviews
+              - generic [ref=f76e807]: Reply to reviews on Google Play, report inappropriate reviews, and change the contact information used in suggested replies. Users without this permission can still view ratings and reviews, but can’t reply to them.
+        - group "Policy" [ref=f76e810]:
+          - generic [ref=f76e816]:
+            - generic:
+              - checkbox "Manage policy declarations Users with this permission can edit and submit policy declarations" [checked] [disabled]
+            - generic [ref=f76e819]:
+              - text: Manage policy declarations
+              - generic [ref=f76e820]: Users with this permission can edit and submit policy declarations
+        - group "Deep links" [ref=f76e823]:
+          - generic [ref=f76e829]:
+            - generic:
+              - checkbox "Manage deep links Users with this permission can add, edit and manage deep links for this app" [checked] [disabled]
+            - generic [ref=f76e832]:
+              - text: Manage deep links
+              - generic [ref=f76e833]: Users with this permission can add, edit and manage deep links for this app
+    - generic [ref=f76e839]:
+      - button "Cancel" [ref=f76e840]
+      - button "Apply" [ref=f76e844]

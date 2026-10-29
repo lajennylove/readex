@@ -61,6 +61,22 @@
   .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 20; }
   .brand { font-weight: 600; color: var(--text-strong); font-size: 15px; }
   .brand-sub { color: var(--muted); font-size: 13px; margin-left: 4px; }
+  .brandrow {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 0 14px; margin: 0 0 14px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .brandrow img { display: block; width: 28px; height: 28px; border-radius: 6px; }
+  .brandrow-name {
+    font-weight: 700; font-size: 17px; color: var(--text-strong);
+    letter-spacing: -0.01em;
+  }
+  .brandrow:hover .brandrow-name { color: var(--accent); }
+  .topbar .brandrow {
+    padding: 0; margin: 0; border: none;
+  }
+
   .burger { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 6px; cursor: pointer; }
   .burger:hover { border-color: var(--accent); color: var(--accent); }
   .sidebar { background: var(--bg); border-right: 1px solid var(--border); padding: 24px 20px; }
@@ -123,10 +139,11 @@
 <div class="site" id="site">
   <header class="topbar">
     <button class="burger" id="burger" aria-label="Open navigation">&#9776;</button>
-    <span class="brand">ReaDex</span><span class="brand-sub">Source Adapter Spec</span>
+    <a href="../" class="brandrow" aria-label="ReaDex"><img src="../assets/readex-icon.png" alt=""><span class="brandrow-name">ReaDex</span></a><span class="brand-sub">Source Adapter Spec</span>
   </header>
   <div class="scrim" id="scrim"></div>
   <aside class="sidebar">
+    <a href="../" class="brandrow" aria-label="ReaDex home"><img src="../assets/readex-icon.png" alt=""><span class="brandrow-name">ReaDex</span></a>
     <h4>Source Adapter Spec</h4>
     <ul>
       <li><a href="index.html">Home</a></li>
@@ -171,7 +188,7 @@
       </div>
       <div class="example-row">
         <p class="label">Detail-header size (512px)</p>
-        <pre><code><a href="https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg" target="_blank" rel="noopener">https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg</a></code></pre>
+        <pre><code><a href="https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg  (optional)" target="_blank" rel="noopener">https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg  (optional)</a></code></pre>
       </div>
     </div>
 

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — Seasonal</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; } h1, h2 { color: #ffffff; } code, pre { background: #2a2f45; color: #e7e9ef; }
+    .meta { color: #9aa0b4; }
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 20px; margin: 36px 0 10px; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #efece6; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; }
+  a { color: #2d4ba0; } a:hover { text-decoration: underline; }
+  nav.breadcrumb { font-size: 14px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="breadcrumb"><a href="index.html">&larr; Index</a></nav>
+  <h1>Seasonal</h1>
+  <p class="meta">The optional "This season" row contract.</p>
+
+  <h2>What this is</h2>
+  <p>The Home screen has an optional top row named <strong>This season</strong>. It is populated from a single JSON file served at a URL the user pastes into Settings. The URL is per-install: it does not have to live on the same host as the API, and it has no default location. If the user doesn't opt in, the row is hidden and no outbound call is made.</p>
+  <p>Everything else on Home works whether or not this row exists. Treat it as entirely optional.</p>
+
+  <h2>Response schema</h2>
+  <p>A single JSON object with three top-level keys:</p>
+  <pre><code>{
+  "id":        "string, stable identifier for the list",
+  "name":      "string, display name shown as the row heading",
+  "manga_ids": ["array of manga.id strings served by the current source"]
+}</code></pre>
+  <p>No envelope. No <code>result</code>/<code>response</code> wrapper. No pagination. The <code>manga_ids</code> are used as-is to request each title's detail via <code>/manga/{id}</code>; IDs that 404 are dropped silently.</p>
+
+  <h2>Minimal example</h2>
+<pre><code>{
+  "id": "demo-seasonal-2026-fall",
+  "name": "Fall 2026 picks",
+  "manga_ids": [
+    "demo-01",
+    "demo-03",
+    "demo-07"
+  ]
+}</code></pre>
+
+  <h2>Hosting notes</h2>
+  <ul>
+    <li>Served over HTTPS. Any JSON content type is accepted.</li>
+    <li>Order is preserved — the client renders tiles in the order the IDs appear.</li>
+    <li>There is no cross-reference back to the API; the client assumes every ID resolves at the active source. If the list is maintained independently (e.g. a community curator), stale IDs are tolerated but not helpful.</li>
+    <li>No cache headers are read; the client refreshes the row on the normal Home refresh cadence.</li>
+  </ul>
+
+  <h2>Not to be confused with /api/manga/_seasonal.json</h2>
+  <p>The demo also ships a file at <code>/api/manga/_seasonal.json</code> that uses the standard collection envelope with a list of IDs under <code>data</code>. This is a legacy path from an earlier version of the contract and is <strong>not</strong> what the "This season" setting fetches today. New sources should implement only the <code>{id, name, manga_ids}</code> shape described above.</p>
+</main>
+</body>
+</html>

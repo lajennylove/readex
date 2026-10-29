@@ -4,11 +4,12 @@ Generate the demo source's static files (JSON responses).
 
 Run from the demo-source/ directory. Idempotent — overwrites.
 
-30 lorem-ipsum titles across MangaDex's four content ratings so an App Review
-walkthrough can exercise the Browse row + rating filter + tag filter against a
-realistic catalog. All text is lorem ipsum; all authors are invented (Alpha
-Writer, Beta Illustrator, …); every image is a placehold.co URL — nothing in
-this demo references a real work, person or publisher.
+30 lorem-ipsum titles across the four content ratings the app supports (safe,
+suggestive, erotica, pornographic) so an App Review walkthrough can exercise
+the Browse row + rating filter + tag filter against a realistic catalog. All
+text is lorem ipsum; all authors are invented (Alpha Writer, Beta Illustrator,
+…); every image is a placehold.co URL — nothing in this demo references a
+real work, person or publisher.
 
 Rating distribution (hard-coded in TITLES below so a reviewer can flip the
 rating filter and see each category appear/disappear):
@@ -22,10 +23,10 @@ filter catches them in addition to the rating filter. Their content is still
 just lorem ipsum + placehold.co placeholders — the ratings exist only so the
 filter has something to work on.
 
-Shapes mirror MangaDex's live API responses (verified against
-https://api.mangadex.org/manga?limit=1 and /chapter?limit=1 on 2026-10-26) so
-a user who swaps SOURCE_URL to https://api.mangadex.org gets the same code
-paths exercised unchanged. No new fields were introduced for this expansion.
+Shapes mirror the upstream reader API's live responses (verified against the
+live /manga?limit=1 and /chapter?limit=1 endpoints on 2026-10-26) so a user
+who swaps SOURCE_URL to any compatible API gets the same code paths exercised
+unchanged. No new fields were introduced for this expansion.
 
 Stable identifiers:
   - Title IDs: `demo-01` … `demo-30` (zero-padded ordinal).
@@ -57,8 +58,9 @@ TAGS = [
     {"id": "77777777-7777-4777-8777-777777777777", "name": "Slice of Life", "group": "theme"},
     {"id": "88888888-8888-4888-8888-888888888888", "name": "Suspense", "group": "theme"},
     {"id": "99999999-9999-4999-8999-999999999999", "name": "Mature", "group": "content"},
-    # Matches MangaDex's actual Self-Published tag UUID so a user who swaps to MangaDex sees
-    # the Home row backed by the real catalog; demo titles below carry it too.
+    # Matches the upstream reader API's actual Self-Published tag UUID so a user who swaps
+    # to a compatible source sees the Home row backed by the real catalog; demo titles below
+    # carry it too.
     {"id": "891cf039-b895-47f0-9229-bef4c96eccd4", "name": "Self-Published", "group": "format"},
 ]
 
@@ -526,4 +528,4 @@ def build() -> None:
 
 if __name__ == "__main__":
     build()
-    print(f"demo-source: built {len(TITLES)} titles (placehold.co + lorem ipsum + MangaDex envelope)")
+    print(f"demo-source: built {len(TITLES)} titles (placehold.co + lorem ipsum + upstream envelope)")

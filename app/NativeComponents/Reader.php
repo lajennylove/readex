@@ -345,7 +345,7 @@ class Reader extends NativeComponent
         $state = $fetcher->isRunning($this->chapterId) ? null : $fetcher->state($this->chapterId);
         $count = $this->pageCount();
         $label = MangaDetail::chapterLabel($chapter);
-        $credit = 'Scanlation: '.($chapter->group_name ?? 'No group');
+        $credit = $chapter->group_name !== null ? 'By '.$chapter->group_name : '';
         $rows = [];
 
         for ($row = $this->virtualWindowFrom; $row <= min($this->virtualWindowTo, $this->rowCount() - 1); $row++) {

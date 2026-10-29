@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — /_meta.json</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; } h1, h2 { color: #ffffff; } code, pre { background: #2a2f45; color: #e7e9ef; }
+    .meta { color: #9aa0b4; }
+    table th, table td { border-bottom-color: #333a55; }
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 20px; margin: 36px 0 10px; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #efece6; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; }
+  a { color: #2d4ba0; } a:hover { text-decoration: underline; }
+  nav.breadcrumb { font-size: 14px; margin-bottom: 12px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 10px 10px 0; border-bottom: 1px solid #e4ded0; vertical-align: top; }
+  th { color: #6c7384; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="breadcrumb"><a href="index.html">&larr; Index</a></nav>
+  <h1>/_meta.json</h1>
+  <p class="meta">The one-shot discovery document. Served from the base URL, read once at setup, cached per source.</p>
+
+  <h2>Fetch</h2>
+  <p>After the user types a base URL at Setup and it passes the health check, ReaDex sends:</p>
+  <pre><code>GET {baseUrl}/_meta.json</code></pre>
+  <p>If the file is absent (404), the source is still valid; the client falls back to the defaults below for every key. If the file is present, each key is read and persisted on the local sources row; non-string values and unknown keys are ignored.</p>
+
+  <h2>Full example</h2>
+<pre><code>{
+  "covers_url":    "https://lajennylove.github.io/readex/covers",
+  "report_url":    "https://lajennylove.github.io/readex/report",
+  "status_family": "lajennylove.github.io",
+  "static_json":   true
+}</code></pre>
+
+  <h2>Keys</h2>
+  <table>
+    <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>covers_url</code></td>
+        <td>string (URL)</td>
+        <td><code>{baseUrl}/covers</code></td>
+        <td>Base for the cover-thumbnail URL template (<a href="covers.html">covers.html</a>). Set this when your image CDN is on a different host from your API.</td>
+      </tr>
+      <tr>
+        <td><code>report_url</code></td>
+        <td>string (URL)</td>
+        <td><code>{baseUrl}/report</code></td>
+        <td>Endpoint the client POSTs health reports to after off-host image downloads. Can be a no-op; failures are swallowed.</td>
+      </tr>
+      <tr>
+        <td><code>status_family</code></td>
+        <td>string</td>
+        <td><code>""</code> (none)</td>
+        <td>Opaque label grouping this source with related ones in the local status cache (used to deduplicate error banners when a user has several sources under the same operator). Not shown to the user.</td>
+      </tr>
+      <tr>
+        <td><code>static_json</code></td>
+        <td>boolean</td>
+        <td><code>false</code></td>
+        <td>When <code>true</code>, every API GET has <code>.json</code> appended to the path before the query string. Lets a plain static file tree (GitHub Pages, S3, Netlify) serve the endpoint contract without routing. Query parameters are still sent and are expected to be ignored.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>When defaults are enough</h2>
+  <p>A dynamic source that lives at one host, routes all paths, and serves cover images under <code>/covers</code> does not need to publish <code>_meta.json</code> at all. Everything is reachable at the fallback locations.</p>
+
+  <h2>When to publish it</h2>
+  <ul>
+    <li>Your API host and your image host are different (<code>covers_url</code>).</li>
+    <li>You want to collect health telemetry on a dedicated endpoint (<code>report_url</code>).</li>
+    <li>You serve from a static file host and need the <code>.json</code> suffix behaviour (<code>static_json</code>).</li>
+    <li>You run several sibling sources and want them clustered in the local status cache (<code>status_family</code>).</li>
+  </ul>
+
+  <h2>Cache behaviour</h2>
+  <p>The response is read once at setup and saved to the local DB. Changing <code>_meta.json</code> on the server after a user has configured the source does not re-fetch the file; the user would need to re-run Setup or clear source metadata from Settings for the new values to take effect.</p>
+</main>
+</body>
+</html>

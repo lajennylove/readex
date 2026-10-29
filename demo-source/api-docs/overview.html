@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — Overview</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; } h1, h2, h3 { color: #ffffff; } code, pre { background: #2a2f45; color: #e7e9ef; }
+    .meta { color: #9aa0b4; } .check { background: #262b40; border-color: #333a55; }
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 20px; margin: 40px 0 10px; }
+  h3 { font-size: 16px; margin: 24px 0 8px; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #efece6; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; }
+  a { color: #2d4ba0; } a:hover { text-decoration: underline; }
+  nav.breadcrumb { font-size: 14px; margin-bottom: 12px; }
+  .check { background: #fff; border: 1px solid #e4ded0; padding: 16px 20px; border-radius: 10px; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="breadcrumb"><a href="index.html">&larr; Index</a></nav>
+  <h1>Overview</h1>
+  <p class="meta">What a ReaDex source is, how its three roles tie together, and the smallest version that lights up the Home screen.</p>
+
+  <h2>Three roles behind one base URL</h2>
+  <p>The user types a single URL at Setup (the <em>base URL</em>). From that one URL, ReaDex expects to reach three logical surfaces:</p>
+  <ol>
+    <li><strong>API</strong> — JSON responses for the catalog, title detail, chapter feed and page lists. Rooted at <code>{base}/api/</code> by default.</li>
+    <li><strong>Covers CDN</strong> — static image files for title cover thumbnails. Rooted at <code>{base}/covers/</code> by default.</li>
+    <li><strong>Optional seasonal</strong> — a single JSON file naming the IDs that should populate the Home "This season" row. The user pastes this URL separately in Settings; no default location.</li>
+  </ol>
+  <p>All three can live on the same host (the demo serves API + covers from the same GitHub Pages origin) or be split across hosts via <code>/_meta.json</code>.</p>
+
+  <h2>Discovery via /_meta.json</h2>
+  <p>At setup time, after the base URL passes a health check, ReaDex optionally GETs <code>{base}/_meta.json</code>. If present, the keys inside override the default <code>{base}/covers</code> and <code>{base}/report</code> locations and declare client-side behaviours (such as <code>static_json</code>, which appends <code>.json</code> to every API path so a plain file tree can serve the contract). See <a href="meta.html">meta.html</a>.</p>
+  <p>A source that doesn't publish <code>_meta.json</code> is still valid — the app falls back to <code>{base}/covers</code> and <code>{base}/report</code>, with <code>static_json</code> off.</p>
+
+  <h2>Response envelope</h2>
+  <p>Every API response is a JSON object with this shape:</p>
+  <pre><code>{
+  "result": "ok",
+  "response": "collection",   // or "entity" for a single item
+  "data": [ ... ],            // array for collection, object for entity
+  "limit": 30, "offset": 0, "total": 30   // collections only
+}</code></pre>
+  <p>The app treats <code>result</code> and <code>response</code> as advisory — it reads from <code>data</code> directly. Pagination counters are ignored for the static demo (which returns every row in one shot); a real backend should return accurate <code>limit</code>/<code>offset</code>/<code>total</code>.</p>
+
+  <h2>Content-rating &amp; language filtering</h2>
+  <p>ReaDex passes query parameters like <code>contentRating[]=safe&amp;contentRating[]=suggestive</code> and <code>availableTranslatedLanguage[]=en</code>. A dynamic backend should honour them. A static source cannot — it returns the full catalog and the client filters locally on <code>attributes.contentRating</code> and <code>attributes.availableTranslatedLanguages</code>.</p>
+
+  <h2>Error behaviour</h2>
+  <p>HTTP 404 and 405 on any endpoint are tolerated: the affected row simply hides. 5xx raises an error dialog on the matching screen. Non-HTTPS base URLs are rejected at setup.</p>
+
+  <h2>Minimum viable source</h2>
+  <div class="check">
+    <p>The smallest working source only needs the files below. Serve them as static JSON, set <code>static_json: true</code> in <code>_meta.json</code>, and the Home screen will populate.</p>
+    <ul>
+      <li><code>/_meta.json</code> — one object (see <a href="meta.html">meta.html</a>).</li>
+      <li><code>/api/manga/_catalog.json</code> — a collection of every title. Backs the Home "Browse" row.</li>
+      <li><code>/api/manga/{id}.json</code> — one file per title, entity response.</li>
+      <li><code>/api/manga/{id}/feed.json</code> — one file per title, collection of its chapters.</li>
+      <li><code>/api/at-home/server/{chapterId}.json</code> — one file per chapter, naming its page images.</li>
+      <li><code>/covers/{mangaId}/cover.256.jpg</code> — one JPEG per title. Skippable if the manga JSON embeds absolute cover URLs under the <code>cover_art</code> relationship's <code>fileName</code>.</li>
+    </ul>
+    <p>Everything else — <code>chapter.json</code>, <code>manga.json</code>, <code>tag.json</code>, seasonal — is optional. Missing files 404 and the matching row hides.</p>
+  </div>
+</main>
+</body>
+</html>

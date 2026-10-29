@@ -83,7 +83,7 @@
           "id": "cover-demo-01",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a1a2e/eeeeee.png?text=Lorem+Ipsum+Dolor"
+            "fileName": "cover"
           }
         }
       ]
@@ -169,7 +169,7 @@
           "id": "cover-demo-02",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e1a1a/eeeeee.png?text=Consectetur+Adipiscing"
+            "fileName": "cover"
           }
         }
       ]
@@ -242,7 +242,7 @@
           "id": "cover-demo-03",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a2e1a/eeeeee.png?text=Elit+Sed+Do+Eiusmod"
+            "fileName": "cover"
           }
         }
       ]
@@ -315,7 +315,7 @@
           "id": "cover-demo-04",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e2e1a/222222.png?text=Tempor+Incididunt"
+            "fileName": "cover"
           }
         }
       ]
@@ -401,7 +401,7 @@
           "id": "cover-demo-05",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a2e2e/222222.png?text=Labore+Et+Dolore"
+            "fileName": "cover"
           }
         }
       ]
@@ -487,7 +487,7 @@
           "id": "cover-demo-06",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e1a2e/eeeeee.png?text=Magna+Aliqua"
+            "fileName": "cover"
           }
         }
       ]
@@ -560,7 +560,7 @@
           "id": "cover-demo-07",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/3a2e1a/eeeeee.png?text=Ut+Enim+Ad+Minim"
+            "fileName": "cover"
           }
         }
       ]
@@ -633,7 +633,7 @@
           "id": "cover-demo-08",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a3a2e/eeeeee.png?text=Veniam+Quis+Nostrud"
+            "fileName": "cover"
           }
         }
       ]
@@ -719,7 +719,7 @@
           "id": "cover-demo-09",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e1a3a/eeeeee.png?text=Exercitation+Ullamco"
+            "fileName": "cover"
           }
         }
       ]
@@ -792,7 +792,7 @@
           "id": "cover-demo-10",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/3a1a2e/eeeeee.png?text=Laboris+Nisi+Aliquip"
+            "fileName": "cover"
           }
         }
       ]
@@ -878,7 +878,7 @@
           "id": "cover-demo-11",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a2e3a/eeeeee.png?text=Ex+Ea+Commodo"
+            "fileName": "cover"
           }
         }
       ]
@@ -951,7 +951,7 @@
           "id": "cover-demo-12",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e3a1a/222222.png?text=Consequat+Duis+Aute"
+            "fileName": "cover"
           }
         }
       ]
@@ -1024,7 +1024,7 @@
           "id": "cover-demo-13",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/4a3a2a/eeeeee.png?text=Irure+Dolor"
+            "fileName": "cover"
           }
         }
       ]
@@ -1097,7 +1097,7 @@
           "id": "cover-demo-14",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2a4a3a/eeeeee.png?text=Reprehenderit+Voluptate"
+            "fileName": "cover"
           }
         }
       ]
@@ -1183,7 +1183,7 @@
           "id": "cover-demo-15",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/3a2a4a/eeeeee.png?text=Velit+Esse+Cillum"
+            "fileName": "cover"
           }
         }
       ]
@@ -1256,7 +1256,7 @@
           "id": "cover-demo-16",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a1a2e/eeeeee.png?text=Fugiat+Nulla+Pariatur"
+            "fileName": "cover"
           }
         }
       ]
@@ -1342,7 +1342,7 @@
           "id": "cover-demo-17",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e1a1a/eeeeee.png?text=Excepteur+Sint+Occaecat"
+            "fileName": "cover"
           }
         }
       ]
@@ -1415,7 +1415,7 @@
           "id": "cover-demo-18",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a2e1a/eeeeee.png?text=Cupidatat+Non+Proident"
+            "fileName": "cover"
           }
         }
       ]
@@ -1501,7 +1501,7 @@
           "id": "cover-demo-19",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e2e1a/222222.png?text=Sunt+In+Culpa"
+            "fileName": "cover"
           }
         }
       ]
@@ -1587,7 +1587,7 @@
           "id": "cover-demo-20",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a2e2e/222222.png?text=Qui+Officia+Deserunt"
+            "fileName": "cover"
           }
         }
       ]
@@ -1660,7 +1660,7 @@
           "id": "cover-demo-21",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e1a2e/eeeeee.png?text=Mollit+Anim+Id+Est"
+            "fileName": "cover"
           }
         }
       ]
@@ -1733,7 +1733,7 @@
           "id": "cover-demo-22",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/3a2e1a/eeeeee.png?text=Laborum+Sed+Perspiciatis"
+            "fileName": "cover"
           }
         }
       ]
@@ -1806,7 +1806,7 @@
           "id": "cover-demo-23",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a3a2e/eeeeee.png?text=Unde+Omnis+Iste"
+            "fileName": "cover"
           }
         }
       ]
@@ -1892,7 +1892,7 @@
           "id": "cover-demo-24",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e1a3a/eeeeee.png?text=Natus+Error+Voluptatem"
+            "fileName": "cover"
           }
         }
       ]
@@ -1965,7 +1965,7 @@
           "id": "cover-demo-25",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/3a1a2e/eeeeee.png?text=Accusantium+Doloremque"
+            "fileName": "cover"
           }
         }
       ]
@@ -2038,7 +2038,7 @@
           "id": "cover-demo-26",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/1a2e3a/eeeeee.png?text=Laudantium+Totam+Rem"
+            "fileName": "cover"
           }
         }
       ]
@@ -2111,7 +2111,7 @@
           "id": "cover-demo-27",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2e3a1a/222222.png?text=Aperiam+Eaque+Ipsa"
+            "fileName": "cover"
           }
         }
       ]
@@ -2184,7 +2184,7 @@
           "id": "cover-demo-28",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/4a3a2a/eeeeee.png?text=Quae+Ab+Illo+Inventore"
+            "fileName": "cover"
           }
         }
       ]
@@ -2270,7 +2270,7 @@
           "id": "cover-demo-29",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/2a4a3a/eeeeee.png?text=Veritatis+Et+Quasi"
+            "fileName": "cover"
           }
         }
       ]
@@ -2343,7 +2343,7 @@
           "id": "cover-demo-30",
           "type": "cover_art",
           "attributes": {
-            "fileName": "https://placehold.co/400x600/3a2a4a/eeeeee.png?text=Architecto+Beatae+Vitae"
+            "fileName": "cover"
           }
         }
       ]

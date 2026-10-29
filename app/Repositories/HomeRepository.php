@@ -35,6 +35,18 @@ final class HomeRepository
     /** Upstream tag UUID for Self-Published; sources that mirror the shape use the same id. */
     public const SELF_PUBLISHED_TAG = '891cf039-b895-47f0-9229-bef4c96eccd4';
 
+    public const RECOMMENDED = 'home.recommended';
+
+    /** Minimum stored tiles before the Recommended for you row is surfaced on Home. */
+    public const RECOMMENDED_MIN = 10;
+
+    /** How many recommended tiles the row caps at — enough for a scroll, not so many
+     *  that the ranking is dominated by low-signal tail tags. */
+    public const RECOMMENDED_MAX = 30;
+
+    /** Top-N seed tags (by profile weight) used to fan out the candidate set. */
+    public const RECOMMENDED_SEEDS = 5;
+
     public function __construct(
         private readonly Client $client,
         private readonly SettingsRepository $settings,
@@ -243,6 +255,134 @@ final class HomeRepository
         }
 
         DB::transaction(fn () => $this->replace(self::SELF_PUBLISHED, $this->manga->storeManga($response)));
+    }
+
+    public function recommended(): Result
+    {
+        return $this->manga->readList(self::RECOMMENDED, self::RECOMMENDED);
+    }
+
+    /**
+     * Local tag-affinity recommender. Signals come from the user's own device: Collection rows
+     * where favorite=true (weight 3) and ViewedSeries rows (weight 1). We tally those two
+     * signals' tag frequencies against each manga's tag_ids column, pick the top-N tags as
+     * seeds, fan out one /manga query per seed, dedupe, drop series the user already knows,
+     * and re-rank the survivors by the total profile weight of their tags.
+     *
+     * Any upstream 404/405 (an agnostic source without tag filtering) hides the row; count the
+     * row empty rather than erroring out of Home.
+     */
+    public function refreshRecommended(Priority $priority = Priority::Interactive): void
+    {
+        $profile = $this->tagAffinityProfile();
+
+        if ($profile === []) {
+            DB::transaction(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        $seeds = array_slice(array_keys($profile), 0, self::RECOMMENDED_SEEDS);
+        $known = $this->knownMangaIds();
+        $candidates = [];
+
+        foreach ($seeds as $seed) {
+            try {
+                $response = $this->client->get('/manga', [
+                    'hasAvailableChapters' => true,
+                    'limit' => config('readex.page_sizes.home_row'),
+                    'contentRating' => $this->settings->contentRatings(),
+                    'includedTags' => [$seed],
+                    'includes' => ['cover_art'],
+                    'order' => ['followedCount' => 'desc'],
+                ], $priority);
+            } catch (ApiError $e) {
+                if ($e->status === 404 || $e->status === 405) {
+                    DB::transaction(fn () => $this->replace(self::RECOMMENDED, []));
+
+                    return;
+                }
+                throw $e;
+            }
+
+            foreach ($response['data'] ?? [] as $row) {
+                $id = $row['id'] ?? null;
+                if (! is_string($id) || isset($candidates[$id]) || in_array($id, $known, true)) {
+                    continue;
+                }
+                $candidates[$id] = $row;
+            }
+        }
+
+        if ($candidates === []) {
+            DB::transaction(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        $scored = [];
+        foreach ($candidates as $id => $row) {
+            $tags = [];
+            foreach ($row['attributes']['tags'] ?? [] as $tag) {
+                if (isset($tag['id']) && is_string($tag['id'])) {
+                    $tags[] = $tag['id'];
+                }
+            }
+            $scored[$id] = array_sum(array_map(fn (string $t) => $profile[$t] ?? 0, $tags));
+        }
+
+        arsort($scored);
+        $ids = array_slice(array_keys($scored), 0, self::RECOMMENDED_MAX);
+
+        $envelope = [
+            'result' => 'ok',
+            'response' => 'collection',
+            'data' => array_values(array_map(fn (string $id) => $candidates[$id], $ids)),
+            'limit' => count($ids), 'offset' => 0, 'total' => count($ids),
+        ];
+
+        DB::transaction(fn () => $this->replace(self::RECOMMENDED, $this->manga->storeManga($envelope)));
+    }
+
+    /** @return array<string, int> tag id -> total weight, desc order by weight */
+    private function tagAffinityProfile(): array
+    {
+        $favoriteIds = \App\Models\Collection::query()->where('favorite', true)->pluck('manga_id')->all();
+        $viewedIds = \App\Models\ViewedSeries::query()->pluck('manga_id')->all();
+
+        if ($favoriteIds === [] && $viewedIds === []) {
+            return [];
+        }
+
+        $favoriteTagLists = Manga::query()
+            ->whereIn('id', $favoriteIds)->pluck('tag_ids')->all();
+        $viewedTagLists = Manga::query()
+            ->whereIn('id', array_values(array_diff($viewedIds, $favoriteIds)))->pluck('tag_ids')->all();
+
+        $profile = [];
+        foreach ($favoriteTagLists as $tags) {
+            foreach ((array) $tags as $tagId) {
+                $profile[$tagId] = ($profile[$tagId] ?? 0) + 3;
+            }
+        }
+        foreach ($viewedTagLists as $tags) {
+            foreach ((array) $tags as $tagId) {
+                $profile[$tagId] = ($profile[$tagId] ?? 0) + 1;
+            }
+        }
+
+        arsort($profile);
+
+        return $profile;
+    }
+
+    /** @return list<string> manga_ids already known from Collection + ViewedSeries */
+    private function knownMangaIds(): array
+    {
+        return array_values(array_unique(array_merge(
+            \App\Models\Collection::query()->pluck('manga_id')->all(),
+            \App\Models\ViewedSeries::query()->pluck('manga_id')->all(),
+        )));
     }
 
     /**

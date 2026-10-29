@@ -243,3 +243,76 @@ it('silently hides "This season" when the seasonal URL body is garbage', functio
 
     expect($this->home->season()->data->isEmpty())->toBeTrue();
 });
+
+it('leaves "Recommended for you" empty when the user has no favorites or viewed series', function () {
+    $this->home->refreshRecommended();
+
+    expect($this->home->recommended()->data->isEmpty())->toBeTrue();
+});
+
+it('ranks "Recommended for you" by the user\'s tag affinity from favorites and viewed series', function () {
+    $actionId = '11111111-1111-4111-8111-111111111111';
+    App\Models\Manga::query()->insert([
+        [
+            'id' => 'seed-fav', 'title' => json_encode(['en' => 'Fav seed']),
+            'alt_titles' => '[]', 'description' => '{}',
+            'status' => 'ongoing', 'content_rating' => 'safe',
+            'available_languages' => '[]', 'original_language' => 'ja',
+            'tag_ids' => json_encode([$actionId]),
+        ],
+    ]);
+    App\Models\Collection::query()->insert([
+        'manga_id' => 'seed-fav', 'favorite' => true, 'pinned' => false, 'paused' => false,
+        'created_at' => now(),
+    ]);
+
+    $apiUrl = rtrim(app(App\Sources\ActiveSource::class)->apiUrl(), '/');
+    Http::fake([
+        $apiUrl.'/manga*' => Http::response([
+            'result' => 'ok', 'response' => 'collection',
+            'data' => [[
+                'id' => 'cand-1', 'type' => 'manga',
+                'attributes' => [
+                    'title' => ['en' => 'Candidate'],
+                    'contentRating' => 'safe', 'originalLanguage' => 'ja',
+                    'altTitles' => [], 'description' => [], 'status' => 'ongoing', 'year' => 2024,
+                    'tags' => [['id' => $actionId]],
+                    'availableTranslatedLanguages' => [],
+                ],
+                'relationships' => [],
+            ]],
+            'limit' => 1, 'offset' => 0, 'total' => 1,
+        ]),
+    ]);
+
+    $this->home->refreshRecommended();
+
+    $data = $this->home->recommended()->data;
+    expect($data->isEmpty())->toBeFalse()
+        ->and($data->first()->id)->toBe('cand-1');
+});
+
+it('silently empties "Recommended for you" when the source returns 404 on /manga', function () {
+    $actionId = '11111111-1111-4111-8111-111111111111';
+    App\Models\Manga::query()->insert([
+        [
+            'id' => 'seed-fav', 'title' => json_encode(['en' => 'Fav seed']),
+            'alt_titles' => '[]', 'description' => '{}',
+            'status' => 'ongoing', 'content_rating' => 'safe',
+            'available_languages' => '[]', 'original_language' => 'ja',
+            'tag_ids' => json_encode([$actionId]),
+        ],
+    ]);
+    App\Models\Collection::query()->insert([
+        'manga_id' => 'seed-fav', 'favorite' => true, 'pinned' => false, 'paused' => false,
+        'created_at' => now(),
+    ]);
+
+    Http::fake([
+        rtrim(app(App\Sources\ActiveSource::class)->apiUrl(), '/').'/manga*' => Http::response('not found', 404),
+    ]);
+
+    $this->home->refreshRecommended();
+
+    expect($this->home->recommended()->data->isEmpty())->toBeTrue();
+});

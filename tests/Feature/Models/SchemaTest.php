@@ -138,6 +138,7 @@ it('has refresh ages matching spec §7', function () {
         'home.season' => 86400,
         'home.recently_added' => 21600,
         'home.self_published' => 21600,
+        'home.recommended' => 21600,
         'list' => 3600,
         'manga' => 86400,
         'feed' => 3600,

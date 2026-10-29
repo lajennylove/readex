@@ -32,6 +32,8 @@ class Home extends NativeComponent implements HasResumeBar
         HomeRepository::CATALOG => 'Browse',
         HomeRepository::POPULAR => 'Popular new titles',
         HomeRepository::LATEST => 'Latest updates',
+        HomeRepository::RECENTLY_ADDED => 'Recently added',
+        HomeRepository::SELF_PUBLISHED => 'Self-published',
     ];
 
     private const REFRESH = [
@@ -39,6 +41,8 @@ class Home extends NativeComponent implements HasResumeBar
         HomeRepository::CATALOG => 'refreshCatalog',
         HomeRepository::POPULAR => 'refreshPopular',
         HomeRepository::LATEST => 'refreshLatest',
+        HomeRepository::RECENTLY_ADDED => 'refreshRecentlyAdded',
+        HomeRepository::SELF_PUBLISHED => 'refreshSelfPublished',
     ];
 
     public function navTitle(): string
@@ -76,6 +80,8 @@ class Home extends NativeComponent implements HasResumeBar
             HomeRepository::CATALOG => $home->catalog(),
             HomeRepository::POPULAR => $home->popular(),
             HomeRepository::LATEST => $home->latest(),
+            HomeRepository::RECENTLY_ADDED => $home->recentlyAdded(),
+            HomeRepository::SELF_PUBLISHED => $home->selfPublished(),
         ];
 
         // "This season" is opt-in: a user who hasn't configured a seasonal URL (and whose last

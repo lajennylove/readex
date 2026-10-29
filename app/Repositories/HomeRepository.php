@@ -28,6 +28,13 @@ final class HomeRepository
 
     public const SEASON = 'home.season';
 
+    public const RECENTLY_ADDED = 'home.recently_added';
+
+    public const SELF_PUBLISHED = 'home.self_published';
+
+    /** Upstream tag UUID for Self-Published; sources that mirror the shape use the same id. */
+    public const SELF_PUBLISHED_TAG = '891cf039-b895-47f0-9229-bef4c96eccd4';
+
     public function __construct(
         private readonly Client $client,
         private readonly SettingsRepository $settings,
@@ -179,6 +186,63 @@ final class HomeRepository
             $this->replace(self::LATEST, array_keys($newest), array_column($newest, 'id', 'manga_id'));
             $this->forgetChapters($old->diff(array_column($newest, 'id'))->values()->all());
         });
+    }
+
+    public function recentlyAdded(): Result
+    {
+        return $this->manga->readList(self::RECENTLY_ADDED, self::RECENTLY_ADDED);
+    }
+
+    /** Newest first by createdAt, any language (reordered in get()). */
+    public function refreshRecentlyAdded(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga', [
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+                'order' => ['createdAt' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::RECENTLY_ADDED, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        DB::transaction(fn () => $this->replace(self::RECENTLY_ADDED, $this->manga->storeManga($response)));
+    }
+
+    public function selfPublished(): Result
+    {
+        return $this->manga->readList(self::SELF_PUBLISHED, self::SELF_PUBLISHED);
+    }
+
+    /** Titles tagged with the Self-Published tag UUID. Any language, newest first (reordered in get()). */
+    public function refreshSelfPublished(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga', [
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includedTags' => [self::SELF_PUBLISHED_TAG],
+                'includes' => ['cover_art'],
+                'order' => ['createdAt' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::SELF_PUBLISHED, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        DB::transaction(fn () => $this->replace(self::SELF_PUBLISHED, $this->manga->storeManga($response)));
     }
 
     /**

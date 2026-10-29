@@ -9,6 +9,8 @@ return [
         'home.popular' => 6 * 3600,
         'home.latest' => 15 * 60,
         'home.season' => 86400,
+        'home.recently_added' => 21600,
+        'home.self_published' => 21600,
         'list' => 3600,
         'manga' => 86400,
         'feed' => 3600,

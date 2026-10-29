@@ -136,7 +136,7 @@ it('fills every row on the first visit', function () {
 
 it('starts with Browse, Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
     fillHome();
-    $rows = ['Browse', 'Popular new titles', 'Latest updates'];
+    $rows = ['Browse', 'Popular new titles', 'Latest updates', 'Recently added', 'Self-published'];
     expect(rowLabels(Native::test(Home::class)->tree()))->toBe($rows);
 
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
@@ -247,7 +247,7 @@ it('waits for the background retry instead of offering Retry when The provider i
         ->assertDontSee('Nothing saved yet')
         ->assertSee('Popular new titles');
 
-    Queue::assertPushed(RefreshRepository::class, 3);
+    Queue::assertPushed(RefreshRepository::class, 5);
 });
 
 it('shows empty rows, not "Nothing saved yet", when the provider has nothing', function () {

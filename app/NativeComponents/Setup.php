@@ -57,18 +57,20 @@ class Setup extends NativeComponent
     public ?string $sourceError = null;
 
     /**
-     * Optional covers CDN host override. Blank by default and ignored on Continue when blank —
-     * the covers URL is then auto-composed as the sibling of the source URL. Pre-filled from
-     * `config('source.covers_url_default')` when a build-time SOURCE_COVERS_URL is set.
+     * The covers CDN host. Required at Setup — the shipped build pre-fills it from
+     * `config('source.covers_url_default')` so the three fields open ready to tap through.
      */
     public string $coversUrl = '';
 
+    public ?string $coversError = null;
+
     /**
-     * Optional curated-list URL for the "This season" Home row. Blank by default and ignored on
-     * Continue when blank — Home then hides the row. Pre-filled from
-     * `config('source.seasonal_url_default')` when a build-time SOURCE_SEASONAL_URL is set.
+     * The curated-list URL powering the "This season" Home row. Required at Setup — same
+     * pre-fill treatment as $coversUrl.
      */
     public string $seasonalUrl = '';
+
+    public ?string $seasonalError = null;
 
     public string $language = 'en';
 
@@ -121,6 +123,8 @@ class Setup extends NativeComponent
     public function continueSetup(): void
     {
         $this->sourceError = null;
+        $this->coversError = null;
+        $this->seasonalError = null;
 
         $result = app(SourceHealthCheck::class)->check($this->sourceUrl);
 
@@ -130,16 +134,22 @@ class Setup extends NativeComponent
             return;
         }
 
+        if ($this->coversUrl === '' || filter_var($this->coversUrl, FILTER_VALIDATE_URL) === false) {
+            $this->coversError = 'Add the covers URL — the host that serves this source\'s cover images.';
+
+            return;
+        }
+
+        if ($this->seasonalUrl === '' || filter_var($this->seasonalUrl, FILTER_VALIDATE_URL) === false) {
+            $this->seasonalError = 'Add the "This season" JSON URL.';
+
+            return;
+        }
+
         $settings = app(SettingsRepository::class);
         $settings->setSourceUrl($this->sourceUrl);
-
-        if ($this->coversUrl !== '') {
-            $settings->setCoversUrl($this->coversUrl);
-        }
-
-        if ($this->seasonalUrl !== '') {
-            $settings->setSeasonalUrl($this->seasonalUrl);
-        }
+        $settings->setCoversUrl($this->coversUrl);
+        $settings->setSeasonalUrl($this->seasonalUrl);
 
         if (Network::status()?->connected === false) {
             $this->phase = self::OFFLINE;

@@ -55,7 +55,7 @@
 
         <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Covers URL</native:text>
-            <native:text class="text-sm text-theme-on-surface-variant">An alternate host for cover images. Only needed when your source serves covers from a different host than its API (e.g. an "uploads" subdomain). Leave empty to use the API host.</native:text>
+            <native:text class="text-sm text-theme-on-surface-variant">The host that serves this source's cover images. Many sources serve covers from a different host than their API. Clear the field and Save to go back to auto-composing it from the source URL.</native:text>
             <native:outlined_text_input placeholder="https://uploads.example.org/covers" value="{{ $coversUrl }}" @change="changeCoversUrl" />
             @if ($coversError)
                 <native:text class="text-sm text-theme-destructive">{{ $coversError }}</native:text>
@@ -70,7 +70,7 @@
 
         <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">This season</native:text>
-            <native:text class="text-sm text-theme-on-surface-variant">A JSON URL for the latest content suggestions. Leave empty to hide the "This season" row on Home.</native:text>
+            <native:text class="text-sm text-theme-on-surface-variant">A JSON URL for the latest content suggestions. Powers the "This season" row on Home; clear the field and Save to hide that row.</native:text>
             <native:outlined_text_input placeholder="https://example.org/seasonal-list.json" value="{{ $seasonalUrl }}" @change="changeSeasonalUrl" />
             @if ($seasonalError)
                 <native:text class="text-sm text-theme-destructive">{{ $seasonalError }}</native:text>

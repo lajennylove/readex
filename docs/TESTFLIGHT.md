@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../demo-source/assets/readex-icon.png" width="96" alt="ReaDex">
+</p>
+
 # TestFlight launch checklist
 
 This document is the step-by-step runbook for pushing the first ReaDex iOS build to TestFlight. It assumes an Apple Developer Program membership is active (confirmed 2026-10-25) and that chore/0025, feature/0028, and feature/0029 have landed on `main`.

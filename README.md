@@ -1,10 +1,35 @@
-# ReaDex
+<p align="center">
+  <img src="demo-source/assets/readex-icon.png" width="140" alt="ReaDex">
+</p>
+
+<h1 align="center">ReaDex</h1>
+
+<p align="center">A reader for a content source you provide.</p>
+
+<p align="center">
+  <a href="https://lajennylove.github.io/readex/">Website</a>
+  &nbsp;·&nbsp;
+  <a href="https://lajennylove.github.io/readex/api-docs/">API docs</a>
+  &nbsp;·&nbsp;
+  <a href="https://lajennylove.github.io/readex/privacy-policy.html">Privacy</a>
+</p>
+
+---
 
 ReaDex is a **personal reader client** for iOS. You point it at a content source URL or API that you choose, and it renders what the source returns. The app is the transport and the reader; the content is yours.
 
 ReaDex ships with no catalog, no bundled content, and no curated list of sources. Setting one up is the first thing you do on launch.
 
 Technically, it's a Laravel 13 / PHP 8.3 app running natively on iPhone through [NativePHP Mobile v4](https://nativephp.com/docs/mobile/4), with a native reader, an offline downloader, and a local library.
+
+## Screenshots
+
+<p align="center">
+  <img src="demo-source/assets/01-home.png" width="190" alt="Home — Popular, Latest, Recently added rows">
+  <img src="demo-source/assets/02-series.png" width="190" alt="Series detail — chapters by language">
+  <img src="demo-source/assets/03-reader.png" width="190" alt="Reader — one page open">
+  <img src="demo-source/assets/05-settings.png" width="190" alt="Settings — Source URL, Covers URL, Seasonal URL">
+</p>
 
 ## What it is
 

@@ -202,6 +202,30 @@ final class SettingsRepository
         Setting::query()->whereKey('seasonal_url')->delete();
     }
 
+    /**
+     * Whether the configured source serves static .json files (demo-shape) or a dynamic
+     * REST-style API (the shape the HTTP adapter was modelled on). Written by
+     * SourceMetaProber after each source URL change so the Client stops / starts appending
+     * .json automatically. null until the first probe has run — then config's env default
+     * is used as the fallback.
+     */
+    public function sourceIsStaticJson(): ?bool
+    {
+        $value = $this->read('source_is_static_json');
+
+        return is_bool($value) ? $value : null;
+    }
+
+    public function setSourceIsStaticJson(bool $value): void
+    {
+        $this->write('source_is_static_json', $value);
+    }
+
+    public function clearSourceIsStaticJson(): void
+    {
+        Setting::query()->whereKey('source_is_static_json')->delete();
+    }
+
     private function read(string $key): mixed
     {
         return Setting::find($key)?->value;

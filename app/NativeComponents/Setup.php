@@ -150,6 +150,7 @@ class Setup extends NativeComponent
         $settings->setSourceUrl($this->sourceUrl);
         $settings->setCoversUrl($this->coversUrl);
         $settings->setSeasonalUrl($this->seasonalUrl);
+        app(\App\Sources\SourceMetaProber::class)->probe($this->sourceUrl);
 
         if (Network::status()?->connected === false) {
             $this->phase = self::OFFLINE;

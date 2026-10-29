@@ -160,7 +160,13 @@ final class Client
         // files. SOURCE_STATIC_JSON=true tells the Client to append `.json` to the path before
         // the query string. The query string itself still rides -- static sources will 404 on
         // query-driven endpoints and the top-level caller catches that.
-        if (config('source.static_json') && ! str_ends_with($path, '.json')) {
+        // Per-source static_json: the Settings-stored value (written by SourceMetaProber after
+        // each source URL change) wins when it has been probed; otherwise fall back to the
+        // build-time env default.
+        $static = app(\App\Repositories\SettingsRepository::class)->sourceIsStaticJson()
+            ?? (bool) config('source.static_json');
+
+        if ($static && ! str_ends_with($path, '.json')) {
             $path .= '.json';
         }
 

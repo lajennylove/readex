@@ -329,3 +329,47 @@ it('renders every phase without dropped Tailwind classes', function () {
 
     expect($dropped)->toBe([]);
 });
+
+it('prefills all three URL fields from source.*_default on first run', function () {
+    config()->set('source.api_url_default', 'https://api.example.test');
+    config()->set('source.covers_url_default', 'https://uploads.example.test/covers');
+    config()->set('source.seasonal_url_default', 'https://antsy.example.test/seasonal.json');
+
+    Native::test(Setup::class)
+        ->assertSet('sourceUrl', 'https://api.example.test')
+        ->assertSet('coversUrl', 'https://uploads.example.test/covers')
+        ->assertSet('seasonalUrl', 'https://antsy.example.test/seasonal.json');
+});
+
+it('saves optional Covers URL and Seasonal URL when the user tapped Continue', function () {
+    config()->set('source.api_url_default', null);
+    config()->set('source.covers_url_default', null);
+    config()->set('source.seasonal_url_default', null);
+
+    Loading::fake(fn ($req) => str_starts_with($req->url(), 'https://example.test/api/manga/_catalog')
+        ? \Illuminate\Support\Facades\Http::response(['result' => 'ok', 'response' => 'collection', 'data' => []]) : null);
+
+    withBuiltInSource(Native::test(Setup::class))
+        ->call('changeCoversUrl', 'https://uploads.source.test/covers')
+        ->call('changeSeasonalUrl', 'https://example.source.test/seasonal.json')
+        ->tap('Continue');
+
+    $settings = app(SettingsRepository::class);
+    expect($settings->coversUrl())->toBe('https://uploads.source.test/covers')
+        ->and($settings->seasonalUrl())->toBe('https://example.source.test/seasonal.json');
+});
+
+it('does not save Covers / Seasonal when the user left them blank', function () {
+    config()->set('source.api_url_default', null);
+    config()->set('source.covers_url_default', null);
+    config()->set('source.seasonal_url_default', null);
+
+    Loading::fake(fn ($req) => str_starts_with($req->url(), 'https://example.test/api/manga/_catalog')
+        ? \Illuminate\Support\Facades\Http::response(['result' => 'ok', 'response' => 'collection', 'data' => []]) : null);
+
+    withBuiltInSource(Native::test(Setup::class))->tap('Continue');
+
+    $settings = app(SettingsRepository::class);
+    expect($settings->coversUrl())->toBeNull()
+        ->and($settings->seasonalUrl())->toBeNull();
+});

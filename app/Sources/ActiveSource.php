@@ -51,12 +51,21 @@ final class ActiveSource
 
     public function coversUrl(): string
     {
-        return $this->baseUrl().'/covers';
+        return $this->settings->coversUrl() ?? ($this->baseUrl().'/covers');
     }
 
     public function reportUrl(): string
     {
         return $this->baseUrl().'/report';
+    }
+
+    /**
+     * Optional curated-list URL. null when the user hasn't configured one;
+     * the "This season" row on Home then stays hidden.
+     */
+    public function seasonalUrl(): ?string
+    {
+        return $this->settings->seasonalUrl();
     }
 
     public function isConfigured(): bool

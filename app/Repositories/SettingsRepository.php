@@ -158,6 +158,50 @@ final class SettingsRepository
         Setting::query()->whereKey('source_url')->delete();
     }
 
+    /**
+     * Optional covers CDN override. Many real APIs serve their JSON on one host
+     * and their cover images on another; when the user needs that, they paste
+     * the second host here. null falls back to the auto-composed sibling of
+     * the source URL (see App\Sources\ActiveSource::coversUrl).
+     */
+    public function coversUrl(): ?string
+    {
+        $url = $this->read('covers_url');
+
+        return is_string($url) && $url !== '' ? $url : null;
+    }
+
+    public function setCoversUrl(string $url): void
+    {
+        $this->write('covers_url', rtrim(trim($url), '/'));
+    }
+
+    public function clearCoversUrl(): void
+    {
+        Setting::query()->whereKey('covers_url')->delete();
+    }
+
+    /**
+     * Optional curated-list URL (the "This season" row on Home). The source
+     * doesn't have to serve one — when this is null the row is hidden.
+     */
+    public function seasonalUrl(): ?string
+    {
+        $url = $this->read('seasonal_url');
+
+        return is_string($url) && $url !== '' ? $url : null;
+    }
+
+    public function setSeasonalUrl(string $url): void
+    {
+        $this->write('seasonal_url', rtrim(trim($url), '/'));
+    }
+
+    public function clearSeasonalUrl(): void
+    {
+        Setting::query()->whereKey('seasonal_url')->delete();
+    }
+
     private function read(string $key): mixed
     {
         return Setting::find($key)?->value;

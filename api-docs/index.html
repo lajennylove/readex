@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — Source Adapter Spec</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; }
+    h1, h2 { color: #ffffff; }
+    code { background: #2a2f45; }
+    .card { background: #262b40; border-color: #333a55; }
+    .meta { color: #9aa0b4; }
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 20px; margin: 40px 0 10px; letter-spacing: -0.005em; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: #2d4ba0; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  nav.toc { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0 8px; }
+  @media (min-width: 560px) { nav.toc { grid-template-columns: 1fr 1fr; } }
+  .card { display: block; padding: 16px 18px; border: 1px solid #e4ded0; background: #fff; border-radius: 10px; }
+  .card h3 { margin: 0 0 4px; font-size: 16px; }
+  .card p { margin: 0; color: #6c7384; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ReaDex — Source Adapter Spec</h1>
+  <p class="meta">A practical reference for building an HTTP backend ReaDex can read.</p>
+
+  <h2>What this is</h2>
+  <p>ReaDex is a personal reader client. At first-run the user supplies a single base URL; the app routes every outbound call through that URL. These pages describe the HTTP contract an endpoint must satisfy so ReaDex can render its catalog, title detail, chapter feed, pages and covers.</p>
+  <p>The <a href="https://lajennylove.github.io/readex/">demo source</a> at <code>https://lajennylove.github.io/readex/</code> is the canonical implementation. Everything below is what that source serves, documented so you can build your own.</p>
+
+  <h2>Sections</h2>
+  <nav class="toc">
+    <a class="card" href="overview.html"><h3>Overview</h3><p>Roles, discovery, minimum viable source checklist.</p></a>
+    <a class="card" href="endpoints.html"><h3>Endpoints</h3><p>Per-path reference with example responses.</p></a>
+    <a class="card" href="covers.html"><h3>Covers</h3><p>URL template, sizes, allowed formats.</p></a>
+    <a class="card" href="seasonal.html"><h3>Seasonal</h3><p>Optional curated-list contract.</p></a>
+    <a class="card" href="meta.html"><h3>/_meta.json</h3><p>Discovery doc keys and fallbacks.</p></a>
+  </nav>
+
+  <h2>Who this is for</h2>
+  <p>A backend developer who speaks HTTP + JSON and wants to stand up an endpoint that ReaDex will treat as a valid source. No prior familiarity with any specific upstream catalog required.</p>
+</main>
+</body>
+</html>

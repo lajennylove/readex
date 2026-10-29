@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — Endpoints</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; } h1, h2, h3 { color: #ffffff; } code, pre { background: #2a2f45; color: #e7e9ef; }
+    .meta { color: #9aa0b4; } .ep { background: #262b40; border-color: #333a55; }
+    .method { background: #2d5a3f; color: #c9f4d6; }
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 20px; margin: 36px 0 10px; }
+  h3 { font-size: 15px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; color: #6c7384; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #efece6; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; font-size: 12.5px; }
+  a { color: #2d4ba0; } a:hover { text-decoration: underline; }
+  nav.breadcrumb { font-size: 14px; margin-bottom: 12px; }
+  .ep { background: #fff; border: 1px solid #e4ded0; padding: 20px 22px; border-radius: 10px; margin: 20px 0 32px; }
+  .ep .path { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; word-break: break-all; }
+  .method { display: inline-block; background: #d5efdd; color: #1b4a2a; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; margin-right: 6px; vertical-align: 2px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid #e4ded0; vertical-align: top; }
+  @media (prefers-color-scheme: dark) { th, td { border-bottom-color: #333a55; } }
+</style>
+</head>
+<body>
+<main>
+  <nav class="breadcrumb"><a href="index.html">&larr; Index</a></nav>
+  <h1>Endpoints</h1>
+  <p class="meta">All paths are relative to the API root — <code>{base}/api/</code> by default. With <code>static_json: true</code> in <a href="meta.html">_meta.json</a>, the client appends <code>.json</code> to the path before the query string.</p>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/manga/_catalog</span></p>
+    <p>Backs the Home "Browse" row. Returns every title the source knows about, as a collection envelope. A static source should include its full catalog here; a dynamic source can paginate normally.</p>
+    <h3>Query params</h3>
+    <p>None required. A dynamic backend may accept <code>contentRating[]</code>, <code>availableTranslatedLanguage[]</code>, <code>includedTags[]</code>, <code>limit</code>, <code>offset</code>; the client is tolerant of any being ignored.</p>
+    <h3>Response (abbreviated)</h3>
+<pre><code>{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    {
+      "id": "demo-01",
+      "type": "manga",
+      "attributes": {
+        "title": { "en": "Lorem Ipsum Dolor" },
+        "altTitles": [ { "es": "Lorem Ipsum Dolor (es)" } ],
+        "description": { "en": "Lorem ipsum dolor..." },
+        "originalLanguage": "en",
+        "status": "ongoing",
+        "year": 2024,
+        "contentRating": "safe",
+        "tags": [ { "id": "11111111-...", "type": "tag",
+          "attributes": { "name": {"en": "Action"}, "group": "genre", "version": 1 } } ],
+        "availableTranslatedLanguages": ["en", "es"],
+        "latestUploadedChapter": "ch-01-b"
+      },
+      "relationships": [
+        { "id": "cover-demo-01", "type": "cover_art",
+          "attributes": { "fileName": "https://placehold.co/400x600/.../.png?text=..." } }
+      ]
+    },
+    { "id": "demo-02", "...": "..." }
+  ],
+  "limit": 30, "offset": 0, "total": 30
+}</code></pre>
+    <h3>Fields the app reads</h3>
+    <ul>
+      <li><code>id</code>, <code>attributes.title</code> (localized map, falls back to any key), <code>attributes.description</code>.</li>
+      <li><code>attributes.contentRating</code> &mdash; <code>safe</code> | <code>suggestive</code> | <code>erotica</code> | <code>pornographic</code>.</li>
+      <li><code>attributes.availableTranslatedLanguages</code> &mdash; array of IETF tags; used for the language chip filter.</li>
+      <li><code>attributes.tags[]</code> &mdash; each is a tag entity (see <code>/manga/tag</code>).</li>
+      <li><code>attributes.year</code>, <code>attributes.status</code>, <code>attributes.originalLanguage</code>.</li>
+      <li><code>relationships[]</code> where <code>type == "cover_art"</code> &mdash; the <code>attributes.fileName</code> is used by the Cover Store. If it's an absolute <code>http(s)://</code> URL it's used verbatim; otherwise it's resolved under <code>{coversUrl}/{mangaId}/{fileName}.{size}.jpg</code> (see <a href="covers.html">covers.html</a>).</li>
+      <li><code>attributes.latestUploadedChapter</code> is read for the "has updates" dot; <code>isLocked</code>, <code>links</code>, <code>state</code>, <code>version</code> are present in the demo but currently ignored by the app.</li>
+    </ul>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/manga/{id}</span></p>
+    <p>Title detail. Same manga entity shape as the catalog, but wrapped in an <code>entity</code> response and (in the demo) with author + artist relationships expanded.</p>
+    <h3>Response (abbreviated)</h3>
+<pre><code>{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-01",
+    "type": "manga",
+    "attributes": { "title": {"en": "Lorem Ipsum Dolor"}, "...": "..." },
+    "relationships": [
+      { "id": "cover-demo-01", "type": "cover_art",
+        "attributes": { "fileName": "https://..." } },
+      { "id": "author-demo-01", "type": "author",
+        "attributes": { "name": "Alpha Writer" } },
+      { "id": "artist-demo-01", "type": "artist",
+        "attributes": { "name": "Delta Brush" } }
+    ]
+  }
+}</code></pre>
+    <p>Author and artist names are shown on the detail screen when present; absent is fine.</p>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/manga/{id}/feed</span></p>
+    <p>Chapter list for one title. The detail screen pages through this to render the chapter table.</p>
+    <h3>Query params</h3>
+    <p>A dynamic backend may accept <code>translatedLanguage[]</code>, <code>order[chapter]=asc|desc</code>, <code>limit</code>, <code>offset</code>. A static source returns all chapters in <code>readableAt desc</code>; the client sorts locally.</p>
+    <h3>Response (abbreviated)</h3>
+<pre><code>{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    {
+      "id": "ch-01-a",
+      "type": "chapter",
+      "attributes": {
+        "volume": "1",
+        "chapter": "1",
+        "title": "Lorem Primum",
+        "translatedLanguage": "en",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "publishAt": "2026-10-24T10:59:00+00:00",
+        "readableAt": "2026-10-24T10:59:00+00:00",
+        "pages": 3
+      },
+      "relationships": [
+        { "id": "demo-group-1", "type": "scanlation_group",
+          "attributes": { "name": "Demo Translators", "focusedLanguages": ["en"] } },
+        { "id": "demo-01", "type": "manga" }
+      ]
+    },
+    { "id": "ch-01-b", "...": "..." }
+  ],
+  "limit": 2, "offset": 0, "total": 2
+}</code></pre>
+    <h3>Fields the app reads</h3>
+    <ul>
+      <li><code>id</code>, <code>attributes.chapter</code> (string, "1", "2.5", "Oneshot"), <code>attributes.volume</code>, <code>attributes.title</code>.</li>
+      <li><code>attributes.translatedLanguage</code> &mdash; filtered against the user's chip selection.</li>
+      <li><code>attributes.readableAt</code> &mdash; sort key and age label.</li>
+      <li><code>attributes.pages</code> &mdash; shown on the detail row ("3 pages"). <code>0</code> paired with a non-null <code>externalUrl</code> renders "Opens on {host}" instead.</li>
+      <li><code>attributes.externalUrl</code> &mdash; when non-null the chapter opens in the in-app WebView; <code>/at-home/server</code> is not called.</li>
+      <li><code>relationships[]</code> where <code>type == "scanlation_group"</code> &mdash; the <code>attributes.name</code> is shown as the uploader label.</li>
+      <li><code>isUnavailable</code>, <code>publishAt</code>, <code>version</code>, timestamps are present in the demo and currently ignored.</li>
+    </ul>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/at-home/server/{chapterId}</span></p>
+    <p>Page list for one chapter. Returned shape is intentionally thin: a hash and two parallel arrays (full and data-saver). The user's "Image quality" preference picks which array to iterate.</p>
+    <h3>Response</h3>
+<pre><code>{
+  "result": "ok",
+  "baseUrl": "",
+  "chapter": {
+    "hash": "ch-01-a",
+    "data": [
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=...+Page+1",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=...+Page+2",
+      "https://placehold.co/800x1200/222222/eeeeee.png?text=...+Page+3"
+    ],
+    "dataSaver": [
+      "https://placehold.co/800x1200/.../.png?text=...+Page+1",
+      "..."
+    ]
+  }
+}</code></pre>
+    <h3>How URLs resolve</h3>
+    <ul>
+      <li>If <code>data[i]</code> is an absolute <code>http(s)://</code> URL (as in the demo), it is used verbatim.</li>
+      <li>Otherwise the URL is built as <code>{baseUrl}/{quality}/{hash}/{filename}</code>, where <code>quality</code> is <code>data</code> or <code>data-saver</code>.</li>
+      <li>When <code>baseUrl</code> is the empty string, the API URL is substituted — so a static source can host images under <code>{apiUrl}/data/{hash}/…</code> alongside its JSON.</li>
+    </ul>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/manga</span></p>
+    <p>Backs the Home "Popular new titles" row and the Search default list. Shape is identical to <code>/manga/_catalog</code>. A static source can serve the same JSON at both paths (the demo does).</p>
+    <p>The real contract uses the query string: Popular passes <code>order[followedCount]=desc&amp;createdAtSince=…</code>; Search passes a free-text <code>title=</code> plus the current rating/language chips. A static source ignores the query and returns the full set; the client filters.</p>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/chapter</span></p>
+    <p>Backs the Home "Latest updates" row. Collection of recent chapter entities (same shape as a feed entry) across every title, ordered by <code>readableAt desc</code>.</p>
+    <h3>Response (abbreviated)</h3>
+<pre><code>{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    { "id": "ch-30-a", "type": "chapter",
+      "attributes": { "chapter": "1", "readableAt": "2026-10-26T20:59:00+00:00",
+                      "translatedLanguage": "en", "pages": 3, "...": "..." },
+      "relationships": [ { "id": "demo-30", "type": "manga" }, { "...": "..." } ] },
+    { "id": "ch-29-a", "...": "..." }
+  ],
+  "limit": 15, "offset": 0, "total": 15
+}</code></pre>
+    <p>The <code>relationships[]</code> entry of <code>type == "manga"</code> is used to look up and show the series title / cover beside the chapter row. The demo caps this collection at 15 entries; a dynamic backend should return the latest N (configurable).</p>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">GET</span><span class="path">/manga/tag</span></p>
+    <p>The master tag list. Backs the Tag chip picker on Search. Shape mirrors the inline <code>tags[]</code> on a manga entity.</p>
+    <h3>Response</h3>
+<pre><code>{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    { "id": "11111111-1111-4111-8111-111111111111", "type": "tag",
+      "attributes": { "name": {"en": "Action"}, "description": {},
+                      "group": "genre", "version": 1 },
+      "relationships": [] },
+    { "id": "22222222-...", "...": "..." }
+  ],
+  "limit": 10, "offset": 0, "total": 10
+}</code></pre>
+    <p>IDs should be stable across deployments — users and the local DB reference them. <code>group</code> is a free-form string; the client groups chips by its value.</p>
+  </section>
+
+  <section class="ep">
+    <p><span class="method">POST</span><span class="path">/report</span></p>
+    <p>Health reporting sink for off-host image downloads. ReaDex POSTs a small JSON body after each page/cover download that targeted a host other than the API host, so a dynamic backend running an image-fan-out network can route around slow mirrors. The call is fire-and-forget with a short timeout; if the sink is absent, 404/5xx responses are tolerated and the client stops retrying for a while.</p>
+    <h3>Request body</h3>
+<pre><code>{
+  "url": "https://cdn.example.com/data/ch-01-a/page-1.png",
+  "success": true,
+  "cached": false,
+  "bytes": 42318,
+  "duration": 184
+}</code></pre>
+    <p>A static source should either omit the key entirely (and let the fallback <code>{base}/report</code> 404) or set <code>report_url</code> to a known-good no-op.</p>
+  </section>
+</main>
+</body>
+</html>

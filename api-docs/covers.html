@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — Covers</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; } h1, h2 { color: #ffffff; } code, pre { background: #2a2f45; color: #e7e9ef; }
+    .meta { color: #9aa0b4; }
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 20px; margin: 36px 0 10px; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #efece6; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; }
+  a { color: #2d4ba0; } a:hover { text-decoration: underline; }
+  nav.breadcrumb { font-size: 14px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="breadcrumb"><a href="index.html">&larr; Index</a></nav>
+  <h1>Covers</h1>
+  <p class="meta">How the Cover Store builds thumbnail URLs, which sizes to serve, and when a static source can skip hosting images altogether.</p>
+
+  <h2>URL template</h2>
+  <p>By default, the Cover Store builds every thumbnail URL as:</p>
+  <pre><code>{coversUrl}/{mangaId}/{coverFile}.{size}.jpg</code></pre>
+  <ul>
+    <li><code>{coversUrl}</code> &mdash; from <code>_meta.json</code>, or <code>{baseUrl}/covers</code> if the key is absent.</li>
+    <li><code>{mangaId}</code> &mdash; the manga's <code>id</code> as served by the API.</li>
+    <li><code>{coverFile}</code> &mdash; the stem of the file name on the cover-art relationship. The demo uses the literal string <code>cover</code>, so files are <code>cover.256.jpg</code>; a real source may use hashed names like <code>abc123de-f456.jpg</code>, in which case <code>{coverFile}</code> would be <code>abc123de-f456.jpg</code>.</li>
+    <li><code>{size}</code> &mdash; the current thumbnail width in pixels (see below).</li>
+  </ul>
+
+  <h2>Sizes</h2>
+  <p>Two sizes are expected to exist for every cover:</p>
+  <ul>
+    <li><code>.256.jpg</code> &mdash; tile size, used on Home, Browse, Library, Search, and anywhere a cover is rendered under ~128pt on screen.</li>
+    <li><code>.512.jpg</code> &mdash; larger size, used on the title detail header.</li>
+  </ul>
+  <p>If a size file is missing (404), the tile stays as a grey placeholder; the app does not downscale a larger file at the client. A source that only serves one size should serve the larger one at both paths (symlink or copy).</p>
+
+  <h2>Example</h2>
+  <p>For a title with <code>id = "demo-01"</code> and the covers CDN at <code>https://lajennylove.github.io/readex/covers</code>, the two URLs are:</p>
+  <pre><code>https://lajennylove.github.io/readex/covers/demo-01/cover.256.jpg
+https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg</code></pre>
+
+  <h2>Formats</h2>
+  <p>The URL template is hard-coded to the <code>.jpg</code> suffix. Serving a PNG or WebP at that path works (the client validates the body with its image decoder, not the extension), but the request path will still end in <code>.jpg</code> — the CDN must therefore respond at that path regardless of the actual bytes' MIME type.</p>
+  <p>If your backend only produces PNG, point the <code>cover_art</code> relationship's <code>fileName</code> at an absolute URL instead (see below).</p>
+
+  <h2>Short-circuit: absolute URLs in the API response</h2>
+  <p>When a manga's <code>cover_art</code> relationship has an <code>attributes.fileName</code> starting with <code>http://</code> or <code>https://</code>, the Cover Store skips the template entirely and uses that URL verbatim. The demo relies on this to serve placehold.co images without hosting any JPEG files for the primary catalog.</p>
+  <pre><code>"relationships": [
+  { "id": "cover-demo-01", "type": "cover_art",
+    "attributes": { "fileName": "https://placehold.co/400x600/1a1a2e/eeeeee.png?text=Lorem+Ipsum+Dolor" } }
+]</code></pre>
+  <p>With absolute URLs the <code>{size}</code> suffix convention does not apply — the server returns whatever bytes live at that URL, and the client scales for display.</p>
+
+  <h2>Downloads &amp; caching</h2>
+  <p>Thumbnails live in the OS cache tier (<code>&lt;caches&gt;/covers/{mangaId}/…</code>) and can be purged by iOS without warning. The app re-downloads on miss. The CDN should allow long-lived caching headers (<code>Cache-Control: public, max-age=…</code>); content-rated catalogs may need signed URLs, in which case the <code>_meta.json</code> <code>covers_url</code> can point at a signing proxy.</p>
+</main>
+</body>
+</html>

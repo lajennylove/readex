@@ -11,8 +11,11 @@ use App\Models\Manga;
 use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
+use App\Sources\ActiveSource;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 /** The Home rows: Browse (the source's own catalog), Popular new titles, Latest updates. */
 final class HomeRepository
@@ -23,10 +26,13 @@ final class HomeRepository
 
     public const LATEST = 'home.latest';
 
+    public const SEASON = 'home.season';
+
     public function __construct(
         private readonly Client $client,
         private readonly SettingsRepository $settings,
         private readonly MangaRepository $manga,
+        private readonly ActiveSource $active,
     ) {}
 
     /** The source's own catalog, if it serves one (`/manga/_catalog`). Static sources
@@ -173,6 +179,77 @@ final class HomeRepository
             $this->replace(self::LATEST, array_keys($newest), array_column($newest, 'id', 'manga_id'));
             $this->forgetChapters($old->diff(array_column($newest, 'id'))->values()->all());
         });
+    }
+
+    /**
+     * The user's optional curated-list row. Hidden when they haven't configured a seasonal URL
+     * or when the latest refresh produced zero titles.
+     */
+    public function season(): Result
+    {
+        return $this->manga->readList(self::SEASON, self::SEASON);
+    }
+
+    /**
+     * Fetches the user's seasonal URL (plain JSON over the open internet, not the source API)
+     * for the list of manga IDs, then hydrates them through the source via /manga?ids[]. Any
+     * failure along the way clears the row rather than throwing — a seasonal URL that goes
+     * offline or returns garbage shouldn't break the rest of Home.
+     *
+     * Expected JSON shape:  {"id":"...","name":"...","manga_ids":["id-1","id-2",...]}
+     */
+    public function refreshSeason(Priority $priority = Priority::Interactive): void
+    {
+        $url = $this->active->seasonalUrl();
+
+        if ($url === null) {
+            DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        try {
+            $response = Http::connectTimeout(8)->timeout(8)->get($url);
+        } catch (ConnectionException) {
+            DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        if (! $response->successful()) {
+            DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        $body = $response->json();
+        $ids = is_array($body) && isset($body['manga_ids']) && is_array($body['manga_ids'])
+            ? array_values(array_filter($body['manga_ids'], 'is_string'))
+            : [];
+
+        if ($ids === []) {
+            DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        try {
+            $manga = $this->client->get('/manga', [
+                'ids' => $ids,
+                'limit' => count($ids),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                DB::transaction(fn () => $this->replace(self::SEASON, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        DB::transaction(fn () => $this->replace(self::SEASON, $this->manga->storeManga($manga)));
     }
 
     /**

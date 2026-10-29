@@ -12,7 +12,9 @@
             </native:column>
         @else
             @foreach (\App\NativeComponents\Home::ROWS as $key => $label)
-                @include('native.partials.row', ['label' => $label, 'tiles' => $rows[$key]])
+                @isset($rows[$key])
+                    @include('native.partials.row', ['label' => $label, 'tiles' => $rows[$key]])
+                @endisset
             @endforeach
         @endif
     </native:column>

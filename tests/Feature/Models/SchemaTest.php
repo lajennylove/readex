@@ -135,6 +135,7 @@ it('has refresh ages matching spec §7', function () {
         'home.catalog' => 86400,
         'home.popular' => 21600,
         'home.latest' => 900,
+        'home.season' => 86400,
         'list' => 3600,
         'manga' => 86400,
         'feed' => 3600,

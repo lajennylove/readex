@@ -28,12 +28,14 @@ class Home extends NativeComponent implements HasResumeBar
 
     /** Row key => label, in screen order. */
     public const ROWS = [
+        HomeRepository::SEASON => 'This season',
         HomeRepository::CATALOG => 'Browse',
         HomeRepository::POPULAR => 'Popular new titles',
         HomeRepository::LATEST => 'Latest updates',
     ];
 
     private const REFRESH = [
+        HomeRepository::SEASON => 'refreshSeason',
         HomeRepository::CATALOG => 'refreshCatalog',
         HomeRepository::POPULAR => 'refreshPopular',
         HomeRepository::LATEST => 'refreshLatest',
@@ -69,11 +71,21 @@ class Home extends NativeComponent implements HasResumeBar
     {
         $home = app(HomeRepository::class);
 
-        return [
+        $rows = [
+            HomeRepository::SEASON => $home->season(),
             HomeRepository::CATALOG => $home->catalog(),
             HomeRepository::POPULAR => $home->popular(),
             HomeRepository::LATEST => $home->latest(),
         ];
+
+        // "This season" is opt-in: a user who hasn't configured a seasonal URL (and whose last
+        // refresh produced zero titles) gets no row at all, rather than a sticky empty one.
+        if ($rows[HomeRepository::SEASON]->data?->isEmpty()
+            && app(\App\Sources\ActiveSource::class)->seasonalUrl() === null) {
+            unset($rows[HomeRepository::SEASON]);
+        }
+
+        return $rows;
     }
 
     /** @return list<Manga> */

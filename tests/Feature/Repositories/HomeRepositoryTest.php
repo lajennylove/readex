@@ -183,3 +183,63 @@ it('silently hides the Browse row when the source returns 404 on /manga/_catalog
 
     expect($this->home->catalog()->data->isEmpty())->toBeTrue();
 });
+
+it('leaves "This season" empty when no seasonal URL is configured', function () {
+    $this->home->refreshSeason();
+
+    expect($this->home->season()->data->isEmpty())->toBeTrue();
+});
+
+it('populates "This season" from the seasonal URL + /manga?ids[]', function () {
+    app(App\Repositories\SettingsRepository::class)
+        ->setSeasonalUrl('https://antsy.example.test/seasonal.json');
+
+    $apiUrl = rtrim(app(App\Sources\ActiveSource::class)->apiUrl(), '/');
+
+    Http::fake([
+        'antsy.example.test/*' => Http::response([
+            'id' => 'fall-2026',
+            'name' => 'Fall 2026',
+            'manga_ids' => ['demo-01', 'demo-02'],
+        ]),
+        $apiUrl.'/manga*' => Http::response([
+            'result' => 'ok',
+            'response' => 'collection',
+            'data' => [
+                ['id' => 'demo-01', 'type' => 'manga', 'attributes' => ['title' => ['en' => 'A'], 'contentRating' => 'safe', 'originalLanguage' => 'ja', 'altTitles' => [], 'description' => [], 'status' => 'ongoing', 'year' => 2024, 'tags' => [], 'availableTranslatedLanguages' => []], 'relationships' => []],
+                ['id' => 'demo-02', 'type' => 'manga', 'attributes' => ['title' => ['en' => 'B'], 'contentRating' => 'safe', 'originalLanguage' => 'ja', 'altTitles' => [], 'description' => [], 'status' => 'ongoing', 'year' => 2024, 'tags' => [], 'availableTranslatedLanguages' => []], 'relationships' => []],
+            ],
+            'limit' => 2, 'offset' => 0, 'total' => 2,
+        ]),
+    ]);
+
+    $this->home->refreshSeason();
+
+    expect($this->home->season()->data->isEmpty())->toBeFalse();
+});
+
+it('silently hides "This season" when the seasonal URL returns an error', function () {
+    app(App\Repositories\SettingsRepository::class)
+        ->setSeasonalUrl('https://antsy.example.test/seasonal.json');
+
+    Http::fake([
+        'antsy.example.test/*' => Http::response('nope', 500),
+    ]);
+
+    $this->home->refreshSeason();
+
+    expect($this->home->season()->data->isEmpty())->toBeTrue();
+});
+
+it('silently hides "This season" when the seasonal URL body is garbage', function () {
+    app(App\Repositories\SettingsRepository::class)
+        ->setSeasonalUrl('https://antsy.example.test/seasonal.json');
+
+    Http::fake([
+        'antsy.example.test/*' => Http::response(['nothing' => 'useful']),
+    ]);
+
+    $this->home->refreshSeason();
+
+    expect($this->home->season()->data->isEmpty())->toBeTrue();
+});

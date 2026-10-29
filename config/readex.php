@@ -8,6 +8,7 @@ return [
         'home.catalog' => 24 * 3600,
         'home.popular' => 6 * 3600,
         'home.latest' => 15 * 60,
+        'home.season' => 86400,
         'list' => 3600,
         'manga' => 86400,
         'feed' => 3600,

@@ -479,3 +479,56 @@ it('on Change source confirm, flushes content and sends the user back to Setup â
         ->and(app(SettingsRepository::class)->setupDone())->toBeFalse()
         ->and(app(SettingsRepository::class)->eulaAcknowledged())->toBeTrue();
 });
+
+it('saves the Covers URL from Settings, trims it, and flashes Saved', function () {
+    Native::test(Settings::class)
+        ->call('changeCoversUrl', 'https://uploads.example.test/covers/ ')
+        ->call('saveCoversUrl')
+        ->assertSet('coversUrl', 'https://uploads.example.test/covers')
+        ->assertSet('coversSaved', true)
+        ->assertSet('coversError', null);
+
+    expect(app(SettingsRepository::class)->coversUrl())->toBe('https://uploads.example.test/covers');
+});
+
+it('rejects a malformed Covers URL and does not save', function () {
+    Native::test(Settings::class)
+        ->call('changeCoversUrl', 'not-a-url')
+        ->call('saveCoversUrl')
+        ->assertSet('coversError', 'That URL does not look right. Check for typos and try again.')
+        ->assertSet('coversSaved', false);
+
+    expect(app(SettingsRepository::class)->coversUrl())->toBeNull();
+});
+
+it('clears Covers URL when the field is saved empty', function () {
+    app(SettingsRepository::class)->setCoversUrl('https://uploads.example.test/covers');
+
+    Native::test(Settings::class)
+        ->call('changeCoversUrl', '')
+        ->call('saveCoversUrl')
+        ->assertSet('coversSaved', true);
+
+    expect(app(SettingsRepository::class)->coversUrl())->toBeNull();
+});
+
+it('saves the Seasonal URL from Settings, trims it, and flashes Saved', function () {
+    Native::test(Settings::class)
+        ->call('changeSeasonalUrl', 'https://antsy.example.test/seasonal.json  ')
+        ->call('saveSeasonalUrl')
+        ->assertSet('seasonalUrl', 'https://antsy.example.test/seasonal.json')
+        ->assertSet('seasonalSaved', true);
+
+    expect(app(SettingsRepository::class)->seasonalUrl())->toBe('https://antsy.example.test/seasonal.json');
+});
+
+it('clears Seasonal URL when the field is saved empty', function () {
+    app(SettingsRepository::class)->setSeasonalUrl('https://antsy.example.test/seasonal.json');
+
+    Native::test(Settings::class)
+        ->call('changeSeasonalUrl', '')
+        ->call('saveSeasonalUrl')
+        ->assertSet('seasonalSaved', true);
+
+    expect(app(SettingsRepository::class)->seasonalUrl())->toBeNull();
+});

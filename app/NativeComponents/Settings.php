@@ -64,6 +64,27 @@ class Settings extends NativeComponent implements HasResumeBar
 
     public string $quality = 'data-saver';
 
+    /**
+     * Optional covers CDN override. When blank, the covers URL is auto-composed as a sibling of
+     * the source URL (see App\Sources\ActiveSource::coversUrl). The reader can edit it here and
+     * tap Save; the field flashes "Saved" via $coversSaved on a successful write.
+     */
+    public string $coversUrl = '';
+
+    public ?string $coversError = null;
+
+    public bool $coversSaved = false;
+
+    /**
+     * Optional curated-list URL that fills the "This season" Home row. Blank hides the row.
+     * Same save pattern as coversUrl above.
+     */
+    public string $seasonalUrl = '';
+
+    public ?string $seasonalError = null;
+
+    public bool $seasonalSaved = false;
+
     /** The refill whose steps are shown (the running one, or the last one this visit). */
     public ?string $run = null;
 
@@ -89,6 +110,8 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->language = $settings->language();
         $this->ratings = $settings->contentRatings();
         $this->quality = $settings->imageQuality();
+        $this->coversUrl = (string) ($settings->coversUrl() ?? '');
+        $this->seasonalUrl = (string) ($settings->seasonalUrl() ?? '');
         $this->run = RefreshAllData::running();
         $this->steps = $this->run === null ? [] : LoadProgress::read($this->run);
         $this->cacheBytes = app(ImageCache::class)->usage();
@@ -247,6 +270,66 @@ class Settings extends NativeComponent implements HasResumeBar
         return $this->run !== null && RefreshAllData::running() === $this->run;
     }
 
+    public function changeCoversUrl(string $value): void
+    {
+        $this->coversUrl = trim($value);
+        $this->coversSaved = false;
+    }
+
+    public function saveCoversUrl(): void
+    {
+        $this->coversError = null;
+        $this->coversSaved = false;
+        $settings = app(SettingsRepository::class);
+
+        if ($this->coversUrl === '') {
+            $settings->clearCoversUrl();
+            $this->coversSaved = true;
+
+            return;
+        }
+
+        if (filter_var($this->coversUrl, FILTER_VALIDATE_URL) === false) {
+            $this->coversError = 'That URL does not look right. Check for typos and try again.';
+
+            return;
+        }
+
+        $settings->setCoversUrl($this->coversUrl);
+        $this->coversUrl = $settings->coversUrl() ?? '';
+        $this->coversSaved = true;
+    }
+
+    public function changeSeasonalUrl(string $value): void
+    {
+        $this->seasonalUrl = trim($value);
+        $this->seasonalSaved = false;
+    }
+
+    public function saveSeasonalUrl(): void
+    {
+        $this->seasonalError = null;
+        $this->seasonalSaved = false;
+        $settings = app(SettingsRepository::class);
+
+        if ($this->seasonalUrl === '') {
+            $settings->clearSeasonalUrl();
+            $this->seasonalSaved = true;
+
+            return;
+        }
+
+        if (filter_var($this->seasonalUrl, FILTER_VALIDATE_URL) === false) {
+            $this->seasonalError = 'That URL does not look right. Check for typos and try again.';
+
+            return;
+        }
+
+        $settings->setSeasonalUrl($this->seasonalUrl);
+        $this->seasonalUrl = $settings->seasonalUrl() ?? '';
+        $this->seasonalSaved = true;
+    }
+
     public function openProvider(): void
     {
         Browser::inApp($this->providerUrl());
@@ -344,6 +427,12 @@ class Settings extends NativeComponent implements HasResumeBar
             'providerLabel' => $provider,
             'providerUrl' => $this->providerUrl(),
             'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
+            'coversUrl' => $this->coversUrl,
+            'coversError' => $this->coversError,
+            'coversSaved' => $this->coversSaved,
+            'seasonalUrl' => $this->seasonalUrl,
+            'seasonalError' => $this->seasonalError,
+            'seasonalSaved' => $this->seasonalSaved,
         ]);
     }
 }

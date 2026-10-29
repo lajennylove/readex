@@ -54,6 +54,36 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">Covers URL</native:text>
+            <native:text class="text-sm text-theme-on-surface-variant">An alternate host for cover images. Only needed when your source serves covers from a different host than its API (e.g. an "uploads" subdomain). Leave empty to use the API host.</native:text>
+            <native:outlined_text_input placeholder="https://uploads.example.org/covers" value="{{ $coversUrl }}" @change="changeCoversUrl" />
+            @if ($coversError)
+                <native:text class="text-sm text-theme-destructive">{{ $coversError }}</native:text>
+            @endif
+            <native:row class="w-full items-center gap-2">
+                <native:button label="Save" variant="secondary" @press="saveCoversUrl" />
+                @if ($coversSaved)
+                    <native:text class="text-sm text-theme-on-surface-variant">Saved</native:text>
+                @endif
+            </native:row>
+        </native:column>
+
+        <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">This season</native:text>
+            <native:text class="text-sm text-theme-on-surface-variant">A JSON URL for the latest content suggestions. Leave empty to hide the "This season" row on Home.</native:text>
+            <native:outlined_text_input placeholder="https://example.org/seasonal-list.json" value="{{ $seasonalUrl }}" @change="changeSeasonalUrl" />
+            @if ($seasonalError)
+                <native:text class="text-sm text-theme-destructive">{{ $seasonalError }}</native:text>
+            @endif
+            <native:row class="w-full items-center gap-2">
+                <native:button label="Save" variant="secondary" @press="saveSeasonalUrl" />
+                @if ($seasonalSaved)
+                    <native:text class="text-sm text-theme-on-surface-variant">Saved</native:text>
+                @endif
+            </native:row>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-on-background">Storage</native:text>
             <native:text class="text-base text-theme-on-background">{{ $storage }}</native:text>
             @if ($storageLow)

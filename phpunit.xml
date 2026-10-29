@@ -33,6 +33,9 @@
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="READEX_SETUP_SOURCE_URL" value="https://api.source.test"/>
+        <env name="READEX_SETUP_COVERS_URL" value="https://uploads.source.test/covers"/>
+        <env name="READEX_SETUP_SEASONAL_URL" value="https://example.source.test/seasonal.json"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

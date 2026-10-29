@@ -46,9 +46,10 @@ class Setup extends NativeComponent
     public string $phase = self::SETTINGS;
 
     /**
-     * The content source URL/API endpoint-- empty by default —
-     * never pre-filled with the built-in source's own URL — so the sources table only ever holds what the
-     * user actually typed in and loaded from, never a hardcoded preference (D45 §2 proof point).
+     * The content source URL/API endpoint. Pre-filled on first run from
+     * `readex.setup_defaults.source_url` so a fresh install opens Setup already pointing at a
+     * usable source and the reader can tap Continue without typing. The reader can still edit
+     * or clear it before Continue — nothing is forced. Swappable via `READEX_SETUP_SOURCE_URL`.
      */
     public string $sourceUrl = '';
 
@@ -74,6 +75,21 @@ class Setup extends NativeComponent
     {
         $this->language = IosLanguageMap::toSourceCode($bridge->preferredLanguage());
         $this->ratings = $settings->contentRatings();
+
+        // First-run defaults for a usable out-of-box reader; the reader can edit or clear
+        // before Continue. Skipped once Setup has completed, so a factory reset still goes
+        // through this path (setupDone() is false again then).
+        if (! $settings->setupDone()) {
+            if ($this->sourceUrl === '') {
+                $this->sourceUrl = (string) config('readex.setup_defaults.source_url', '');
+            }
+            if ($this->coversUrl === '') {
+                $this->coversUrl = (string) config('readex.setup_defaults.covers_url', '');
+            }
+            if ($this->seasonalUrl === '') {
+                $this->seasonalUrl = (string) config('readex.setup_defaults.seasonal_url', '');
+            }
+        }
 
         // Tags load while the reader picks; DataLoader skips them if they landed.
         RefreshTask::dispatch(Refresh::of([TagRepository::class, 'refresh']));

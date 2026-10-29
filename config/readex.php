@@ -118,6 +118,18 @@ return [
     // First run (spec §9 step 3): Home opens after this long once a Home row has loaded.
     'setup_cutoff_seconds' => 10,
 
+    // First-run defaults for a usable out-of-box reader; the Setup screen pre-fills its URL
+    // field(s) with these so a new install (post-EULA) can tap Continue without typing. Users
+    // can still edit or clear any field before Continue — nothing is forced. Only `source_url`
+    // is wired into the current Setup UI; `covers_url` and `seasonal_url` are reserved for the
+    // additional fields the Setup redesign introduces (gap: those properties/inputs don't yet
+    // exist on Setup.php, flagged for the follow-up).
+    'setup_defaults' => [
+        'source_url' => env('READEX_SETUP_SOURCE_URL', 'https://lajennylove.github.io/readex/api'),
+        'covers_url' => env('READEX_SETUP_COVERS_URL', 'https://lajennylove.github.io/readex/covers'),
+        'seasonal_url' => env('READEX_SETUP_SEASONAL_URL', 'https://lajennylove.github.io/readex/seasonal/seasonal-list.json'),
+    ],
+
     'refreshes_data' => [
         // Spec §7 polling cadence (RefreshesData::checkWaitingRefreshes).
         // iOS keeps the historical 3s tick; Android lengthens it so colour e-ink

@@ -26,6 +26,13 @@ use Tests\Support\Covers;
 use Tests\Support\Loading;
 
 beforeEach(function () {
+    // Prefill defaults off by default in tests; the two "prefills ..." / "does not prefill ..."
+    // cases set them explicitly. Keeping them null here means other tests continue to see the
+    // empty-field pre-merge behaviour and don't need network mocks for the demo seasonal/covers.
+    config()->set('readex.setup_defaults.source_url', null);
+    config()->set('readex.setup_defaults.covers_url', null);
+    config()->set('readex.setup_defaults.seasonal_url', null);
+
     Carbon::setTestNow('2026-10-24 12:00:00');
     Sleep::fake(syncWithCarbon: true);
     // The phone bridge (preferred language) with temp caches behind it.
@@ -184,8 +191,30 @@ it('saves the content rating the reader picked', function () {
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe']);
 });
 
-it('keeps the reader on Setup with an error when the source field is left empty', function () {
+it('prefills all three URL fields from readex.setup_defaults on first run', function () {
+    config()->set('readex.setup_defaults.source_url', 'https://prefill.source.test/api');
+    config()->set('readex.setup_defaults.covers_url', 'https://prefill.source.test/covers');
+    config()->set('readex.setup_defaults.seasonal_url', 'https://prefill.source.test/seasonal.json');
+
     Native::test(Setup::class)
+        ->assertSet('sourceUrl', 'https://prefill.source.test/api')
+        ->assertSet('coversUrl', 'https://prefill.source.test/covers')
+        ->assertSet('seasonalUrl', 'https://prefill.source.test/seasonal.json');
+});
+
+it('does not prefill the source URL when setup has already been completed', function () {
+    app(SettingsRepository::class)->markSetupDone();
+    config()->set('readex.setup_defaults.source_url', 'https://prefill.source.test/api');
+
+    Native::test(Setup::class)
+        ->assertSet('sourceUrl', '');
+});
+
+it('keeps the reader on Setup with an error when the source field is left empty', function () {
+    config()->set('readex.setup_defaults.source_url', null);
+
+    Native::test(Setup::class)
+        ->call('changeSourceUrl', '')
         ->tap('Continue')
         ->assertSet('phase', Setup::SETTINGS)
         ->assertSee('Not a valid URL.')

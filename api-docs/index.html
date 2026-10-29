@@ -3,53 +3,311 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReaDex — Source Adapter Spec</title>
+<title>ReaDex Source Adapter Spec</title>
+<meta name="description" content="Reference for building an HTTP backend ReaDex can read.">
 <style>
-  :root { color-scheme: light dark; }
-  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  @media (prefers-color-scheme: dark) {
-    html, body { background: #1e2235; color: #e7e9ef; }
-    a { color: #8fb4ff; }
-    h1, h2 { color: #ffffff; }
-    code { background: #2a2f45; }
-    .card { background: #262b40; border-color: #333a55; }
-    .meta { color: #9aa0b4; }
+  :root {
+    color-scheme: dark;
+    --bg: #13151a;
+    --bg-elev: #1b1d23;
+    --bg-chip: #262830;
+    --border: #2a2d35;
+    --text: #c6c7cb;
+    --text-strong: #ffffff;
+    --muted: #9ca3af;
+    --accent: #8ab4f8;
+    --accent-bg: rgba(138,180,248,0.08);
+    --code-text: #e6e8ec;
+    --mark-bg: #403d1a;
+    --mark-text: #fde68a;
   }
-  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
-  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
-  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
-  h2 { font-size: 20px; margin: 40px 0 10px; letter-spacing: -0.005em; }
-  p, li { margin: 10px 0; }
-  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-  a { color: #2d4ba0; text-decoration: none; }
+  :root:not([data-theme="dark"]) {
+    @media (prefers-color-scheme: light) {}
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #ffffff;
+      --bg-elev: #f8f9fb;
+      --bg-chip: #f1f3f5;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --text-strong: #0f172a;
+      --muted: #4b5563;
+      --accent: #5b4ad8;
+      --accent-bg: rgba(91,74,216,0.08);
+      --code-text: #1a1a1a;
+      --mark-bg: #fef3c7;
+      --mark-text: #78350f;
+    }
+  }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  nav.toc { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0 8px; }
-  @media (min-width: 560px) { nav.toc { grid-template-columns: 1fr 1fr; } }
-  .card { display: block; padding: 16px 18px; border: 1px solid #e4ded0; background: #fff; border-radius: 10px; }
-  .card h3 { margin: 0 0 4px; font-size: 16px; }
-  .card p { margin: 0; color: #6c7384; font-size: 14px; }
+  code, pre {
+    font-family: "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  code {
+    background: var(--bg-chip);
+    color: var(--code-text);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--bg-elev);
+    color: var(--code-text);
+    padding: 14px 16px;
+    border-radius: 6px;
+    border-left: 2px solid var(--accent);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  pre code { background: transparent; padding: 0; font-size: 14px; }
+  mark { background: var(--mark-bg); color: var(--mark-text); padding: 0 3px; border-radius: 3px; }
+  h1, h2, h3, h4 { color: var(--text-strong); letter-spacing: -0.01em; line-height: 1.25; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  h2 { font-size: 24px; margin: 36px 0 12px; padding-top: 8px; }
+  h3 { font-size: 20px; margin: 28px 0 10px; }
+  p, li { margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Layout */
+  .site { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+  .topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand { font-weight: 600; color: var(--text-strong); font-size: 15px; }
+  .brand-sub { color: var(--muted); font-size: 13px; margin-left: 4px; }
+  .burger {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border: 1px solid var(--border); background: transparent;
+    color: var(--text); border-radius: 6px; cursor: pointer;
+  }
+  .burger:hover { border-color: var(--accent); color: var(--accent); }
+  .sidebar {
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+  }
+  .sidebar h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .sidebar ul { list-style: none; padding: 0; margin: 0 0 24px; }
+  .sidebar li a {
+    display: block; padding: 6px 10px; margin: 2px -10px;
+    border-radius: 5px; color: var(--text); font-size: 14px;
+    border-left: 2px solid transparent;
+  }
+  .sidebar li a:hover { background: var(--accent-bg); color: var(--accent); text-decoration: none; }
+  .sidebar li a.current {
+    background: var(--accent-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 500;
+  }
+  .content {
+    padding: 32px 24px 80px;
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .toc {
+    padding: 32px 20px;
+    position: sticky; top: 0;
+    align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    font-size: 13px;
+  }
+  .toc h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .toc ul { list-style: none; padding: 0; margin: 0; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--muted); display: block; padding: 2px 0; border-left: 2px solid transparent; padding-left: 10px; margin-left: -2px; }
+  .toc a:hover { color: var(--accent); text-decoration: none; }
+  .toc a.h3 { padding-left: 22px; }
+
+  .breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .breadcrumb a { color: var(--muted); }
+  .breadcrumb a:hover { color: var(--accent); }
+  .meta-sub { color: var(--muted); margin: 0 0 32px; }
+
+  .hero {
+    padding: 24px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .hero h1 { font-size: 36px; margin: 0 0 10px; }
+  .hero p.lead { font-size: 18px; color: var(--muted); margin: 0 0 8px; max-width: 56ch; }
+
+  .example-block {
+    margin: 24px 0 32px;
+    padding: 20px 22px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+  }
+  .example-block h3 { margin-top: 0; font-size: 16px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
+  .example-row { margin: 12px 0 0; }
+  .example-row .label { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+  .example-row pre { margin: 0; }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 20px 0 8px; }
+  @media (min-width: 560px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card {
+    display: block; padding: 16px 18px;
+    border: 1px solid var(--border); background: var(--bg-elev);
+    border-radius: 8px; color: var(--text);
+  }
+  .card:hover { border-color: var(--accent); text-decoration: none; }
+  .card h3 { margin: 0 0 4px; font-size: 16px; color: var(--text-strong); }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 48px 0 0; padding-top: 24px; border-top: 1px solid var(--border); }
+  .pager a {
+    display: block; padding: 14px 18px;
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); background: var(--bg-elev);
+  }
+  .pager a:hover { border-color: var(--accent); text-decoration: none; }
+  .pager .dir { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .pager .title { color: var(--text-strong); font-weight: 500; }
+  .pager .next { text-align: right; }
+
+  .method { display: inline-block; background: rgba(138,180,248,0.15); color: var(--accent); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; margin-right: 8px; vertical-align: 2px; }
+  .ep { margin: 24px 0 36px; padding: 20px 22px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; }
+  .ep .path { font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: var(--text-strong); word-break: break-all; }
+  .ep h3 { font-size: 13px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .ep .try { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  .ep .try a { word-break: break-all; }
+
+  /* Mobile sidebar drawer */
+  .scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; }
+  @media (min-width: 768px) {
+    .site { grid-template-columns: 240px 1fr; }
+    .topbar { display: none; }
+    .sidebar { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
+  }
+  @media (min-width: 1280px) {
+    .site { grid-template-columns: 240px minmax(0, 1fr) 200px; }
+  }
+  @media (max-width: 767px) {
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 260px; z-index: 40;
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+      padding-top: 56px;
+    }
+    .site.open .sidebar { transform: translateX(0); }
+    .site.open .scrim { display: block; }
+    .toc { display: none; }
+    .content { padding: 20px 16px 64px; }
+    .hero h1 { font-size: 28px; }
+    h1 { font-size: 26px; }
+  }
+  @media (min-width: 768px) and (max-width: 1279px) {
+    .toc { display: none; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>ReaDex — Source Adapter Spec</h1>
-  <p class="meta">A practical reference for building an HTTP backend ReaDex can read.</p>
+<div class="site" id="site">
+  <header class="topbar">
+    <button class="burger" id="burger" aria-label="Open navigation">&#9776;</button>
+    <span class="brand">ReaDex</span><span class="brand-sub">Source Adapter Spec</span>
+  </header>
+  <div class="scrim" id="scrim"></div>
+  <aside class="sidebar">
+    <h4>Source Adapter Spec</h4>
+    <ul>
+      <li><a href="index.html" class="current">Home</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="endpoints.html">Endpoints</a></li>
+      <li><a href="covers.html">Covers</a></li>
+      <li><a href="seasonal.html">Seasonal</a></li>
+      <li><a href="meta.html">/_meta.json</a></li>
+    </ul>
+  </aside>
 
-  <h2>What this is</h2>
-  <p>ReaDex is a personal reader client. At first-run the user supplies a single base URL; the app routes every outbound call through that URL. These pages describe the HTTP contract an endpoint must satisfy so ReaDex can render its catalog, title detail, chapter feed, pages and covers.</p>
-  <p>The <a href="https://lajennylove.github.io/readex/">demo source</a> at <code>https://lajennylove.github.io/readex/</code> is the canonical implementation. Everything below is what that source serves, documented so you can build your own.</p>
+  <main class="content">
+    <section class="hero">
+      <h1>ReaDex Source Adapter Spec</h1>
+      <p class="lead">A practical reference for building an HTTP backend ReaDex can read.</p>
+    </section>
 
-  <h2>Sections</h2>
-  <nav class="toc">
-    <a class="card" href="overview.html"><h3>Overview</h3><p>Roles, discovery, minimum viable source checklist.</p></a>
-    <a class="card" href="endpoints.html"><h3>Endpoints</h3><p>Per-path reference with example responses.</p></a>
-    <a class="card" href="covers.html"><h3>Covers</h3><p>URL template, sizes, allowed formats.</p></a>
-    <a class="card" href="seasonal.html"><h3>Seasonal</h3><p>Optional curated-list contract.</p></a>
-    <a class="card" href="meta.html"><h3>/_meta.json</h3><p>Discovery doc keys and fallbacks.</p></a>
-  </nav>
+    <section class="example-block">
+      <h3>Example source &mdash; try these URLs</h3>
+      <p class="meta-sub" style="margin: 0 0 12px;">The live demo at <code>lajennylove.github.io/readex</code> implements the full contract. Open any of these in a browser to see what ReaDex sees.</p>
+      <div class="example-row">
+        <p class="label">API base &mdash; serves <code>/_meta.json</code>, <code>/manga/*</code>, <code>/chapter</code>, <code>/at-home/server/*</code></p>
+        <pre><code><a href="https://lajennylove.github.io/readex/api/_meta.json">https://lajennylove.github.io/readex/api</a></code></pre>
+      </div>
+      <div class="example-row">
+        <p class="label">Covers CDN &mdash; static tree of <code>{mangaId}/cover.{size}.jpg</code></p>
+        <pre><code><a href="https://lajennylove.github.io/readex/covers/demo-01/cover.256.jpg">https://lajennylove.github.io/readex/covers</a></code></pre>
+      </div>
+      <div class="example-row">
+        <p class="label">Seasonal list URL &mdash; pasted into Settings &rarr; This season</p>
+        <pre><code><a href="https://lajennylove.github.io/readex/seasonal/seasonal-list.json">https://lajennylove.github.io/readex/seasonal/seasonal-list.json</a></code></pre>
+      </div>
+    </section>
 
-  <h2>Who this is for</h2>
-  <p>A backend developer who speaks HTTP + JSON and wants to stand up an endpoint that ReaDex will treat as a valid source. No prior familiarity with any specific upstream catalog required.</p>
-</main>
+    <h2 id="what">What this is</h2>
+    <p>ReaDex is a personal reader client. At first run the user supplies a single base URL; the app routes every outbound call through that URL. These pages describe the HTTP contract an endpoint must satisfy so ReaDex can render its catalog, title detail, chapter feed, pages and covers.</p>
+    <p>The <a href="https://lajennylove.github.io/readex/">demo source</a> at <code>https://lajennylove.github.io/readex/</code> is the canonical implementation. Everything in this spec is what that source serves, documented so you can build your own.</p>
+
+    <h2 id="sections">Sections</h2>
+    <nav class="cards">
+      <a class="card" href="overview.html"><h3>Overview</h3><p>Roles, discovery, minimum viable source checklist.</p></a>
+      <a class="card" href="endpoints.html"><h3>Endpoints</h3><p>Per-path reference with example responses.</p></a>
+      <a class="card" href="covers.html"><h3>Covers</h3><p>URL template, sizes, allowed formats.</p></a>
+      <a class="card" href="seasonal.html"><h3>Seasonal</h3><p>Optional curated-list contract.</p></a>
+      <a class="card" href="meta.html"><h3>/_meta.json</h3><p>Discovery doc keys and fallbacks.</p></a>
+    </nav>
+
+    <h2 id="who">Who this is for</h2>
+    <p>A backend developer who speaks HTTP + JSON and wants to stand up an endpoint that ReaDex will treat as a valid source. No prior familiarity with any specific upstream catalog required.</p>
+
+    <nav class="pager">
+      <span></span>
+      <a class="next" href="overview.html">
+        <div class="dir">Next</div>
+        <div class="title">Overview &rarr;</div>
+      </a>
+    </nav>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <h4>On this page</h4>
+    <ul>
+      <li><a href="#what">What this is</a></li>
+      <li><a href="#sections">Sections</a></li>
+      <li><a href="#who">Who this is for</a></li>
+    </ul>
+  </aside>
+</div>
+<script>
+  (function () {
+    var site = document.getElementById('site');
+    var burger = document.getElementById('burger');
+    var scrim = document.getElementById('scrim');
+    function toggle(open) { site.classList.toggle('open', open); }
+    burger.addEventListener('click', function () { toggle(!site.classList.contains('open')); });
+    scrim.addEventListener('click', function () { toggle(false); });
+  })();
+</script>
 </body>
 </html>

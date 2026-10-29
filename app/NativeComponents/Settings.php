@@ -343,7 +343,7 @@ class Settings extends NativeComponent implements HasResumeBar
             'version' => config('source.app_version'),
             'providerLabel' => $provider,
             'providerUrl' => $this->providerUrl(),
-            'providerCredit' => 'Chapters are translated by the scanlation groups credited on each chapter.',
+            'providerCredit' => 'The chapters are provided by '.(parse_url($this->providerUrl(), PHP_URL_HOST) ?: 'your source').' and the groups credited on each chapter.',
         ]);
     }
 }

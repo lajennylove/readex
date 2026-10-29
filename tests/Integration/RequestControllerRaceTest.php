@@ -15,11 +15,11 @@ beforeEach(function () {
     config(['database.connections.sqlite.database' => $this->dir.'/db.sqlite']);
     DB::purge('sqlite');
     Artisan::call('migrate', ['--force' => true]);
-    app(SettingsRepository::class)->setSourceUrl('https://api.mangadex.org');
+    app(SettingsRepository::class)->setSourceUrl('https://api.source.test');
 });
 
 it('gives the last token to exactly one of two processes', function () {
-    $call = Call::get('https://api.mangadex.org/api/manga');
+    $call = Call::get('https://api.source.test/api/manga');
     app(RequestController::class)->acquire($call, Priority::Interactive, 0);
     DB::table('rate_buckets')->where('key', 'global')->update(['tokens' => 1.0, 'refill_per_sec' => 0.0001]);
     DB::disconnect('sqlite');

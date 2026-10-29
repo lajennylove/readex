@@ -44,7 +44,7 @@ it('downloads every page in reading order and marks the chapter done', function 
 
     runChapter('c1')->assertNotReleased();
 
-    expect(Pages::requested())->toBe(array_map(fn ($i) => "a.mangadex.network/data-saver/h1/p{$i}.jpg", [1, 2, 3, 4]))
+    expect(Pages::requested())->toBe(array_map(fn ($i) => "a.source.test/data-saver/h1/p{$i}.jpg", [1, 2, 3, 4]))
         ->and($this->store->has('c1'))->toBeTrue()
         ->and($this->store->manifest('c1')['pages'][3]['width'])->toBe(4)
         ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->toBe('done')
@@ -61,7 +61,7 @@ it('resumes from what is on disk, also after iOS purged a page', function () {
 
     runChapter('c1');
 
-    expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p2.jpg'])
+    expect(Pages::requested())->toBe(['a.source.test/data-saver/h1/p2.jpg'])
         ->and(Pages::lookups())->toBe(0)
         ->and($this->store->has('c1'))->toBeTrue();
 });
@@ -74,7 +74,7 @@ it('leaves a page another fetcher is downloading to it and checks back in 5 s', 
     runChapter('c1')->assertReleased(5);
 
     expect($this->store->missing('c1'))->toBe([1])
-        ->and(Pages::requested())->not->toContain('a.mangadex.network/data-saver/h1/p2.jpg')
+        ->and(Pages::requested())->not->toContain('a.source.test/data-saver/h1/p2.jpg')
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy);
 });
 
@@ -133,7 +133,7 @@ it('stops taking pages after 40 s and releases itself to continue', function () 
 
     runChapter('c1')->assertReleased(0);
 
-    expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg'])
+    expect(Pages::requested())->toBe(['a.source.test/data-saver/h1/p1.jpg', 'a.source.test/data-saver/h1/p2.jpg'])
         ->and($this->store->missing('c1'))->toBe([2])
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Busy)
         ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->toBe('partial');
@@ -152,18 +152,18 @@ it('continues the next slice from the first missing page and finishes it', funct
 
     runChapter('c1')->assertNotReleased();
 
-    expect(Pages::requested())->toBe(array_map(fn ($i) => "a.mangadex.network/data-saver/h1/p{$i}.jpg", [3, 4, 5]))
+    expect(Pages::requested())->toBe(array_map(fn ($i) => "a.source.test/data-saver/h1/p{$i}.jpg", [3, 4, 5]))
         ->and(Pages::lookups())->toBe(0)
         ->and($this->store->missing('c1'))->toBe([])
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Done)
         ->and(DB::table('stored_chapters')->where('chapter_id', 'c1')->value('status'))->toBe('done');
 });
 
-it('waits for the controller when MangaDex is limiting the phone', function () {
+it('waits for the controller when the source is limiting the phone', function () {
     Pages::fake();
     Pages::chapter('c1');
     DB::table('rate_buckets')->insert([
-        'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+        'key' => 'family:api.source.test', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
         'updated_at' => now()->timestamp, 'blocked_until' => now()->timestamp + 300, 'strikes' => 0, 'probing' => false,
     ]);
 
@@ -182,8 +182,8 @@ it('tries again in a minute when the phone is offline', function () {
     expect($this->fetcher->state('c1'))->toBe(LoadState::Offline);
 });
 
-it('stops for good when MangaDex no longer serves the chapter, or it is external', function () {
-    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error'], 404)]);
+it('stops for good when the source no longer serves the chapter, or it is external', function () {
+    Http::fake(['api.source.test/*' => Http::response(['result' => 'error'], 404)]);
     Pages::chapter('c1');
     Pages::chapter('c2', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/1']);
 
@@ -195,9 +195,9 @@ it('stops for good when MangaDex no longer serves the chapter, or it is external
     Http::assertSentCount(1);
 });
 
-it('waits out a MangaDex outage, limit or ban on the lookup: released after 1 s, 4 s, 15 s, then every 60 s, the download still queued', function (int $status, array|string $body) {
+it('waits out a the source outage, limit or ban on the lookup: released after 1 s, 4 s, 15 s, then every 60 s, the download still queued', function (int $status, array|string $body) {
     Stored::useTempStorage();
-    Http::fake(['api.mangadex.org/api/at-home/server/*' => Http::response($body, $status)]);
+    Http::fake(['api.source.test/api/at-home/server/*' => Http::response($body, $status)]);
     Pages::chapter('c1');
     app(Downloads::class)->download('c1');
 
@@ -221,7 +221,7 @@ it('starts the outage backoff over after a slice that got through', function () 
         if (str_contains($request->url(), '/at-home/server/')) {
             return match ($lookups++) {
                 0 => Http::response('', 503),
-                1 => Http::response(Pages::atHome('https://dead.mangadex.network')),
+                1 => Http::response(Pages::atHome('https://dead.source.test')),
                 default => Http::response('', 503),
             };
         }
@@ -232,7 +232,7 @@ it('starts the outage backoff over after a slice that got through', function () 
             return Http::response(Pages::image());
         }
 
-        return str_contains($request->url(), 'api.mangadex.network') ? Http::response(['result' => 'ok']) : Http::response('', 502);
+        return str_contains($request->url(), 'api.source.test') ? Http::response(['result' => 'ok']) : Http::response('', 502);
     });
     Pages::chapter('c1');
 
@@ -257,7 +257,7 @@ describe('Clear image cache or the cap while it runs', function () {
 
         runChapter('c1')->assertNotReleased();
 
-        expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p1.jpg', 'a.mangadex.network/data-saver/h1/p2.jpg'])
+        expect(Pages::requested())->toBe(['a.source.test/data-saver/h1/p1.jpg', 'a.source.test/data-saver/h1/p2.jpg'])
             ->and(Pages::lookups())->toBe(1)
             ->and($this->fetcher->failed('c1'))->toBe([])
             ->and(StoredChapter::query()->count())->toBe(0)
@@ -294,7 +294,7 @@ describe('Clear image cache or the cap while it runs', function () {
             if (str_contains($request->url(), '/at-home/server/')) {
                 app(ImageCache::class)->clear();
 
-                return Http::response(Pages::atHome('https://a.mangadex.network'));
+                return Http::response(Pages::atHome('https://a.source.test'));
             }
 
             return Http::response(Pages::image());

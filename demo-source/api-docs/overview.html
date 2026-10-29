@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="../assets/readex-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex - Overview</title>
+<meta name="description" content="Roles, discovery, and the minimum viable ReaDex source.">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #13151a;
+    --bg-elev: #1b1d23;
+    --bg-chip: #262830;
+    --border: #2a2d35;
+    --text: #c6c7cb;
+    --text-strong: #ffffff;
+    --muted: #9ca3af;
+    --accent: #8ab4f8;
+    --accent-bg: rgba(138,180,248,0.08);
+    --code-text: #e6e8ec;
+    --mark-bg: #403d1a;
+    --mark-text: #fde68a;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #ffffff;
+      --bg-elev: #f8f9fb;
+      --bg-chip: #f1f3f5;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --text-strong: #0f172a;
+      --muted: #4b5563;
+      --accent: #5b4ad8;
+      --accent-bg: rgba(91,74,216,0.08);
+      --code-text: #1a1a1a;
+      --mark-bg: #fef3c7;
+      --mark-text: #78350f;
+    }
+  }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  code { background: var(--bg-chip); color: var(--code-text); padding: 2px 6px; border-radius: 4px; font-size: 0.88em; }
+  pre { background: var(--bg-elev); color: var(--code-text); padding: 14px 16px; border-radius: 6px; border-left: 2px solid var(--accent); font-size: 14px; line-height: 1.55; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre code { background: transparent; padding: 0; font-size: 14px; }
+  mark { background: var(--mark-bg); color: var(--mark-text); padding: 0 3px; border-radius: 3px; }
+  h1, h2, h3, h4 { color: var(--text-strong); letter-spacing: -0.01em; line-height: 1.25; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  h2 { font-size: 24px; margin: 36px 0 12px; padding-top: 8px; }
+  h3 { font-size: 20px; margin: 28px 0 10px; }
+  p, li { margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .site { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 20; }
+  .brand { font-weight: 600; color: var(--text-strong); font-size: 15px; }
+  .brand-sub { color: var(--muted); font-size: 13px; margin-left: 4px; }
+  .brandrow {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 0 14px; margin: 0 0 14px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .brandrow img { display: block; width: 28px; height: 28px; border-radius: 6px; }
+  .brandrow-name {
+    font-weight: 700; font-size: 17px; color: var(--text-strong);
+    letter-spacing: -0.01em;
+  }
+  .brandrow:hover .brandrow-name { color: var(--accent); }
+  .topbar .brandrow {
+    padding: 0; margin: 0; border: none;
+  }
+
+  .burger { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 6px; cursor: pointer; }
+  .burger:hover { border-color: var(--accent); color: var(--accent); }
+  .sidebar { background: var(--bg); border-right: 1px solid var(--border); padding: 24px 20px; }
+  .sidebar h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .sidebar ul { list-style: none; padding: 0; margin: 0 0 24px; }
+  .sidebar li a { display: block; padding: 6px 10px; margin: 2px -10px; border-radius: 5px; color: var(--text); font-size: 14px; border-left: 2px solid transparent; }
+  .sidebar li a:hover { background: var(--accent-bg); color: var(--accent); text-decoration: none; }
+  .sidebar li a.current { background: var(--accent-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+  .content { padding: 32px 24px 80px; max-width: 760px; margin: 0 auto; width: 100%; }
+  .toc { padding: 32px 20px; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; font-size: 13px; }
+  .toc h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .toc ul { list-style: none; padding: 0; margin: 0; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--muted); display: block; padding: 2px 0; border-left: 2px solid transparent; padding-left: 10px; margin-left: -2px; }
+  .toc a:hover { color: var(--accent); text-decoration: none; }
+  .toc a.h3 { padding-left: 22px; font-size: 12px; }
+  .breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); }
+  .breadcrumb a:hover { color: var(--accent); }
+  .meta-sub { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+  .example-block { margin: 24px 0 32px; padding: 20px 22px; background: var(--bg-elev); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; }
+  .example-block h3 { margin-top: 0; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; }
+  .example-row { margin: 14px 0 0; }
+  .example-row .label { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+  .example-row pre { margin: 0; }
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 48px 0 0; padding-top: 24px; border-top: 1px solid var(--border); }
+  .pager a { display: block; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--bg-elev); }
+  .pager a:hover { border-color: var(--accent); text-decoration: none; }
+  .pager .dir { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .pager .title { color: var(--text-strong); font-weight: 500; }
+  .pager .next { text-align: right; }
+  .method { display: inline-block; background: rgba(138,180,248,0.15); color: var(--accent); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; margin-right: 8px; vertical-align: 2px; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .method { background: rgba(91,74,216,0.12); } }
+  .ep { margin: 24px 0 36px; padding: 20px 22px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; }
+  .ep .path { font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: var(--text-strong); word-break: break-all; }
+  .ep h4 { font-size: 12px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .ep .try { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  .ep .try a { word-break: break-all; }
+  .scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; }
+  @media (min-width: 768px) {
+    .site { grid-template-columns: 240px 1fr; }
+    .topbar { display: none; }
+    .sidebar { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
+  }
+  @media (min-width: 1280px) {
+    .site { grid-template-columns: 240px minmax(0, 1fr) 200px; }
+  }
+  @media (max-width: 767px) {
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 260px; z-index: 40; transform: translateX(-100%); transition: transform 0.2s ease; padding-top: 56px; }
+    .site.open .sidebar { transform: translateX(0); }
+    .site.open .scrim { display: block; }
+    .toc { display: none; }
+    .content { padding: 20px 16px 64px; }
+    h1 { font-size: 26px; }
+  }
+  @media (min-width: 768px) and (max-width: 1279px) { .toc { display: none; } }
+</style>
+</head>
+<body>
+<div class="site" id="site">
+  <header class="topbar">
+    <button class="burger" id="burger" aria-label="Open navigation">&#9776;</button>
+    <a href="../" class="brandrow" aria-label="ReaDex"><img src="../assets/readex-icon.png" alt=""><span class="brandrow-name">ReaDex</span></a><span class="brand-sub">Source Adapter Spec</span>
+  </header>
+  <div class="scrim" id="scrim"></div>
+  <aside class="sidebar">
+    <a href="../" class="brandrow" aria-label="ReaDex home"><img src="../assets/readex-icon.png" alt=""><span class="brandrow-name">ReaDex</span></a>
+    <h4>Source Adapter Spec</h4>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="overview.html" class="current">Overview</a></li>
+      <li><a href="endpoints.html">Endpoints</a></li>
+      <li><a href="covers.html">Covers</a></li>
+      <li><a href="seasonal.html">Seasonal</a></li>
+      <li><a href="meta.html">/_meta.json</a></li>
+    </ul>
+  </aside>
+
+  <main class="content">
+    <nav class="breadcrumb"><a href="index.html">Home</a> / Overview</nav>
+    <h1>Overview</h1>
+    <p class="meta-sub">What a ReaDex source is, how its three roles tie together, and the smallest version that lights up the Home screen.</p>
+
+    <h2 id="roles">Three roles behind one base URL</h2>
+    <p>The user types a single URL at Setup (the <em>base URL</em>). From that one URL, ReaDex expects to reach three logical surfaces:</p>
+    <ol>
+      <li><strong>API</strong> &mdash; JSON responses for the catalog, title detail, chapter feed and page lists. Rooted at <code>{base}/api/</code> by default.</li>
+      <li><strong>Covers CDN</strong> &mdash; static image files for title cover thumbnails. Rooted at <code>{base}/covers/</code> by default.</li>
+      <li><strong>Optional seasonal</strong> &mdash; a single JSON file naming the IDs that should populate the Home &ldquo;This season&rdquo; row. The user pastes this URL separately in Settings; no default location.</li>
+    </ol>
+    <p>All three can live on the same host (the demo serves API + covers from the same GitHub Pages origin) or be split across hosts via <code>/_meta.json</code>.</p>
+
+    <h2 id="discovery">Discovery via <code>/_meta.json</code></h2>
+    <p>At setup time, after the base URL passes a health check, ReaDex optionally <code>GET</code>s <code>{base}/_meta.json</code>. If present, the keys inside override the default <code>{base}/covers</code> and <code>{base}/report</code> locations and declare client-side behaviours (such as <code>static_json</code>, which appends <code>.json</code> to every API path so a plain file tree can serve the contract). See <a href="meta.html">/_meta.json</a>.</p>
+    <p>Here is the live demo&rsquo;s discovery document, served at <a href="https://lajennylove.github.io/readex/api/_meta.json">https://lajennylove.github.io/readex/api/_meta.json</a>:</p>
+<pre><code>{
+  "covers_url":    "https://lajennylove.github.io/readex/covers",
+  "report_url":    "https://lajennylove.github.io/readex/report",
+  "status_family": "lajennylove.github.io",
+  "static_json":   true
+}</code></pre>
+    <p>A source that doesn&rsquo;t publish <code>_meta.json</code> is still valid &mdash; the app falls back to <code>{base}/covers</code> and <code>{base}/report</code>, with <code>static_json</code> off.</p>
+
+    <h2 id="envelope">Response envelope</h2>
+    <p>Every API response is a JSON object with this shape:</p>
+<pre><code>{
+  "result": "ok",
+  "response": "collection",   // or "entity" for a single item
+  "data": [ ... ],            // array for collection, object for entity
+  "limit": 30, "offset": 0, "total": 30   // collections only
+}</code></pre>
+    <p>The app treats <code>result</code> and <code>response</code> as advisory &mdash; it reads from <code>data</code> directly. Pagination counters are ignored for the static demo (which returns every row in one shot); a real backend should return accurate <code>limit</code>/<code>offset</code>/<code>total</code>.</p>
+
+    <h2 id="filtering">Content-rating &amp; language filtering</h2>
+    <p>ReaDex passes query parameters like <code>contentRating[]=safe&amp;contentRating[]=suggestive</code> and <code>availableTranslatedLanguage[]=en</code>. A dynamic backend should honour them. A static source cannot &mdash; it returns the full catalog and the client filters locally on <code>attributes.contentRating</code> and <code>attributes.availableTranslatedLanguages</code>.</p>
+
+    <h2 id="errors">Error behaviour</h2>
+    <p>HTTP 404 and 405 on any endpoint are tolerated: the affected row simply hides. 5xx raises an error dialog on the matching screen. Non-HTTPS base URLs are rejected at setup.</p>
+
+    <h2 id="minimum">Minimum viable source</h2>
+    <div class="example-block">
+      <p style="margin-top:0">The smallest working source only needs the files below. Serve them as static JSON, set <code>static_json: true</code> in <code>_meta.json</code>, and the Home screen will populate.</p>
+      <ul>
+        <li><code>/_meta.json</code> &mdash; one object (see <a href="meta.html">/_meta.json</a>).</li>
+        <li><code>/api/manga/_catalog.json</code> &mdash; a collection of every title. Backs the Home &ldquo;Browse&rdquo; row.</li>
+        <li><code>/api/manga/{id}.json</code> &mdash; one file per title, entity response.</li>
+        <li><code>/api/manga/{id}/feed.json</code> &mdash; one file per title, collection of its chapters.</li>
+        <li><code>/api/at-home/server/{chapterId}.json</code> &mdash; one file per chapter, naming its page images.</li>
+        <li><code>/covers/{mangaId}/cover.256.jpg</code> &mdash; one JPEG per title. Skippable if the manga JSON embeds absolute cover URLs under the <code>cover_art</code> relationship&rsquo;s <code>fileName</code>.</li>
+      </ul>
+      <p>Everything else &mdash; <code>chapter.json</code>, <code>manga.json</code>, <code>tag.json</code>, seasonal &mdash; is optional. Missing files 404 and the matching row hides.</p>
+    </div>
+
+    <nav class="pager">
+      <a href="index.html"><div class="dir">&larr; Previous</div><div class="title">&larr; Home</div></a>
+      <a class="next" href="endpoints.html"><div class="dir">Next &rarr;</div><div class="title">Endpoints</div></a>
+
+    </nav>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <h4>On this page</h4>
+    <ul>
+      <li><a href="#roles">Three roles</a></li>
+      <li><a href="#discovery">Discovery via /_meta.json</a></li>
+      <li><a href="#envelope">Response envelope</a></li>
+      <li><a href="#filtering">Content-rating &amp; language</a></li>
+      <li><a href="#errors">Error behaviour</a></li>
+      <li><a href="#minimum">Minimum viable source</a></li>
+    </ul>
+  </aside>
+</div>
+<script>
+  (function () {
+    var site = document.getElementById('site');
+    var burger = document.getElementById('burger');
+    var scrim = document.getElementById('scrim');
+    function toggle(open) { site.classList.toggle('open', open); }
+    burger.addEventListener('click', function () { toggle(!site.classList.contains('open')); });
+    scrim.addEventListener('click', function () { toggle(false); });
+  })();
+</script>
+</body>
+</html>

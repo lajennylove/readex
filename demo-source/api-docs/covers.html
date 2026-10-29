@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="../assets/readex-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex - Covers</title>
+<meta name="description" content="URL template, sizes, and allowed formats for cover art.">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #13151a;
+    --bg-elev: #1b1d23;
+    --bg-chip: #262830;
+    --border: #2a2d35;
+    --text: #c6c7cb;
+    --text-strong: #ffffff;
+    --muted: #9ca3af;
+    --accent: #8ab4f8;
+    --accent-bg: rgba(138,180,248,0.08);
+    --code-text: #e6e8ec;
+    --mark-bg: #403d1a;
+    --mark-text: #fde68a;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #ffffff;
+      --bg-elev: #f8f9fb;
+      --bg-chip: #f1f3f5;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --text-strong: #0f172a;
+      --muted: #4b5563;
+      --accent: #5b4ad8;
+      --accent-bg: rgba(91,74,216,0.08);
+      --code-text: #1a1a1a;
+      --mark-bg: #fef3c7;
+      --mark-text: #78350f;
+    }
+  }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  code { background: var(--bg-chip); color: var(--code-text); padding: 2px 6px; border-radius: 4px; font-size: 0.88em; }
+  pre { background: var(--bg-elev); color: var(--code-text); padding: 14px 16px; border-radius: 6px; border-left: 2px solid var(--accent); font-size: 14px; line-height: 1.55; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre code { background: transparent; padding: 0; font-size: 14px; }
+  mark { background: var(--mark-bg); color: var(--mark-text); padding: 0 3px; border-radius: 3px; }
+  h1, h2, h3, h4 { color: var(--text-strong); letter-spacing: -0.01em; line-height: 1.25; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  h2 { font-size: 24px; margin: 36px 0 12px; padding-top: 8px; }
+  h3 { font-size: 20px; margin: 28px 0 10px; }
+  p, li { margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .site { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 20; }
+  .brand { font-weight: 600; color: var(--text-strong); font-size: 15px; }
+  .brand-sub { color: var(--muted); font-size: 13px; margin-left: 4px; }
+  .brandrow {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 0 14px; margin: 0 0 14px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .brandrow img { display: block; width: 28px; height: 28px; border-radius: 6px; }
+  .brandrow-name {
+    font-weight: 700; font-size: 17px; color: var(--text-strong);
+    letter-spacing: -0.01em;
+  }
+  .brandrow:hover .brandrow-name { color: var(--accent); }
+  .topbar .brandrow {
+    padding: 0; margin: 0; border: none;
+  }
+
+  .burger { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 6px; cursor: pointer; }
+  .burger:hover { border-color: var(--accent); color: var(--accent); }
+  .sidebar { background: var(--bg); border-right: 1px solid var(--border); padding: 24px 20px; }
+  .sidebar h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .sidebar ul { list-style: none; padding: 0; margin: 0 0 24px; }
+  .sidebar li a { display: block; padding: 6px 10px; margin: 2px -10px; border-radius: 5px; color: var(--text); font-size: 14px; border-left: 2px solid transparent; }
+  .sidebar li a:hover { background: var(--accent-bg); color: var(--accent); text-decoration: none; }
+  .sidebar li a.current { background: var(--accent-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+  .content { padding: 32px 24px 80px; max-width: 760px; margin: 0 auto; width: 100%; }
+  .toc { padding: 32px 20px; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; font-size: 13px; }
+  .toc h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .toc ul { list-style: none; padding: 0; margin: 0; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--muted); display: block; padding: 2px 0; border-left: 2px solid transparent; padding-left: 10px; margin-left: -2px; }
+  .toc a:hover { color: var(--accent); text-decoration: none; }
+  .toc a.h3 { padding-left: 22px; font-size: 12px; }
+  .breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); }
+  .breadcrumb a:hover { color: var(--accent); }
+  .meta-sub { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+  .example-block { margin: 24px 0 32px; padding: 20px 22px; background: var(--bg-elev); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; }
+  .example-block h3 { margin-top: 0; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; }
+  .example-row { margin: 14px 0 0; }
+  .example-row .label { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+  .example-row pre { margin: 0; }
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 48px 0 0; padding-top: 24px; border-top: 1px solid var(--border); }
+  .pager a { display: block; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--bg-elev); }
+  .pager a:hover { border-color: var(--accent); text-decoration: none; }
+  .pager .dir { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .pager .title { color: var(--text-strong); font-weight: 500; }
+  .pager .next { text-align: right; }
+  .method { display: inline-block; background: rgba(138,180,248,0.15); color: var(--accent); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; margin-right: 8px; vertical-align: 2px; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .method { background: rgba(91,74,216,0.12); } }
+  .ep { margin: 24px 0 36px; padding: 20px 22px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; }
+  .ep .path { font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: var(--text-strong); word-break: break-all; }
+  .ep h4 { font-size: 12px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .ep .try { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  .ep .try a { word-break: break-all; }
+  .scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; }
+  @media (min-width: 768px) {
+    .site { grid-template-columns: 240px 1fr; }
+    .topbar { display: none; }
+    .sidebar { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
+  }
+  @media (min-width: 1280px) {
+    .site { grid-template-columns: 240px minmax(0, 1fr) 200px; }
+  }
+  @media (max-width: 767px) {
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 260px; z-index: 40; transform: translateX(-100%); transition: transform 0.2s ease; padding-top: 56px; }
+    .site.open .sidebar { transform: translateX(0); }
+    .site.open .scrim { display: block; }
+    .toc { display: none; }
+    .content { padding: 20px 16px 64px; }
+    h1 { font-size: 26px; }
+  }
+  @media (min-width: 768px) and (max-width: 1279px) { .toc { display: none; } }
+</style>
+</head>
+<body>
+<div class="site" id="site">
+  <header class="topbar">
+    <button class="burger" id="burger" aria-label="Open navigation">&#9776;</button>
+    <a href="../" class="brandrow" aria-label="ReaDex"><img src="../assets/readex-icon.png" alt=""><span class="brandrow-name">ReaDex</span></a><span class="brand-sub">Source Adapter Spec</span>
+  </header>
+  <div class="scrim" id="scrim"></div>
+  <aside class="sidebar">
+    <a href="../" class="brandrow" aria-label="ReaDex home"><img src="../assets/readex-icon.png" alt=""><span class="brandrow-name">ReaDex</span></a>
+    <h4>Source Adapter Spec</h4>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="endpoints.html">Endpoints</a></li>
+      <li><a href="covers.html" class="current">Covers</a></li>
+      <li><a href="seasonal.html">Seasonal</a></li>
+      <li><a href="meta.html">/_meta.json</a></li>
+    </ul>
+  </aside>
+
+  <main class="content">
+    <nav class="breadcrumb"><a href="index.html">Home</a> / Covers</nav>
+    <h1>Covers</h1>
+    <p class="meta-sub">How the Cover Store builds thumbnail URLs, which sizes to serve, and when a static source can skip hosting images altogether.</p>
+
+    <h2 id="template">URL template</h2>
+    <p>By default, the Cover Store builds every thumbnail URL as:</p>
+<pre><code>{coversUrl}/{mangaId}/{coverFile}.{size}.jpg</code></pre>
+    <ul>
+      <li><code>{coversUrl}</code> &mdash; from <code>_meta.json</code>, or <code>{baseUrl}/covers</code> if the key is absent.</li>
+      <li><code>{mangaId}</code> &mdash; the manga&rsquo;s <code>id</code> as served by the API.</li>
+      <li><code>{coverFile}</code> &mdash; the stem of the file name on the cover-art relationship. The demo uses the literal string <code>cover</code>, so files are <code>cover.256.jpg</code>; a real source may use hashed names like <code>abc123de-f456.jpg</code>, in which case <code>{coverFile}</code> would be <code>abc123de-f456.jpg</code>.</li>
+      <li><code>{size}</code> &mdash; the current thumbnail width in pixels (see below).</li>
+    </ul>
+
+    <h2 id="sizes">Sizes</h2>
+    <p>Two sizes are expected to exist for every cover:</p>
+    <ul>
+      <li><code>.256.jpg</code> &mdash; tile size, used on Home, Browse, Library, Search, and anywhere a cover is rendered under ~128pt on screen.</li>
+      <li><code>.512.jpg</code> &mdash; larger size, used on the title detail header.</li>
+    </ul>
+    <p>If a size file is missing (404), the tile stays as a grey placeholder; the app does not downscale a larger file at the client. A source that only serves one size should serve the larger one at both paths (symlink or copy).</p>
+
+    <h2 id="example">Live example</h2>
+    <p>For a title with <code>id = "demo-01"</code> on the demo source, with the covers CDN at <code>https://lajennylove.github.io/readex/covers</code>, the two URLs are:</p>
+    <div class="example-block">
+      <h3>Open these in a new tab</h3>
+      <div class="example-row">
+        <p class="label">Tile size (256px)</p>
+        <pre><code><a href="https://lajennylove.github.io/readex/covers/demo-01/cover.256.jpg" target="_blank" rel="noopener">https://lajennylove.github.io/readex/covers/demo-01/cover.256.jpg</a></code></pre>
+      </div>
+      <div class="example-row">
+        <p class="label">Detail-header size (512px)</p>
+        <pre><code><a href="https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg  (optional)" target="_blank" rel="noopener">https://lajennylove.github.io/readex/covers/demo-01/cover.512.jpg  (optional)</a></code></pre>
+      </div>
+    </div>
+
+    <h2 id="formats">Formats</h2>
+    <p>The URL template is hard-coded to the <code>.jpg</code> suffix. Serving a PNG or WebP at that path works (the client validates the body with its image decoder, not the extension), but the request path will still end in <code>.jpg</code> &mdash; the CDN must therefore respond at that path regardless of the actual bytes&rsquo; MIME type.</p>
+    <p>If your backend only produces PNG, point the <code>cover_art</code> relationship&rsquo;s <code>fileName</code> at an absolute URL instead (see below).</p>
+
+    <h2 id="absolute">Short-circuit: absolute URLs in the API response</h2>
+    <p>When a manga&rsquo;s <code>cover_art</code> relationship has an <code>attributes.fileName</code> starting with <code>http://</code> or <code>https://</code>, the Cover Store skips the template entirely and uses that URL verbatim. The demo relies on this to serve placehold.co images without hosting any JPEG files for the primary catalog.</p>
+<pre><code>"relationships": [
+  { "id": "cover-demo-01", "type": "cover_art",
+    "attributes": { "fileName": "https://placehold.co/400x600/1a1a2e/eeeeee.png?text=Lorem+Ipsum+Dolor" } }
+]</code></pre>
+    <p>With absolute URLs the <code>{size}</code> suffix convention does not apply &mdash; the server returns whatever bytes live at that URL, and the client scales for display.</p>
+
+    <h2 id="caching">Downloads &amp; caching</h2>
+    <p>Thumbnails live in the OS cache tier (<code>&lt;caches&gt;/covers/{mangaId}/&hellip;</code>) and can be purged by iOS without warning. The app re-downloads on miss. The CDN should allow long-lived caching headers (<code>Cache-Control: public, max-age=&hellip;</code>); content-rated catalogs may need signed URLs, in which case the <code>_meta.json</code> <code>covers_url</code> can point at a signing proxy.</p>
+
+    <nav class="pager">
+      <a href="endpoints.html"><div class="dir">&larr; Previous</div><div class="title">Endpoints</div></a>
+      <a class="next" href="seasonal.html"><div class="dir">Next &rarr;</div><div class="title">Seasonal</div></a>
+
+    </nav>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <h4>On this page</h4>
+    <ul>
+      <li><a href="#template">URL template</a></li>
+      <li><a href="#sizes">Sizes</a></li>
+      <li><a href="#example">Live example</a></li>
+      <li><a href="#formats">Formats</a></li>
+      <li><a href="#absolute">Absolute URLs</a></li>
+      <li><a href="#caching">Downloads &amp; caching</a></li>
+    </ul>
+  </aside>
+</div>
+<script>
+  (function () {
+    var site = document.getElementById('site');
+    var burger = document.getElementById('burger');
+    var scrim = document.getElementById('scrim');
+    function toggle(open) { site.classList.toggle('open', open); }
+    burger.addEventListener('click', function () { toggle(!site.classList.contains('open')); });
+    scrim.addEventListener('click', function () { toggle(false); });
+  })();
+</script>
+</body>
+</html>

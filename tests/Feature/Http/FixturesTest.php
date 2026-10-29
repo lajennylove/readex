@@ -43,7 +43,7 @@ it('fails loudly for an unrecorded request', function () {
     SourceFixtures::fake('tags');
 
     app(Client::class)->get('/manga/tag', ['limit' => 1]);
-})->throws(RuntimeException::class, 'No source fixture for GET https://api.mangadex.org/api/manga/tag?limit=1');
+})->throws(RuntimeException::class, 'No source fixture for GET https://api.source.test/api/manga/tag?limit=1');
 
 it('keeps empty objects as recorded', function () {
     expect(file_get_contents(SourceFixtures::path('search-one-punch')))->toContain('"description": {}')

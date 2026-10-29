@@ -29,7 +29,7 @@ function fetchedPaths(): array
 }
 
 it('downloads the missing covers right away on the async lane, in screen order, without the queue', function () {
-    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg())]);
+    Http::fake(['api.source.test/covers/*' => Http::response(Covers::jpeg())]);
     $stored = Covers::manga('m2');
     Covers::store($this->caches, $stored);
     $mangas = [Covers::manga('m3'), $stored, Covers::manga('m4', null), Covers::manga('m1')];
@@ -52,7 +52,7 @@ it('starts no task when every cover is there', function () {
 });
 
 it('does not fetch the same cover again for ten minutes, even if a queued job already has it', function () {
-    Http::fake(['api.mangadex.org/covers/*' => Http::response('', 404)]);
+    Http::fake(['api.source.test/covers/*' => Http::response('', 404)]);
     $manga = Covers::manga('m1');
 
     $this->store->queue([$manga], Priority::Prefetch);
@@ -68,11 +68,11 @@ it('does not fetch the same cover again for ten minutes, even if a queued job al
     $this->async->assertDispatchedTimes(2);
 });
 
-it('hands the rest to the queue when MangaDex has no slot right now', function () {
-    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg())]);
+it('hands the rest to the queue when the source has no slot right now', function () {
+    Http::fake(['api.source.test/covers/*' => Http::response(Covers::jpeg())]);
     $mangas = [Covers::manga('m1'), Covers::manga('m2')];
     DB::table('rate_buckets')->insert([
-        'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+        'key' => 'family:api.source.test', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
         'updated_at' => now()->timestamp, 'blocked_until' => now()->timestamp + 300, 'strikes' => 0, 'probing' => false,
     ]);
 
@@ -102,8 +102,8 @@ it('hands the rest to the queue when the phone goes offline halfway', function (
 
 it('skips a broken cover and carries on', function () {
     Http::fake([
-        'api.mangadex.org/covers/m1/*' => Http::response('', 404),
-        'api.mangadex.org/covers/*' => Http::response(Covers::jpeg()),
+        'api.source.test/covers/m1/*' => Http::response('', 404),
+        'api.source.test/covers/*' => Http::response(Covers::jpeg()),
     ]);
     $mangas = [Covers::manga('m1'), Covers::manga('m2')];
 

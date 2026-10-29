@@ -61,11 +61,11 @@ function refreshButton(string $label, bool $disabled): Closure
     return fn (array $node) => ($node['props']['label'] ?? null) === $label && (bool) ($node['props']['disabled'] ?? false) === $disabled;
 }
 
-/** MangaDex paused this phone until 16:52 UTC (12:52 in Montreal). */
+/** the source paused this phone until 16:52 UTC (12:52 in Montreal). */
 function settingsPaused(int $strikes = 0): void
 {
     DB::table('rate_buckets')->insert([
-        'key' => 'family:api.mangadex.org',
+        'key' => 'family:api.source.test',
         'capacity' => 1,
         'refill_per_sec' => 1,
         'tokens' => 1,
@@ -147,7 +147,7 @@ it('saves a rating switched off without asking', function () {
     expect(app(SettingsRepository::class)->contentRatings())->toBe(['safe']);
 });
 
-it('shows the MangaDex connection with request counts', function () {
+it('shows the the source connection with request counts', function () {
     $minute = intdiv(Carbon::now()->getTimestamp(), 60);
     DB::table('api_usage')->insert([
         ['minute' => $minute, 'bucket' => 'global', 'requests' => 3, 'http_429' => 0, 'http_403' => 0],
@@ -276,7 +276,7 @@ it('clears nothing when the phone goes offline while the dialog is open (Review 
     Queue::assertNothingPushed();
 });
 
-it('shows the pause time instead of refreshing while MangaDex limits the phone (Review Focus 3)', function (int $strikes) {
+it('shows the pause time instead of refreshing while the source limits the phone (Review Focus 3)', function (int $strikes) {
     settingsPaused($strikes);
 
     Native::test(Settings::class)
@@ -292,7 +292,7 @@ it('shows the pause time instead of refreshing while MangaDex limits the phone (
 it('opens the active provider URL in the in-app browser', function () {
     Native::test(Settings::class)
         ->tap('Data from your provider')
-        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://api.mangadex.org');
+        ->assertNativeCalled('Browser.OpenInApp', fn (array $p) => $p['url'] === 'https://api.source.test/api');
 });
 
 it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {
@@ -302,10 +302,11 @@ it('shows a Sources row and navigates to it (Plan-08 Task 2)', function () {
         ->assertNavigatedTo('/settings/sources');
 });
 
-it('credits scanlation groups in the About row', function () {
+it('credits the source and its groups in the About row', function () {
     Native::test(Settings::class)
         ->assertSee('Data from your provider')
-        ->assertSee('Chapters are translated by the scanlation groups credited on each chapter.')
+        ->assertSee('The chapters are provided by')
+        ->assertSee('and the groups credited on each chapter.')
         ->assertSee('ReaDex '.config('source.app_version'));
 });
 
@@ -479,3 +480,8 @@ it('on Change source confirm, flushes content and sends the user back to Setup â
         ->and(app(SettingsRepository::class)->setupDone())->toBeFalse()
         ->and(app(SettingsRepository::class)->eulaAcknowledged())->toBeTrue();
 });
+
+// Covers/Seasonal URL editing used to live on Settings as separate Save fields; those were
+// dropped in favor of one lean swap flow through "Change source URL" (which routes back to Setup
+// and re-enters all three URLs together). The repository-level getters/setters are still exercised
+// through SettingsRepositoryTest.

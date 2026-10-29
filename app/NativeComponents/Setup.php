@@ -56,6 +56,22 @@ class Setup extends NativeComponent
     /** Why the last Continue tap's source check failed (bad URL shape, or it didn't answer). */
     public ?string $sourceError = null;
 
+    /**
+     * The covers CDN host. Required at Setup — the shipped build pre-fills it from
+     * `config('source.covers_url_default')` so the three fields open ready to tap through.
+     */
+    public string $coversUrl = '';
+
+    public ?string $coversError = null;
+
+    /**
+     * The curated-list URL powering the "This season" Home row. Required at Setup — same
+     * pre-fill treatment as $coversUrl.
+     */
+    public string $seasonalUrl = '';
+
+    public ?string $seasonalError = null;
+
     public string $language = 'en';
 
     public ?string $run = null;
@@ -70,6 +86,8 @@ class Setup extends NativeComponent
         $this->language = IosLanguageMap::toMangaDex($bridge->preferredLanguage());
         $this->ratings = $settings->contentRatings();
         $this->sourceUrl = (string) (config('source.api_url_default') ?? '');
+        $this->coversUrl = (string) (config('source.covers_url_default') ?? '');
+        $this->seasonalUrl = (string) (config('source.seasonal_url_default') ?? '');
 
         // Tags load while the reader picks; DataLoader skips them if they landed.
         RefreshTask::dispatch(Refresh::of([TagRepository::class, 'refresh']));
@@ -78,6 +96,16 @@ class Setup extends NativeComponent
     public function changeSourceUrl(string $value): void
     {
         $this->sourceUrl = $value;
+    }
+
+    public function changeCoversUrl(string $value): void
+    {
+        $this->coversUrl = trim($value);
+    }
+
+    public function changeSeasonalUrl(string $value): void
+    {
+        $this->seasonalUrl = trim($value);
     }
 
     public function chooseLanguage(string $name): void
@@ -95,6 +123,8 @@ class Setup extends NativeComponent
     public function continueSetup(): void
     {
         $this->sourceError = null;
+        $this->coversError = null;
+        $this->seasonalError = null;
 
         $result = app(SourceHealthCheck::class)->check($this->sourceUrl);
 
@@ -104,8 +134,23 @@ class Setup extends NativeComponent
             return;
         }
 
+        if ($this->coversUrl === '' || filter_var($this->coversUrl, FILTER_VALIDATE_URL) === false) {
+            $this->coversError = 'Add the covers URL — the host that serves this source\'s cover images.';
+
+            return;
+        }
+
+        if ($this->seasonalUrl === '' || filter_var($this->seasonalUrl, FILTER_VALIDATE_URL) === false) {
+            $this->seasonalError = 'Add the "This season" JSON URL.';
+
+            return;
+        }
+
         $settings = app(SettingsRepository::class);
         $settings->setSourceUrl($this->sourceUrl);
+        $settings->setCoversUrl($this->coversUrl);
+        $settings->setSeasonalUrl($this->seasonalUrl);
+        app(\App\Sources\SourceMetaProber::class)->probe($this->sourceUrl);
 
         if (Network::status()?->connected === false) {
             $this->phase = self::OFFLINE;

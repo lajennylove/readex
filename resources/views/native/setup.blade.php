@@ -8,13 +8,31 @@
                 <native:column class="w-full gap-2">
                     <native:text class="text-base font-bold text-theme-on-background">Content source</native:text>
                     <native:text class="text-sm text-theme-on-surface-variant">ReaDex has no content of its own. Add the URL or API endpoint of the source you want to read from. The URL is checked before it's saved.</native:text>
-                    <native:outlined_text_input placeholder="https://" value="{{ $sourceUrl }}" @change="changeSourceUrl" />
+                    <native:outlined_text_input placeholder="https://" value="{{ $sourceUrl }}" keyboard="url" @change="changeSourceUrl" />
                     @if ($sourceError)
                         <native:text class="text-sm text-theme-destructive">{{ $sourceError }}</native:text>
                     @endif
                 </native:column>
 
-                <native:text class="text-sm text-theme-on-surface-variant">Pick how you read. You can change both later in Settings.</native:text>
+                <native:column class="w-full gap-2">
+                    <native:text class="text-base font-bold text-theme-on-background">Covers URL</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">The host that serves this source's cover images. Many sources serve covers from a different host than their API.</native:text>
+                    <native:outlined_text_input placeholder="https://uploads.example.org/covers" value="{{ $coversUrl }}" keyboard="url" @change="changeCoversUrl" />
+                    @if ($coversError)
+                        <native:text class="text-sm text-theme-destructive">{{ $coversError }}</native:text>
+                    @endif
+                </native:column>
+
+                <native:column class="w-full gap-2">
+                    <native:text class="text-base font-bold text-theme-on-background">This season</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">A JSON URL for the latest content suggestions. Powers the "This season" row on Home.</native:text>
+                    <native:outlined_text_input placeholder="https://example.org/seasonal-list.json" value="{{ $seasonalUrl }}" keyboard="url" @change="changeSeasonalUrl" />
+                    @if ($seasonalError)
+                        <native:text class="text-sm text-theme-destructive">{{ $seasonalError }}</native:text>
+                    @endif
+                </native:column>
+
+                <native:text class="text-sm text-theme-on-surface-variant">Pick how you read. You can change all of these later in Settings.</native:text>
 
                 <native:select label="Reading language" value="{{ $languageName }}" :options="$languageNames" @change="chooseLanguage" />
 

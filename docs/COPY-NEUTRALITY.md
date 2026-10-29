@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../demo-source/assets/readex-icon.png" width="96" alt="ReaDex">
+</p>
+
 # Copy neutrality policy
 
 ReaDex is a content-agnostic reader. The app itself must never name, suggest, auto-discover, bundle, or market any specific third-party content site. Prior to Plan-08b, MangaDex was named directly in namespaces, class names, config keys, and some user copy as the one documented, credited API integration shipped as the reference `Source` adapter. Plan-08b (T1–T6) completed the generic-rename pass: user-visible strings, config keys, class and namespace names were scrubbed to generic terms. "mangadex" now only survives in a short, documented set of code identifiers that cannot be renamed without losing meaning (see "Exemption policy" below).

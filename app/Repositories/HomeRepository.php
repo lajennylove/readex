@@ -11,8 +11,13 @@ use App\Models\Manga;
 use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
+use App\Sources\ActiveSource;
+use Closure;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 /** The Home rows: Browse (the source's own catalog), Popular new titles, Latest updates. */
 final class HomeRepository
@@ -23,10 +28,32 @@ final class HomeRepository
 
     public const LATEST = 'home.latest';
 
+    public const SEASON = 'home.season';
+
+    public const RECENTLY_ADDED = 'home.recently_added';
+
+    public const SELF_PUBLISHED = 'home.self_published';
+
+    /** Upstream tag UUID for Self-Published; sources that mirror the shape use the same id. */
+    public const SELF_PUBLISHED_TAG = '891cf039-b895-47f0-9229-bef4c96eccd4';
+
+    public const RECOMMENDED = 'home.recommended';
+
+    /** Minimum stored tiles before the Recommended for you row is surfaced on Home. */
+    public const RECOMMENDED_MIN = 10;
+
+    /** How many recommended tiles the row caps at — enough for a scroll, not so many
+     *  that the ranking is dominated by low-signal tail tags. */
+    public const RECOMMENDED_MAX = 30;
+
+    /** Top-N seed tags (by profile weight) used to fan out the candidate set. */
+    public const RECOMMENDED_SEEDS = 5;
+
     public function __construct(
         private readonly Client $client,
         private readonly SettingsRepository $settings,
         private readonly MangaRepository $manga,
+        private readonly ActiveSource $active,
     ) {}
 
     /** The source's own catalog, if it serves one (`/manga/_catalog`). Static sources
@@ -43,14 +70,14 @@ final class HomeRepository
             $response = $this->client->get('/manga/_catalog', [], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::CATALOG, []));
+                $this->transactional(fn () => $this->replace(self::CATALOG, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::CATALOG, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::CATALOG, $this->manga->storeManga($response)));
     }
 
     public function popular(): Result
@@ -76,14 +103,14 @@ final class HomeRepository
             // (e.g. a static GH-Pages-hosted source). Treat 404/405 as "row not supported":
             // leave whatever rows the source does serve alone and hide this one.
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::POPULAR, []));
+                $this->transactional(fn () => $this->replace(self::POPULAR, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
     }
 
     /**
@@ -128,7 +155,7 @@ final class HomeRepository
             // Same posture as refreshPopular: an agnostic source may not implement a
             // dynamic `/chapter` query endpoint; hide the row rather than erroring out.
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::LATEST, []));
+                $this->transactional(fn () => $this->replace(self::LATEST, []));
 
                 return;
             }
@@ -154,14 +181,14 @@ final class HomeRepository
             ], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::LATEST, []));
+                $this->transactional(fn () => $this->replace(self::LATEST, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(function () use ($newest, $manga) {
+        $this->transactional(function () use ($newest, $manga) {
             $this->manga->storeManga($manga);
             $old = MangaListEntry::query()->where('list_key', self::LATEST)->pluck('chapter_id')->filter();
 
@@ -173,6 +200,303 @@ final class HomeRepository
             $this->replace(self::LATEST, array_keys($newest), array_column($newest, 'id', 'manga_id'));
             $this->forgetChapters($old->diff(array_column($newest, 'id'))->values()->all());
         });
+    }
+
+    public function recentlyAdded(): Result
+    {
+        return $this->manga->readList(self::RECENTLY_ADDED, self::RECENTLY_ADDED);
+    }
+
+    /** Newest first by createdAt, any language (reordered in get()). */
+    public function refreshRecentlyAdded(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga', [
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+                'order' => ['createdAt' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                $this->transactional(fn () => $this->replace(self::RECENTLY_ADDED, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        $this->transactional(fn () => $this->replace(self::RECENTLY_ADDED, $this->manga->storeManga($response)));
+    }
+
+    public function selfPublished(): Result
+    {
+        return $this->manga->readList(self::SELF_PUBLISHED, self::SELF_PUBLISHED);
+    }
+
+    /** Titles tagged with the Self-Published tag UUID. Any language, newest first (reordered in get()). */
+    public function refreshSelfPublished(Priority $priority = Priority::Interactive): void
+    {
+        try {
+            $response = $this->client->get('/manga', [
+                'hasAvailableChapters' => true,
+                'limit' => config('readex.page_sizes.home_row'),
+                'contentRating' => $this->settings->contentRatings(),
+                'includedTags' => [self::SELF_PUBLISHED_TAG],
+                'includes' => ['cover_art'],
+                'order' => ['createdAt' => 'desc'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                $this->transactional(fn () => $this->replace(self::SELF_PUBLISHED, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        $this->transactional(fn () => $this->replace(self::SELF_PUBLISHED, $this->manga->storeManga($response)));
+    }
+
+    public function recommended(): Result
+    {
+        return $this->manga->readList(self::RECOMMENDED, self::RECOMMENDED);
+    }
+
+    /**
+     * Local tag-affinity recommender. Signals come from the user's own device: Collection rows
+     * where favorite=true (weight 3) and ViewedSeries rows (weight 1). We tally those two
+     * signals' tag frequencies against each manga's tag_ids column, pick the top-N tags as
+     * seeds, fan out one /manga query per seed, dedupe, drop series the user already knows,
+     * and re-rank the survivors by the total profile weight of their tags.
+     *
+     * Any upstream 404/405 (an agnostic source without tag filtering) hides the row; count the
+     * row empty rather than erroring out of Home.
+     */
+    public function refreshRecommended(Priority $priority = Priority::Interactive): void
+    {
+        $profile = $this->tagAffinityProfile();
+
+        if ($profile === []) {
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        $seeds = array_slice(array_keys($profile), 0, self::RECOMMENDED_SEEDS);
+        $known = $this->knownMangaIds();
+        $candidates = [];
+
+        foreach ($seeds as $seed) {
+            try {
+                $response = $this->client->get('/manga', [
+                    'hasAvailableChapters' => true,
+                    'limit' => config('readex.page_sizes.home_row'),
+                    'contentRating' => $this->settings->contentRatings(),
+                    'includedTags' => [$seed],
+                    'includes' => ['cover_art'],
+                    'order' => ['followedCount' => 'desc'],
+                ], $priority);
+            } catch (ApiError $e) {
+                if ($e->status === 404 || $e->status === 405) {
+                    $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+                    return;
+                }
+                throw $e;
+            }
+
+            foreach ($response['data'] ?? [] as $row) {
+                $id = $row['id'] ?? null;
+                if (! is_string($id) || isset($candidates[$id]) || in_array($id, $known, true)) {
+                    continue;
+                }
+                $candidates[$id] = $row;
+            }
+        }
+
+        if ($candidates === []) {
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
+
+            return;
+        }
+
+        $scored = [];
+        foreach ($candidates as $id => $row) {
+            $tags = [];
+            foreach ($row['attributes']['tags'] ?? [] as $tag) {
+                if (isset($tag['id']) && is_string($tag['id'])) {
+                    $tags[] = $tag['id'];
+                }
+            }
+            $scored[$id] = array_sum(array_map(fn (string $t) => $profile[$t] ?? 0, $tags));
+        }
+
+        arsort($scored);
+        $ids = array_slice(array_keys($scored), 0, self::RECOMMENDED_MAX);
+
+        $envelope = [
+            'result' => 'ok',
+            'response' => 'collection',
+            'data' => array_values(array_map(fn (string $id) => $candidates[$id], $ids)),
+            'limit' => count($ids), 'offset' => 0, 'total' => count($ids),
+        ];
+
+        $this->transactional(fn () => $this->replace(self::RECOMMENDED, $this->manga->storeManga($envelope)));
+    }
+
+    /** @return array<string, int> tag id -> total weight, desc order by weight */
+    private function tagAffinityProfile(): array
+    {
+        $favoriteIds = \App\Models\Collection::query()->where('favorite', true)->pluck('manga_id')->all();
+        $viewedIds = \App\Models\ViewedSeries::query()->pluck('manga_id')->all();
+
+        if ($favoriteIds === [] && $viewedIds === []) {
+            return [];
+        }
+
+        $favoriteTagLists = Manga::query()
+            ->whereIn('id', $favoriteIds)->pluck('tag_ids')->all();
+        $viewedTagLists = Manga::query()
+            ->whereIn('id', array_values(array_diff($viewedIds, $favoriteIds)))->pluck('tag_ids')->all();
+
+        $profile = [];
+        foreach ($favoriteTagLists as $tags) {
+            foreach ((array) $tags as $tagId) {
+                $profile[$tagId] = ($profile[$tagId] ?? 0) + 3;
+            }
+        }
+        foreach ($viewedTagLists as $tags) {
+            foreach ((array) $tags as $tagId) {
+                $profile[$tagId] = ($profile[$tagId] ?? 0) + 1;
+            }
+        }
+
+        arsort($profile);
+
+        return $profile;
+    }
+
+    /** @return list<string> manga_ids already known from Collection + ViewedSeries */
+    private function knownMangaIds(): array
+    {
+        return array_values(array_unique(array_merge(
+            \App\Models\Collection::query()->pluck('manga_id')->all(),
+            \App\Models\ViewedSeries::query()->pluck('manga_id')->all(),
+        )));
+    }
+
+    /**
+     * The user's optional curated-list row. Hidden when they haven't configured a seasonal URL
+     * or when the latest refresh produced zero titles.
+     */
+    public function season(): Result
+    {
+        return $this->manga->readList(self::SEASON, self::SEASON);
+    }
+
+    /**
+     * Fetches the user's seasonal URL (plain JSON over the open internet, not the source API)
+     * for the list of manga IDs, then hydrates them through the source via /manga?ids[]. Any
+     * failure along the way clears the row rather than throwing — a seasonal URL that goes
+     * offline or returns garbage shouldn't break the rest of Home.
+     *
+     * Expected JSON shape:  {"id":"...","name":"...","manga_ids":["id-1","id-2",...]}
+     */
+    public function refreshSeason(Priority $priority = Priority::Interactive): void
+    {
+        $url = $this->active->seasonalUrl();
+
+        if ($url === null) {
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        try {
+            $response = Http::connectTimeout(8)->timeout(8)->get($url);
+        } catch (ConnectionException) {
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        if (! $response->successful()) {
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        $body = $response->json();
+        $ids = is_array($body) && isset($body['manga_ids']) && is_array($body['manga_ids'])
+            ? array_values(array_filter($body['manga_ids'], 'is_string'))
+            : [];
+
+        if ($ids === []) {
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
+
+            return;
+        }
+
+        try {
+            $manga = $this->client->get('/manga', [
+                'ids' => $ids,
+                'limit' => count($ids),
+                'contentRating' => $this->settings->contentRatings(),
+                'includes' => ['cover_art'],
+            ], $priority);
+        } catch (ApiError $e) {
+            if ($e->status === 404 || $e->status === 405) {
+                $this->transactional(fn () => $this->replace(self::SEASON, []));
+
+                return;
+            }
+            throw $e;
+        }
+
+        $this->transactional(fn () => $this->replace(self::SEASON, $this->manga->storeManga($manga)));
+    }
+
+    /**
+     * `DB::transaction($work)` with a one-shot retry when the first attempt hits a
+     * transient SQLite I/O error (code 10) or a stale savepoint from a prior aborted
+     * transaction on this connection. Multiple NativePHP async workers may race on the
+     * same SQLite file; the fresh connection on retry resets `transactionLevel`.
+     * A persistent failure stays silent — the data was already pulled, Freshness
+     * reads it stale next tick and the row refreshes again.
+     */
+    private function transactional(Closure $work): void
+    {
+        try {
+            DB::transaction($work);
+
+            return;
+        } catch (QueryException $e) {
+            if (! self::isTransient($e)) {
+                throw $e;
+            }
+        }
+
+        DB::disconnect();
+
+        try {
+            DB::transaction($work);
+        } catch (QueryException $e) {
+            if (! self::isTransient($e)) {
+                throw $e;
+            }
+        }
+    }
+
+    private static function isTransient(QueryException $e): bool
+    {
+        $msg = $e->getMessage();
+
+        return str_contains($msg, 'disk I/O error')
+            || str_contains($msg, 'savepoint')
+            || str_contains($msg, 'within a transaction')
+            || str_contains($msg, 'database is locked');
     }
 
     /**

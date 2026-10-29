@@ -87,7 +87,7 @@ it('moves a chapter partly in the cache and finishes the missing pages in the qu
 
     t7Run(Queue::pushed(DownloadChapter::class)->first())->assertNotReleased();
 
-    expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p3.jpg', 'a.mangadex.network/data-saver/h1/p4.jpg'])
+    expect(Pages::requested())->toBe(['a.source.test/data-saver/h1/p3.jpg', 'a.source.test/data-saver/h1/p4.jpg'])
         ->and($this->store->pathFor('t7-half', 3))->toBe('storage/downloads/t7-half/004.jpg')
         ->and(StoredChapter::query()->find('t7-half')->only(['tier', 'quality', 'status']))->toBe(['tier' => 'local', 'quality' => 'data-saver', 'status' => 'done'])
         ->and(is_dir("{$this->caches}/chapters/t7-half"))->toBeFalse()
@@ -177,7 +177,7 @@ it('ends with the chapter downloaded when a cache job of the reader already hold
 it('ends with the chapter downloaded when Download is tapped while the reader\'s cache job looks up the chapter', function () {
     Pages::fake(count: 4);
     $tapped = false;
-    Http::fake(['https://api.mangadex.org/api/at-home/server/*' => function () use (&$tapped) {
+    Http::fake(['https://api.source.test/api/at-home/server/*' => function () use (&$tapped) {
         if (! $tapped) {
             $tapped = true;
             app(Downloads::class)->download('t7-mid');

@@ -8,6 +8,10 @@ return [
         'home.catalog' => 24 * 3600,
         'home.popular' => 6 * 3600,
         'home.latest' => 15 * 60,
+        'home.season' => 86400,
+        'home.recently_added' => 21600,
+        'home.self_published' => 21600,
+        'home.recommended' => 21600,
         'list' => 3600,
         'manga' => 86400,
         'feed' => 3600,
@@ -123,6 +127,15 @@ return [
         // pollDefinitions cache on first fire (see RefreshesData trait).
         'ios_poll_ms' => 3000,
         'android_poll_ms' => 15000,
+    ],
+
+    'downloads' => [
+        // Number of chapter downloads the background lane runs in parallel. The per-image
+        // rate still caps aggregate throughput (`source-limits.php:images`), so raising this
+        // reduces per-chapter dispatch latency without hitting @Home nodes any harder on
+        // raw image rate. The reserved "comodin" lane is separate — the user's own Read-Now
+        // never waits behind the background queue.
+        'background_lanes' => (int) env('READEX_DOWNLOADS_BACKGROUND_LANES', 2),
     ],
 
 ];

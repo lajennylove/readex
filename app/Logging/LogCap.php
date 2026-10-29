@@ -16,21 +16,33 @@ use Illuminate\Support\Facades\File;
  */
 final class LogCap
 {
-    /** Truncate `storage/logs/laravel.log` once it passes `logging.max_log_bytes`. */
+    /**
+     * Truncate the active Laravel log file(s) once they pass `logging.max_log_bytes`.
+     *
+     * Covers both the `single` driver (`laravel.log`) and the `daily` driver
+     * (`laravel-YYYY-MM-DD.log`) — a stuck job retrying all day can still fill a single
+     * day's dated file faster than the next rotation lands, so the backstop has to see
+     * the dated files too.
+     */
     public function enforce(): void
     {
-        $path = storage_path('logs/laravel.log');
-
-        if (! is_file($path)) {
-            return;
-        }
-
         $cap = (int) config('readex.logging.max_log_bytes');
 
-        if ($cap <= 0 || filesize($path) <= $cap) {
+        if ($cap <= 0) {
             return;
         }
 
-        File::put($path, '['.now()->toIso8601String()."] log truncated: exceeded {$cap} bytes (disk-space guardrail)\n");
+        $paths = array_merge(
+            (array) glob(storage_path('logs/laravel.log')),
+            (array) glob(storage_path('logs/laravel-*.log')),
+        );
+
+        foreach ($paths as $path) {
+            if (! is_file($path) || filesize($path) <= $cap) {
+                continue;
+            }
+
+            File::put($path, '['.now()->toIso8601String()."] log truncated: exceeded {$cap} bytes (disk-space guardrail)\n");
+        }
     }
 }

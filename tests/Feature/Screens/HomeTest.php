@@ -136,7 +136,7 @@ it('fills every row on the first visit', function () {
 
 it('starts with Browse, Popular new and Latest updates, with no Continue reading row even for a started series (D37)', function () {
     fillHome();
-    $rows = ['Browse', 'Popular new titles', 'Latest updates'];
+    $rows = ['Browse', 'Popular new titles', 'Latest updates', 'Recently added', 'Self-published'];
     expect(rowLabels(Native::test(Home::class)->tree()))->toBe($rows);
 
     $chapter = app(HomeRepository::class)->latest()->data->first()->chapter;
@@ -188,7 +188,7 @@ it('refreshes only the row that went stale (Latest after 15 min)', function () {
     Native::test(Home::class);
 
     $asked = implode("\n", $this->asked);
-    expect($asked)->toContain('api.mangadex.org/api/chapter')
+    expect($asked)->toContain('api.source.test/api/chapter')
         ->not->toContain('createdAtSince');
 });
 
@@ -208,7 +208,7 @@ it('says nothing is saved and offers Retry when the first visit is offline (spec
 
 it('says the provider is having trouble, without Retry, when the first visit meets a provider outage', function () {
     Exceptions::fake();
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.source.test'
         ? Http::response('No server is available to handle this request', 503)
         : null);
 
@@ -226,9 +226,9 @@ it('says the provider is having trouble, without Retry, when the first visit mee
     expect(rowMangas()['popular'])->not->toBeEmpty();
 });
 
-it('still says nothing is saved and offers Retry when MangaDex rejects the first visit', function () {
+it('still says nothing is saved and offers Retry when the source rejects the first visit', function () {
     Exceptions::fake();
-    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org'
+    Loading::fake(fn (Request $request) => parse_url($request->url(), PHP_URL_HOST) === 'api.source.test'
         ? Http::response(['result' => 'error', 'errors' => [['status' => 400, 'title' => 'Bad Request', 'detail' => 'bad']]], 400)
         : null);
 
@@ -247,12 +247,12 @@ it('waits for the background retry instead of offering Retry when The provider i
         ->assertDontSee('Nothing saved yet')
         ->assertSee('Popular new titles');
 
-    Queue::assertPushed(RefreshRepository::class, 3);
+    Queue::assertPushed(RefreshRepository::class, 5);
 });
 
 it('shows empty rows, not "Nothing saved yet", when the provider has nothing', function () {
     Loading::fake(fn (Request $request) => match (true) {
-        parse_url($request->url(), PHP_URL_HOST) === 'api.mangadex.org' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 20, 'offset' => 0, 'total' => 0]),
+        parse_url($request->url(), PHP_URL_HOST) === 'api.source.test' => Http::response(['result' => 'ok', 'response' => 'collection', 'data' => [], 'limit' => 20, 'offset' => 0, 'total' => 0]),
         default => null,
     });
 
@@ -284,7 +284,7 @@ it('refreshes every row on pull to refresh, fresh or not', function () {
 
     $asked = implode("\n", $this->asked);
     expect($asked)->toContain('createdAtSince')
-        ->toContain('api.mangadex.org/api/chapter')
+        ->toContain('api.source.test/api/chapter')
         ->and(homeNodes($screen->tree(), 'refreshable')[0]['props'])->toHaveKey('on_refresh');
 });
 

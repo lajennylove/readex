@@ -135,3 +135,23 @@ it('rejects unknown or empty content ratings and clears nothing', function (arra
 it('rejects an unknown image quality', function () {
     $this->settings->setImageQuality('hd');
 })->throws(InvalidArgumentException::class);
+
+it('stores an optional covers URL, trims trailing slashes, and clears it', function () {
+    expect($this->settings->coversUrl())->toBeNull();
+
+    $this->settings->setCoversUrl('https://uploads.example.test/covers/');
+    expect($this->settings->coversUrl())->toBe('https://uploads.example.test/covers');
+
+    $this->settings->clearCoversUrl();
+    expect($this->settings->coversUrl())->toBeNull();
+});
+
+it('stores an optional seasonal URL, trims trailing slashes, and clears it', function () {
+    expect($this->settings->seasonalUrl())->toBeNull();
+
+    $this->settings->setSeasonalUrl('https://example.test/seasonal-list.json/');
+    expect($this->settings->seasonalUrl())->toBe('https://example.test/seasonal-list.json');
+
+    $this->settings->clearSeasonalUrl();
+    expect($this->settings->seasonalUrl())->toBeNull();
+});

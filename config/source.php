@@ -9,6 +9,13 @@ return [
     // in a normal production build -> field is blank, user types their URL in -> same as before.
     'api_url_default' => env('SOURCE_API_URL'),
 
+    // Setup pre-fill companions for the optional Covers and Seasonal URL fields. Blank in a
+    // production build -> fields are blank -> same as before. Set at build time via
+    // SOURCE_COVERS_URL / SOURCE_SEASONAL_URL to ship an install that opens on a working
+    // reader without the user typing anything.
+    'covers_url_default' => env('SOURCE_COVERS_URL'),
+    'seasonal_url_default' => env('SOURCE_SEASONAL_URL'),
+
     // When true, the HTTP Client appends `.json` to every path -- the convention a
     // static-file source (e.g. our GH Pages demo for App Review) uses. Production
     // builds leave this unset.

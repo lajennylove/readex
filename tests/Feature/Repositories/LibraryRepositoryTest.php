@@ -134,8 +134,9 @@ it('lists the Library last read first, then by date added, with filter chips', f
     $titles = fn (string $filter) => $this->library->collections($filter)->map(fn (Manga $m) => $m->title['en'])->all();
 
     expect($titles('all'))->toBe(['Series 6', 'Series 5', 'Series 1', 'Series 4', 'Series 3', 'Series 2'])
-        // Reading = started and not caught up (same series as Continue reading).
-        ->and($titles('reading'))->toBe(['Series 6', 'Series 1', 'Series 4', 'Series 2'])
+        // Reading = any series the reader has opened a chapter of. Caught-up series stay here
+        // ("I read this") even though Home's Continue-reading row leaves them out.
+        ->and($titles('reading'))->toBe(['Series 6', 'Series 5', 'Series 1', 'Series 4', 'Series 2'])
         // Cache tier and unfinished downloads don't count as downloaded.
         ->and($titles('downloaded'))->toBe(['Series 1'])
         ->and($titles('favorites'))->toBe(['Series 3'])

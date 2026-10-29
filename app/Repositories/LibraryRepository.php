@@ -147,9 +147,9 @@ final class LibraryRepository
             ->orderBy('collections.manga_id')
             ->pluck('collections.manga_id');
 
-        if ($filter === 'reading') {
-            $ids = $ids->filter(fn (string $id) => $this->resume($id) !== null)->values();
-        }
+        // Reading = any series the reader has opened a chapter of. We don't additionally gate
+        // on resume() because a single-chapter series the reader finished still belongs here
+        // ("I read this"), even though it has nothing left to resume.
 
         $manga = Manga::query()->whereIn('id', $ids)->get()->keyBy('id');
 
@@ -192,9 +192,8 @@ final class LibraryRepository
             ->when($filter === 'favorites', fn ($q) => $q->where('favorite', true))
             ->get(['collections.*', 'p.last_read', 'd.last_downloaded']);
 
-        if ($filter === 'reading') {
-            $entries = $entries->filter(fn ($e) => $this->resume($e->manga_id) !== null)->values();
-        }
+        // See collections(): a series the reader has opened a chapter of belongs on the Reading
+        // chip even when there's nothing left to resume (single-chapter series, caught up).
 
         $manga = Manga::query()->whereIn('id', $entries->pluck('manga_id'))->get()->keyBy('id');
 

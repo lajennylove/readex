@@ -38,13 +38,13 @@ final class Loading
                 return Http::response('', 200);
             }
 
-            if ($request->url() === $base.'/_meta.json' || $request->url() === $base.'/api/_meta.json') {
-                // SourceMetaProber probes both /_meta.json and /api/_meta.json; replying 404
-                // here mirrors a dynamic REST source (no demo-shape metadata).
+            if ($request->url() === $base.'/_meta.json') {
+                // SourceMetaProber probes /_meta.json; replying 404 here mirrors a dynamic REST
+                // source (no demo-shape metadata).
                 return Http::response('', 404);
             }
 
-            if (str_starts_with($request->url(), $base.'/api/manga/_catalog.json')) {
+            if (str_starts_with($request->url(), $base.'/manga/_catalog.json')) {
                 // Legacy health-check path kept so tests that hard-coded the demo-shape
                 // probe still work.
                 return Http::response(['result' => 'ok', 'response' => 'collection', 'data' => []]);

@@ -12,7 +12,7 @@ pest()->extend(TestCase::class)
         // seed a known fake URL matching the fixtures tests have historically used,
         // so Http::fake matchers keep working unchanged. Individual tests can
         // overwrite via SettingsRepository.
-        app(SettingsRepository::class)->setSourceUrl('https://api.mangadex.org');
+        app(SettingsRepository::class)->setSourceUrl('https://api.source.test/api');
     })
     ->in('Feature');
 

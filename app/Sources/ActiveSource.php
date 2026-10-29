@@ -45,24 +45,34 @@ final class ActiveSource
     }
 
     /**
-     * baseUrl + the per-source api suffix. SourceMetaProber writes the suffix after each source
-     * URL change: '/api' when the source turns out to be the demo shape (manga at /api/manga),
-     * '' when it's a dynamic REST source serving at the root. Default '/api' keeps existing
-     * fixtures working for anything that hasn't been probed yet.
+     * The API base, used verbatim as the user typed it at Setup. ReaDex does not append any
+     * hidden path segment: the demo prefills `.../readex/api`, a dynamic REST source would be
+     * typed with the exact path the API serves at, and each repository prefixes its own
+     * endpoint path onto this base.
      */
     public function apiUrl(): string
     {
-        return $this->baseUrl().$this->settings->sourceApiSuffix();
+        return $this->baseUrl();
     }
 
     public function coversUrl(): string
     {
-        return $this->settings->coversUrl() ?? ($this->baseUrl().'/covers');
+        $explicit = $this->settings->coversUrl();
+        if ($explicit !== null) {
+            return $explicit;
+        }
+
+        // Many sources — the demo included — serve the API at `.../api` and the covers at
+        // `.../covers` (siblings, not a child of the API). Fall back to that layout by
+        // trimming a trailing `/api` off the base URL before appending `/covers`.
+        return preg_replace('~/api$~', '', $this->baseUrl()).'/covers';
     }
 
     public function reportUrl(): string
     {
-        return $this->baseUrl().'/report';
+        // The @Home report endpoint is a sibling of the API (same reason as coversUrl —
+        // the demo lays /api, /covers and /report out side by side under one base).
+        return preg_replace('~/api$~', '', $this->baseUrl()).'/report';
     }
 
     /**

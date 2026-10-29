@@ -442,25 +442,34 @@ final class DownloadQueue
     }
 
     /**
-     * Dispatch a DownloadChapter to drain the next runnable row — but ONLY when the
-     * background lane is idle. If a chapter is already `downloading`, that job will
-     * chain-kick the next one itself when it finishes; a second dispatch here would
-     * double-pick the queue and surface as spurious extra jobs in tests that count
-     * `Queue::assertPushed(DownloadChapter::class, N)`.
+     * Dispatch DownloadChapter jobs to fill the background lane up to
+     * `readex.downloads.background_lanes` concurrent chapters. Picks distinct queued
+     * rows for each slot so no two workers claim the same row. When a running chapter
+     * finishes it calls `markDone` → `kick` again, keeping the lanes filled until the
+     * queue drains.
      */
     public function kick(): void
     {
-        if (Download::query()->where('state', QueueState::Downloading->value)->exists()) {
+        $capacity = (int) config('readex.downloads.background_lanes', 2);
+        $running = Download::query()->where('state', QueueState::Downloading->value)->count();
+        $slots = max(0, $capacity - $running);
+
+        if ($slots === 0) {
             return;
         }
 
-        $next = $this->nextRunnable();
+        $comodin = $this->readNowChapterId();
 
-        if ($next === null) {
-            return;
+        $next = Download::query()
+            ->where('state', QueueState::Queued->value)
+            ->when($comodin !== null, fn ($q) => $q->where('chapter_id', '!=', $comodin))
+            ->orderBy('position')
+            ->limit($slots)
+            ->get();
+
+        foreach ($next as $row) {
+            DownloadChapter::dispatch($row->chapter_id, 'local', Priority::from($row->priority));
         }
-
-        DownloadChapter::dispatch($next->chapter_id, 'local', Priority::from($next->priority));
     }
 
     private function nextPosition(): int

@@ -28,7 +28,7 @@ afterEach(function () {
 
 it('throws DiskSpaceLow and writes nothing when the device is nearly full', function () {
     $GLOBALS['__readex_fake_disk_free_space'] = 50_000_000;
-    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg(), 200, ['Content-Type' => 'image/jpeg'])]);
+    Http::fake(['api.source.test/covers/*' => Http::response(Covers::jpeg(), 200, ['Content-Type' => 'image/jpeg'])]);
     $manga = Covers::manga('m1');
 
     expect(fn () => $this->store->download($manga, Priority::Interactive))->toThrow(DiskSpaceLow::class);
@@ -39,7 +39,7 @@ it('throws DiskSpaceLow and writes nothing when the device is nearly full', func
 
 it('downloads normally once free space is back above the minimum', function () {
     $GLOBALS['__readex_fake_disk_free_space'] = 500_000_000;
-    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg(), 200, ['Content-Type' => 'image/jpeg'])]);
+    Http::fake(['api.source.test/covers/*' => Http::response(Covers::jpeg(), 200, ['Content-Type' => 'image/jpeg'])]);
     $manga = Covers::manga('m1');
 
     expect($this->store->download($manga, Priority::Interactive))->toBeTrue();

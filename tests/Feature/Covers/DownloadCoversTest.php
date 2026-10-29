@@ -29,7 +29,7 @@ function coverPaths(): array
 }
 
 it('downloads the covers in the order given and skips stored or unknown ones', function () {
-    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg())]);
+    Http::fake(['api.source.test/covers/*' => Http::response(Covers::jpeg())]);
     Covers::manga('m1');
     Covers::store($this->caches, Covers::manga('m2'));
     Covers::manga('m3');
@@ -40,11 +40,11 @@ it('downloads the covers in the order given and skips stored or unknown ones', f
         ->and(glob("{$this->caches}/covers/*/*.256.jpg"))->toHaveCount(3);
 });
 
-it('waits for the controller when MangaDex is limiting the phone', function () {
-    Http::fake(['api.mangadex.org/covers/*' => Http::response(Covers::jpeg())]);
+it('waits for the controller when the source is limiting the phone', function () {
+    Http::fake(['api.source.test/covers/*' => Http::response(Covers::jpeg())]);
     Covers::manga('m1');
     DB::table('rate_buckets')->insert([
-        'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+        'key' => 'family:api.source.test', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
         'updated_at' => now()->timestamp, 'blocked_until' => now()->timestamp + 300, 'strikes' => 0, 'probing' => false,
     ]);
 
@@ -62,8 +62,8 @@ it('tries again in a minute when the phone is offline', function () {
 
 it('skips a broken cover and carries on', function () {
     Http::fake([
-        'api.mangadex.org/covers/m1/*' => Http::response('', 404),
-        'api.mangadex.org/covers/*' => Http::response(Covers::jpeg()),
+        'api.source.test/covers/m1/*' => Http::response('', 404),
+        'api.source.test/covers/*' => Http::response(Covers::jpeg()),
     ]);
     Covers::manga('m1');
     $m2 = Covers::manga('m2');

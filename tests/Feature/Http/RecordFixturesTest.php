@@ -16,7 +16,7 @@ beforeEach(function () {
 afterEach(fn () => File::deleteDirectory($this->dir));
 
 it('records the body as sent, kept headers and the request', function () {
-    Http::fake(['api.mangadex.org/*' => Http::response(
+    Http::fake(['api.source.test/*' => Http::response(
         '{"result":"ok","data":[{"id":"t1","attributes":{"name":{"en":"Action"},"description":{},"group":"genre"}}]}',
         200,
         ['X-RateLimit-Limit' => '40', 'X-Request-ID' => 'abc', 'Content-Type' => 'application/json'],
@@ -39,7 +39,7 @@ it('records the body as sent, kept headers and the request', function () {
 });
 
 it('goes through the request controller', function () {
-    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'ok', 'data' => []])]);
+    Http::fake(['api.source.test/*' => Http::response(['result' => 'ok', 'data' => []])]);
 
     $this->artisan('fixtures:record', ['--only' => ['tags', 'manga-nova'], '--path' => $this->dir])->assertSuccessful();
 
@@ -50,7 +50,7 @@ it('goes through the request controller', function () {
 it('keeps the old file and fails when a call fails', function () {
     File::ensureDirectoryExists($this->dir);
     File::put("{$this->dir}/tags.json", 'old');
-    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error'], 503)]);
+    Http::fake(['api.source.test/*' => Http::response(['result' => 'error'], 503)]);
 
     $this->artisan('fixtures:record', ['--only' => ['tags'], '--path' => $this->dir])->assertFailed();
 

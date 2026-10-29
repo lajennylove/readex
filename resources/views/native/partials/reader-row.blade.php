@@ -13,7 +13,10 @@
         @endif
     </native:column>
 @elseif ($row['kind'] === 'end')
-    <native:column native:key="reader-end" class="w-full items-center gap-2 px-4 pt-6 pb-12 bg-black">
+    {{-- pb-24: keep the "Next" button a thumb's width above the bottom tab bar; otherwise the
+         tab-bar hitbox clips the lower edge of the button and a near-centered tap can land on
+         the tab under it. --}}
+    <native:column native:key="reader-end" class="w-full items-center gap-2 px-4 pt-6 pb-24 bg-black">
         <native:text class="text-base font-bold text-white">{{ $row['label'] }}</native:text>
         <native:text class="text-sm text-theme-on-surface-variant">{{ $row['credit'] }}</native:text>
         @if ($row['next'])

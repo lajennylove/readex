@@ -12,6 +12,8 @@ use App\Models\MangaListEntry;
 use App\Models\ReadingProgress;
 use App\Models\StoredChapter;
 use App\Sources\ActiveSource;
+use Closure;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -68,14 +70,14 @@ final class HomeRepository
             $response = $this->client->get('/manga/_catalog', [], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::CATALOG, []));
+                $this->transactional(fn () => $this->replace(self::CATALOG, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::CATALOG, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::CATALOG, $this->manga->storeManga($response)));
     }
 
     public function popular(): Result
@@ -101,14 +103,14 @@ final class HomeRepository
             // (e.g. a static GH-Pages-hosted source). Treat 404/405 as "row not supported":
             // leave whatever rows the source does serve alone and hide this one.
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::POPULAR, []));
+                $this->transactional(fn () => $this->replace(self::POPULAR, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::POPULAR, $this->manga->storeManga($response)));
     }
 
     /**
@@ -153,7 +155,7 @@ final class HomeRepository
             // Same posture as refreshPopular: an agnostic source may not implement a
             // dynamic `/chapter` query endpoint; hide the row rather than erroring out.
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::LATEST, []));
+                $this->transactional(fn () => $this->replace(self::LATEST, []));
 
                 return;
             }
@@ -179,14 +181,14 @@ final class HomeRepository
             ], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::LATEST, []));
+                $this->transactional(fn () => $this->replace(self::LATEST, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(function () use ($newest, $manga) {
+        $this->transactional(function () use ($newest, $manga) {
             $this->manga->storeManga($manga);
             $old = MangaListEntry::query()->where('list_key', self::LATEST)->pluck('chapter_id')->filter();
 
@@ -218,14 +220,14 @@ final class HomeRepository
             ], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::RECENTLY_ADDED, []));
+                $this->transactional(fn () => $this->replace(self::RECENTLY_ADDED, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::RECENTLY_ADDED, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::RECENTLY_ADDED, $this->manga->storeManga($response)));
     }
 
     public function selfPublished(): Result
@@ -247,14 +249,14 @@ final class HomeRepository
             ], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::SELF_PUBLISHED, []));
+                $this->transactional(fn () => $this->replace(self::SELF_PUBLISHED, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::SELF_PUBLISHED, $this->manga->storeManga($response)));
+        $this->transactional(fn () => $this->replace(self::SELF_PUBLISHED, $this->manga->storeManga($response)));
     }
 
     public function recommended(): Result
@@ -277,7 +279,7 @@ final class HomeRepository
         $profile = $this->tagAffinityProfile();
 
         if ($profile === []) {
-            DB::transaction(fn () => $this->replace(self::RECOMMENDED, []));
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
 
             return;
         }
@@ -298,7 +300,7 @@ final class HomeRepository
                 ], $priority);
             } catch (ApiError $e) {
                 if ($e->status === 404 || $e->status === 405) {
-                    DB::transaction(fn () => $this->replace(self::RECOMMENDED, []));
+                    $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
 
                     return;
                 }
@@ -315,7 +317,7 @@ final class HomeRepository
         }
 
         if ($candidates === []) {
-            DB::transaction(fn () => $this->replace(self::RECOMMENDED, []));
+            $this->transactional(fn () => $this->replace(self::RECOMMENDED, []));
 
             return;
         }
@@ -341,7 +343,7 @@ final class HomeRepository
             'limit' => count($ids), 'offset' => 0, 'total' => count($ids),
         ];
 
-        DB::transaction(fn () => $this->replace(self::RECOMMENDED, $this->manga->storeManga($envelope)));
+        $this->transactional(fn () => $this->replace(self::RECOMMENDED, $this->manga->storeManga($envelope)));
     }
 
     /** @return array<string, int> tag id -> total weight, desc order by weight */
@@ -407,7 +409,7 @@ final class HomeRepository
         $url = $this->active->seasonalUrl();
 
         if ($url === null) {
-            DB::transaction(fn () => $this->replace(self::SEASON, []));
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
 
             return;
         }
@@ -415,13 +417,13 @@ final class HomeRepository
         try {
             $response = Http::connectTimeout(8)->timeout(8)->get($url);
         } catch (ConnectionException) {
-            DB::transaction(fn () => $this->replace(self::SEASON, []));
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
 
             return;
         }
 
         if (! $response->successful()) {
-            DB::transaction(fn () => $this->replace(self::SEASON, []));
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
 
             return;
         }
@@ -432,7 +434,7 @@ final class HomeRepository
             : [];
 
         if ($ids === []) {
-            DB::transaction(fn () => $this->replace(self::SEASON, []));
+            $this->transactional(fn () => $this->replace(self::SEASON, []));
 
             return;
         }
@@ -446,14 +448,55 @@ final class HomeRepository
             ], $priority);
         } catch (ApiError $e) {
             if ($e->status === 404 || $e->status === 405) {
-                DB::transaction(fn () => $this->replace(self::SEASON, []));
+                $this->transactional(fn () => $this->replace(self::SEASON, []));
 
                 return;
             }
             throw $e;
         }
 
-        DB::transaction(fn () => $this->replace(self::SEASON, $this->manga->storeManga($manga)));
+        $this->transactional(fn () => $this->replace(self::SEASON, $this->manga->storeManga($manga)));
+    }
+
+    /**
+     * `DB::transaction($work)` with a one-shot retry when the first attempt hits a
+     * transient SQLite I/O error (code 10) or a stale savepoint from a prior aborted
+     * transaction on this connection. Multiple NativePHP async workers may race on the
+     * same SQLite file; the fresh connection on retry resets `transactionLevel`.
+     * A persistent failure stays silent — the data was already pulled, Freshness
+     * reads it stale next tick and the row refreshes again.
+     */
+    private function transactional(Closure $work): void
+    {
+        try {
+            DB::transaction($work);
+
+            return;
+        } catch (QueryException $e) {
+            if (! self::isTransient($e)) {
+                throw $e;
+            }
+        }
+
+        DB::disconnect();
+
+        try {
+            DB::transaction($work);
+        } catch (QueryException $e) {
+            if (! self::isTransient($e)) {
+                throw $e;
+            }
+        }
+    }
+
+    private static function isTransient(QueryException $e): bool
+    {
+        $msg = $e->getMessage();
+
+        return str_contains($msg, 'disk I/O error')
+            || str_contains($msg, 'savepoint')
+            || str_contains($msg, 'within a transaction')
+            || str_contains($msg, 'database is locked');
     }
 
     /**

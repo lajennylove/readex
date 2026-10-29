@@ -8,21 +8,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('appends the stored api suffix to the base URL (default /api)', function () {
-    app(SettingsRepository::class)->setSourceUrl('https://api.example.test');
+it('returns the base URL verbatim as apiUrl, with no hidden suffix', function () {
+    app(SettingsRepository::class)->setSourceUrl('https://api.example.test/api');
 
     $active = app(ActiveSource::class);
 
-    expect($active->baseUrl())->toBe('https://api.example.test')
+    expect($active->baseUrl())->toBe('https://api.example.test/api')
         ->and($active->apiUrl())->toBe('https://api.example.test/api')
         ->and($active->coversUrl())->toBe('https://api.example.test/covers')
         ->and($active->reportUrl())->toBe('https://api.example.test/report');
 });
 
-it('appends no suffix after a SourceMetaProber writes an empty one (dynamic REST sources)', function () {
-    $settings = app(SettingsRepository::class);
-    $settings->setSourceUrl('https://api.example.test');
-    $settings->setSourceApiSuffix('');
+it('leaves the typed URL alone for a dynamic REST source that serves at the root', function () {
+    app(SettingsRepository::class)->setSourceUrl('https://api.example.test');
 
     expect(app(ActiveSource::class)->apiUrl())->toBe('https://api.example.test');
 });

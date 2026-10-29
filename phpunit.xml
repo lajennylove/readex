@@ -39,5 +39,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Preserve legacy single-lane download behavior in tests; production defaults to 2. -->
+        <env name="READEX_DOWNLOADS_BACKGROUND_LANES" value="1"/>
     </php>
 </phpunit>

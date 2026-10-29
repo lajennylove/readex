@@ -42,7 +42,7 @@ it('downloads the pages on screen right away, then queues the rest of the chapte
     expect($this->fetcher->want('c1', [2, 3]))->toBeTrue();
 
     $this->async->assertDispatchedTimes(1);
-    expect(Pages::requested())->toBe(['a.mangadex.network/data-saver/h1/p3.jpg', 'a.mangadex.network/data-saver/h1/p4.jpg'])
+    expect(Pages::requested())->toBe(['a.source.test/data-saver/h1/p3.jpg', 'a.source.test/data-saver/h1/p4.jpg'])
         ->and($this->store->missing('c1'))->toBe([0, 1, 4])
         ->and($this->fetcher->state('c1'))->toBe(LoadState::Done)
         ->and($this->fetcher->isRunning('c1'))->toBeFalse();
@@ -107,9 +107,9 @@ it('follows a fast scroll: one task per chapter, which moves to the new window',
 
     $this->async->assertDispatchedTimes(1);
     expect(Pages::requested())->toBe([
-        'a.mangadex.network/data-saver/h1/p1.jpg',
-        'a.mangadex.network/data-saver/h1/p151.jpg',
-        'a.mangadex.network/data-saver/h1/p152.jpg',
+        'a.source.test/data-saver/h1/p1.jpg',
+        'a.source.test/data-saver/h1/p151.jpg',
+        'a.source.test/data-saver/h1/p152.jpg',
     ])->and(Pages::lookups())->toBe(1);
 });
 
@@ -125,7 +125,7 @@ it('starts no second task while one runs for the chapter', function () {
 });
 
 it('looks the @Home server up again once when it dies mid-chapter, then carries on there', function () {
-    Pages::fake(['https://dead.mangadex.network', 'https://alive.mangadex.network'], 3, function (Request $request) {
+    Pages::fake(['https://dead.source.test', 'https://alive.source.test'], 3, function (Request $request) {
         return str_contains($request->url(), 'dead.') ? Http::response('', 502) : Http::response(Pages::image());
     });
     Pages::chapter('c1');
@@ -133,10 +133,10 @@ it('looks the @Home server up again once when it dies mid-chapter, then carries 
     $this->fetcher->want('c1', [0, 1, 2]);
 
     expect(Pages::requested())->toBe([
-        'dead.mangadex.network/data-saver/h1/p1.jpg',
-        'alive.mangadex.network/data-saver/h1/p1.jpg',
-        'alive.mangadex.network/data-saver/h1/p2.jpg',
-        'alive.mangadex.network/data-saver/h1/p3.jpg',
+        'dead.source.test/data-saver/h1/p1.jpg',
+        'alive.source.test/data-saver/h1/p1.jpg',
+        'alive.source.test/data-saver/h1/p2.jpg',
+        'alive.source.test/data-saver/h1/p3.jpg',
     ])->and(Pages::lookups())->toBe(2)
         ->and($this->store->has('c1'))->toBeTrue()
         ->and($this->fetcher->failed('c1'))->toBe([]);
@@ -200,7 +200,7 @@ it('stops as offline when the connection drops mid-chapter, without marking page
         }
 
         if (str_contains($request->url(), '/at-home/server/')) {
-            return Http::response(Pages::atHome('https://a.mangadex.network'));
+            return Http::response(Pages::atHome('https://a.source.test'));
         }
 
         $online = false;
@@ -218,7 +218,7 @@ it('stops as offline when the connection drops mid-chapter, without marking page
 });
 
 it('stops as offline when the connection drops after the fresh lookup, without marking the page failed', function () {
-    Pages::fake(['https://dead.mangadex.network', 'https://alive.mangadex.network'], 3, function (Request $request) {
+    Pages::fake(['https://dead.source.test', 'https://alive.source.test'], 3, function (Request $request) {
         if (str_contains($request->url(), 'dead.')) {
             return Http::response('', 502);
         }
@@ -240,11 +240,11 @@ it('stops as offline when the connection drops after the fresh lookup, without m
     Queue::assertPushed(DownloadChapter::class, 1);
 });
 
-it('waits for the controller when MangaDex has no slot, and queues the chapter', function () {
+it('waits for the controller when the source has no slot, and queues the chapter', function () {
     Pages::fake();
     Pages::chapter('c1');
     DB::table('rate_buckets')->insert([
-        'key' => 'family:api.mangadex.org', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
+        'key' => 'family:api.source.test', 'capacity' => 0, 'refill_per_sec' => 0, 'tokens' => 0,
         'updated_at' => now()->timestamp, 'blocked_until' => now()->timestamp + 300, 'strikes' => 0, 'probing' => false,
     ]);
 
@@ -266,10 +266,10 @@ it('finishes a half-stored chapter in its first quality; the next chapter uses t
     $this->fetcher->want('c2', [0]);
 
     expect(Pages::requested())->toBe([
-        'a.mangadex.network/data-saver/h1/p1.jpg',
-        'a.mangadex.network/data-saver/h1/p2.jpg',
-        'a.mangadex.network/data-saver/h1/p3.jpg',
-        'a.mangadex.network/data/h1/p1.png',
+        'a.source.test/data-saver/h1/p1.jpg',
+        'a.source.test/data-saver/h1/p2.jpg',
+        'a.source.test/data-saver/h1/p3.jpg',
+        'a.source.test/data/h1/p1.png',
     ])->and($this->store->manifest('c1')['quality'])->toBe('data-saver')
         ->and($this->store->manifest('c2')['quality'])->toBe('original');
 });
@@ -285,8 +285,8 @@ it('is unavailable for an external chapter, without a call', function () {
     Queue::assertNothingPushed();
 });
 
-it('is unavailable when MangaDex no longer serves the chapter', function () {
-    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error', 'errors' => [['status' => 404]]], 404)]);
+it('is unavailable when the source no longer serves the chapter', function () {
+    Http::fake(['api.source.test/*' => Http::response(['result' => 'error', 'errors' => [['status' => 404]]], 404)]);
     Pages::chapter('c1');
 
     $this->fetcher->want('c1', [0]);
@@ -296,7 +296,7 @@ it('is unavailable when MangaDex no longer serves the chapter', function () {
 });
 
 it('is unavailable for any other 4xx answer to the lookup', function (int $status) {
-    Http::fake(['api.mangadex.org/*' => Http::response(['result' => 'error', 'errors' => [['status' => $status]]], $status)]);
+    Http::fake(['api.source.test/*' => Http::response(['result' => 'error', 'errors' => [['status' => $status]]], $status)]);
     Pages::chapter('c1');
 
     $this->fetcher->want('c1', [0]);
@@ -306,7 +306,7 @@ it('is unavailable for any other 4xx answer to the lookup', function (int $statu
 })->with([400, 410]);
 
 it('is retrying, not unavailable, when the lookup meets a source outage, limit or ban, and queues the chapter', function (int $status, array|string $body) {
-    Http::fake(['api.mangadex.org/api/at-home/server/*' => Http::response($body, $status)]);
+    Http::fake(['api.source.test/api/at-home/server/*' => Http::response($body, $status)]);
     Pages::chapter('c1');
 
     $this->fetcher->want('c1', [0]);
@@ -327,7 +327,7 @@ it('is retrying, without marking the page failed, when the fresh lookup after a 
     $lookups = 0;
     Http::fake(function (Request $request) use (&$lookups) {
         if (str_contains($request->url(), '/at-home/server/')) {
-            return $lookups++ === 0 ? Http::response(Pages::atHome('https://dead.mangadex.network')) : Http::response('', 503);
+            return $lookups++ === 0 ? Http::response(Pages::atHome('https://dead.source.test')) : Http::response('', 503);
         }
 
         return str_contains($request->url(), 'dead.') ? Http::response('', 502) : Http::response(['result' => 'ok']);
@@ -378,7 +378,7 @@ it('begins a chapter the image cache dropped again when the reader asks for it, 
 });
 
 it('is unavailable when the @Home lookup lists no pages, and saves nothing', function () {
-    Http::fake(['api.mangadex.org/api/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.mangadex.network', 'chapter' => [
+    Http::fake(['api.source.test/api/at-home/server/*' => Http::response(['result' => 'ok', 'baseUrl' => 'https://a.source.test', 'chapter' => [
         'hash' => 'h1', 'data' => [], 'dataSaver' => [],
     ]])]);
     Pages::chapter('c1');

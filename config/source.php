@@ -3,18 +3,16 @@
 return [
 
     // The runtime source URL is per-user — read from SettingsRepository::sourceUrl() via
-    // App\Sources\ActiveSource. These `_default` keys are a BUILD-TIME hint only, used solely
-    // by Setup to pre-fill its URL field on first run so a review build (or local dev) can cut
-    // one with the env vars set and have the field populated for the first-launch user. Blank
-    // in a normal production build -> field is blank, user types their URL in -> same as before.
-    'api_url_default' => env('SOURCE_API_URL'),
-
-    // Setup pre-fill companions for the optional Covers and Seasonal URL fields. Blank in a
-    // production build -> fields are blank -> same as before. Set at build time via
-    // SOURCE_COVERS_URL / SOURCE_SEASONAL_URL to ship an install that opens on a working
-    // reader without the user typing anything.
-    'covers_url_default' => env('SOURCE_COVERS_URL'),
-    'seasonal_url_default' => env('SOURCE_SEASONAL_URL'),
+    // App\Sources\ActiveSource. These `_default` keys are a BUILD-TIME hint used solely by
+    // Setup to pre-fill the three URL fields on first run, so a user who installs from
+    // TestFlight or the Play Store opt-in link can tap through without typing anything and
+    // land on a working demo immediately. The hard-coded fallbacks below ship the GitHub-
+    // Pages demo so the fields are never blank, even when .env values get stripped by the
+    // bundler. Override at build time with the SOURCE_* env vars to point a shipped build
+    // at a different default.
+    'api_url_default' => env('SOURCE_API_URL', 'https://lajennylove.github.io/readex/api'),
+    'covers_url_default' => env('SOURCE_COVERS_URL', 'https://lajennylove.github.io/readex/covers'),
+    'seasonal_url_default' => env('SOURCE_SEASONAL_URL', 'https://lajennylove.github.io/readex/seasonal/seasonal-list.json'),
 
     // When true, the HTTP Client appends `.json` to every path -- the convention a
     // static-file source (e.g. our GH Pages demo for App Review) uses. Production

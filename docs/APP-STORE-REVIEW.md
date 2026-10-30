@@ -98,7 +98,28 @@ Pick **17+** regardless of what the demo looks like. The source is user-configur
 - Support URL: landing page or GitHub Issues URL. Must not name any third-party content site.
 - Marketing URL: landing page.
 
-## 4. Pre-upload checklist
+## 4. Search chip + rated-content invariants (verified Oct-30 2026)
+
+These are easy to confuse during E2E; the facts are:
+
+**Chip set on the Search tab does NOT depend on content-rating toggles.** The chip list is a 1:1 mirror of what the source's `/manga/tag` endpoint returns, grouped by the tag's `group` field (`genre` / `theme` / `format` / `content`). No client-side code filters chips by `contentRating`. Verified live on MangaDex: Content section shows `Gore + Sexual Violence` with Safe+Suggestive only, with +Erotica, and with all 4 on — identical set across every permutation.
+
+- Why the demo looks sparser: the demo's `/manga/tag.json` ships 9 tags (4 genre, 4 theme, 1 content). MangaDex ships 77. The variation is 100% upstream payload.
+- Why first launch sometimes looks sparse on MangaDex: `/manga/tag` populates `tags` SQLite table asynchronously. If you land on Search before the fetch finishes, you see fewer chips; a tab-tap re-mount (`Search::mount()` runs on every tab tap) picks up the now-full set.
+
+**What the rating toggles DO affect:** the *results grid* splits into two sections, with a `<hr>` divider and a **"Rated content"** heading introducing titles whose `content_rating ∈ {erotica, pornographic}` AND the user has that rating turned on. Verified Oct-30 by searching "solo leveling" on MangaDex:
+
+| Settings | "Rated content" divider appears? |
+|----------|----------------------------------|
+| Safe + Suggestive only | No |
+| + Erotica, Pornographic OFF | No |
+| All 4 on | **Yes** — explicit Pornographic-rated tile below the `<hr>` |
+
+Code: `app/NativeComponents/Search.php:250` — `$ratedOn = array_intersect(config('readex.rated_content'), app(SettingsRepository::class)->contentRatings())`, then `$result->data->partition(fn (Manga $m) => in_array($m->content_rating, $ratedOn, true))`. `config('readex.rated_content') === ['erotica', 'pornographic']`.
+
+If a future E2E run suggests "the chip count changed" after toggling Erotica, the explanation is almost certainly (a) tag-fetch race on first Search view, or (b) misreading the Rated-content divider for a new chip row. Don't file a bug — re-verify against this invariant.
+
+## 5. Pre-upload checklist
 
 - [x] `ITSAppUsesNonExemptEncryption = false` in Info.plist
 - [x] `PrivacyInfo.xcprivacy` present in `nativephp/ios/NativePHP/`

@@ -28,3 +28,7 @@ Homestead.yaml
 Thumbs.db
 /.claude/worktrees/
 /.playwright-mcp/
+# Ad-hoc browser/device screenshots dropped at the repo root while debugging.
+# The documented docs-* PNGs stay tracked; any other root-level PNG is noise.
+/*.png
+!/docs-*.png

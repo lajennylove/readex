@@ -1,91 +1,91 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-47",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Final Forge"
-      },
-      "altTitles": [
-        {
-          "es": "Final Forge (es)"
-        }
-      ],
-      "description": {
-        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2026,
-      "contentRating": "suggestive",
-      "tags": [
-        {
-          "id": "22222222-2222-4222-8222-222222222222",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Sci-Fi"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-47",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Final Forge"
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Final Forge (es)"
+                }
+            ],
+            "description": {
+                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2026,
+            "contentRating": "suggestive",
+            "tags": [
+                {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Sci-Fi"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "55555555-5555-4555-8555-555555555555",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Action"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-30T00:00:00+00:00",
+            "updatedAt": "2026-10-30T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-47-a"
         },
-        {
-          "id": "55555555-5555-4555-8555-555555555555",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Action"
+        "relationships": [
+            {
+                "id": "cover-demo-47",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-30T00:00:00+00:00",
-      "updatedAt": "2026-10-30T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-47-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-47",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-47/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-47",
-        "type": "author",
-        "attributes": {
-          "name": "Yara Crane"
-        }
-      },
-      {
-        "id": "artist-demo-47",
-        "type": "artist",
-        "attributes": {
-          "name": "Riverbend Draw"
-        }
-      }
-    ]
-  }
+            {
+                "id": "author-demo-47",
+                "type": "author",
+                "attributes": {
+                    "name": "Yara Crane"
+                }
+            },
+            {
+                "id": "artist-demo-47",
+                "type": "artist",
+                "attributes": {
+                    "name": "Riverbend Draw"
+                }
+            }
+        ]
+    }
 }

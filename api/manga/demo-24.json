@@ -1,104 +1,104 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-24",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Natus Error Voluptatem"
-      },
-      "altTitles": [
-        {
-          "es": "Natus Error Voluptatem (es)"
-        }
-      ],
-      "description": {
-        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2023,
-      "contentRating": "suggestive",
-      "tags": [
-        {
-          "id": "11111111-1111-4111-8111-111111111111",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Action"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-24",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Natus Error Voluptatem"
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Natus Error Voluptatem (es)"
+                }
+            ],
+            "description": {
+                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2023,
+            "contentRating": "suggestive",
+            "tags": [
+                {
+                    "id": "11111111-1111-4111-8111-111111111111",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Action"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Drama"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "33333333-3333-4333-8333-333333333333",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Mystery"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-24-a"
         },
-        {
-          "id": "22222222-2222-4222-8222-222222222222",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Drama"
+        "relationships": [
+            {
+                "id": "cover-demo-24",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
-        },
-        {
-          "id": "33333333-3333-4333-8333-333333333333",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Mystery"
+            {
+                "id": "author-demo-24",
+                "type": "author",
+                "attributes": {
+                    "name": "Delta Pen"
+                }
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-26T00:00:00+00:00",
-      "updatedAt": "2026-10-26T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-24-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-24",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-24/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-24",
-        "type": "author",
-        "attributes": {
-          "name": "Delta Pen"
-        }
-      },
-      {
-        "id": "artist-demo-24",
-        "type": "artist",
-        "attributes": {
-          "name": "Eta Panel"
-        }
-      }
-    ]
-  }
+            {
+                "id": "artist-demo-24",
+                "type": "artist",
+                "attributes": {
+                    "name": "Eta Panel"
+                }
+            }
+        ]
+    }
 }

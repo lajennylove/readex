@@ -1,91 +1,91 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-25",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Accusantium Doloremque"
-      },
-      "altTitles": [
-        {
-          "es": "Accusantium Doloremque (es)"
-        }
-      ],
-      "description": {
-        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2024,
-      "contentRating": "suggestive",
-      "tags": [
-        {
-          "id": "77777777-7777-4777-8777-777777777777",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Slice of Life"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-25",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Accusantium Doloremque"
             },
-            "description": {},
-            "group": "theme",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Accusantium Doloremque (es)"
+                }
+            ],
+            "description": {
+                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2024,
+            "contentRating": "suggestive",
+            "tags": [
+                {
+                    "id": "77777777-7777-4777-8777-777777777777",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Slice of Life"
+                        },
+                        "description": {},
+                        "group": "theme",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Drama"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-25-a"
         },
-        {
-          "id": "22222222-2222-4222-8222-222222222222",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Drama"
+        "relationships": [
+            {
+                "id": "cover-demo-25",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-26T00:00:00+00:00",
-      "updatedAt": "2026-10-26T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-25-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-25",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-25/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-25",
-        "type": "author",
-        "attributes": {
-          "name": "Epsilon Quill"
-        }
-      },
-      {
-        "id": "artist-demo-25",
-        "type": "artist",
-        "attributes": {
-          "name": "Theta Ink"
-        }
-      }
-    ]
-  }
+            {
+                "id": "author-demo-25",
+                "type": "author",
+                "attributes": {
+                    "name": "Epsilon Quill"
+                }
+            },
+            {
+                "id": "artist-demo-25",
+                "type": "artist",
+                "attributes": {
+                    "name": "Theta Ink"
+                }
+            }
+        ]
+    }
 }

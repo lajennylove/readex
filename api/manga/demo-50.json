@@ -1,91 +1,91 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-50",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Wandering Veil"
-      },
-      "altTitles": [
-        {
-          "es": "Wandering Veil (es)"
-        }
-      ],
-      "description": {
-        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2026,
-      "contentRating": "pornographic",
-      "tags": [
-        {
-          "id": "88888888-8888-4888-8888-888888888888",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Suspense"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-50",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Wandering Veil"
             },
-            "description": {},
-            "group": "theme",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Wandering Veil (es)"
+                }
+            ],
+            "description": {
+                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2026,
+            "contentRating": "pornographic",
+            "tags": [
+                {
+                    "id": "88888888-8888-4888-8888-888888888888",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Suspense"
+                        },
+                        "description": {},
+                        "group": "theme",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "99999999-9999-4999-8999-999999999999",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Mature"
+                        },
+                        "description": {},
+                        "group": "content",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-30T00:00:00+00:00",
+            "updatedAt": "2026-10-30T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-50-a"
         },
-        {
-          "id": "99999999-9999-4999-8999-999999999999",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Mature"
+        "relationships": [
+            {
+                "id": "cover-demo-50",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "content",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-30T00:00:00+00:00",
-      "updatedAt": "2026-10-30T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-50-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-50",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-50/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-50",
-        "type": "author",
-        "attributes": {
-          "name": "Tove Hardy"
-        }
-      },
-      {
-        "id": "artist-demo-50",
-        "type": "artist",
-        "attributes": {
-          "name": "Low Tide Press"
-        }
-      }
-    ]
-  }
+            {
+                "id": "author-demo-50",
+                "type": "author",
+                "attributes": {
+                    "name": "Tove Hardy"
+                }
+            },
+            {
+                "id": "artist-demo-50",
+                "type": "artist",
+                "attributes": {
+                    "name": "Low Tide Press"
+                }
+            }
+        ]
+    }
 }

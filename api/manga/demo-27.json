@@ -1,91 +1,91 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-27",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Aperiam Eaque Ipsa"
-      },
-      "altTitles": [
-        {
-          "es": "Aperiam Eaque Ipsa (es)"
-        }
-      ],
-      "description": {
-        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2022,
-      "contentRating": "suggestive",
-      "tags": [
-        {
-          "id": "55555555-5555-4555-8555-555555555555",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Historical"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-27",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Aperiam Eaque Ipsa"
             },
-            "description": {},
-            "group": "theme",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Aperiam Eaque Ipsa (es)"
+                }
+            ],
+            "description": {
+                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2022,
+            "contentRating": "suggestive",
+            "tags": [
+                {
+                    "id": "55555555-5555-4555-8555-555555555555",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Historical"
+                        },
+                        "description": {},
+                        "group": "theme",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Drama"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-27-a"
         },
-        {
-          "id": "22222222-2222-4222-8222-222222222222",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Drama"
+        "relationships": [
+            {
+                "id": "cover-demo-27",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-26T00:00:00+00:00",
-      "updatedAt": "2026-10-26T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-27-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-27",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-27/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-27",
-        "type": "author",
-        "attributes": {
-          "name": "Eta Chronicler"
-        }
-      },
-      {
-        "id": "artist-demo-27",
-        "type": "artist",
-        "attributes": {
-          "name": "Kappa Frame"
-        }
-      }
-    ]
-  }
+            {
+                "id": "author-demo-27",
+                "type": "author",
+                "attributes": {
+                    "name": "Eta Chronicler"
+                }
+            },
+            {
+                "id": "artist-demo-27",
+                "type": "artist",
+                "attributes": {
+                    "name": "Kappa Frame"
+                }
+            }
+        ]
+    }
 }

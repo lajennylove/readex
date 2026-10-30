@@ -1,91 +1,91 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-30",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Architecto Beatae Vitae"
-      },
-      "altTitles": [
-        {
-          "es": "Architecto Beatae Vitae (es)"
-        }
-      ],
-      "description": {
-        "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2024,
-      "contentRating": "pornographic",
-      "tags": [
-        {
-          "id": "88888888-8888-4888-8888-888888888888",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Suspense"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-30",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Architecto Beatae Vitae"
             },
-            "description": {},
-            "group": "theme",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Architecto Beatae Vitae (es)"
+                }
+            ],
+            "description": {
+                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2024,
+            "contentRating": "pornographic",
+            "tags": [
+                {
+                    "id": "88888888-8888-4888-8888-888888888888",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Suspense"
+                        },
+                        "description": {},
+                        "group": "theme",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "99999999-9999-4999-8999-999999999999",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Mature"
+                        },
+                        "description": {},
+                        "group": "content",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-30-a"
         },
-        {
-          "id": "99999999-9999-4999-8999-999999999999",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Mature"
+        "relationships": [
+            {
+                "id": "cover-demo-30",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "content",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-26T00:00:00+00:00",
-      "updatedAt": "2026-10-26T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-30-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-30",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-30/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-30",
-        "type": "author",
-        "attributes": {
-          "name": "Kappa Narrator"
-        }
-      },
-      {
-        "id": "artist-demo-30",
-        "type": "artist",
-        "attributes": {
-          "name": "Gamma Line"
-        }
-      }
-    ]
-  }
+            {
+                "id": "author-demo-30",
+                "type": "author",
+                "attributes": {
+                    "name": "Kappa Narrator"
+                }
+            },
+            {
+                "id": "artist-demo-30",
+                "type": "artist",
+                "attributes": {
+                    "name": "Gamma Line"
+                }
+            }
+        ]
+    }
 }

@@ -1,91 +1,91 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-28",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Quae Ab Illo Inventore"
-      },
-      "altTitles": [
-        {
-          "es": "Quae Ab Illo Inventore (es)"
-        }
-      ],
-      "description": {
-        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2024,
-      "contentRating": "erotica",
-      "tags": [
-        {
-          "id": "22222222-2222-4222-8222-222222222222",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Drama"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-28",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Quae Ab Illo Inventore"
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Quae Ab Illo Inventore (es)"
+                }
+            ],
+            "description": {
+                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2024,
+            "contentRating": "erotica",
+            "tags": [
+                {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Drama"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "99999999-9999-4999-8999-999999999999",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Mature"
+                        },
+                        "description": {},
+                        "group": "content",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-28-a"
         },
-        {
-          "id": "99999999-9999-4999-8999-999999999999",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Mature"
+        "relationships": [
+            {
+                "id": "cover-demo-28",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "content",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-26T00:00:00+00:00",
-      "updatedAt": "2026-10-26T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-28-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-28",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-28/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-28",
-        "type": "author",
-        "attributes": {
-          "name": "Theta Draft"
-        }
-      },
-      {
-        "id": "artist-demo-28",
-        "type": "artist",
-        "attributes": {
-          "name": "Alpha Illustrator"
-        }
-      }
-    ]
-  }
+            {
+                "id": "author-demo-28",
+                "type": "author",
+                "attributes": {
+                    "name": "Theta Draft"
+                }
+            },
+            {
+                "id": "artist-demo-28",
+                "type": "artist",
+                "attributes": {
+                    "name": "Alpha Illustrator"
+                }
+            }
+        ]
+    }
 }

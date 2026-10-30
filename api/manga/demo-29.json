@@ -1,104 +1,104 @@
 {
-  "result": "ok",
-  "response": "entity",
-  "data": {
-    "id": "demo-29",
-    "type": "manga",
-    "attributes": {
-      "title": {
-        "en": "Veritatis Et Quasi"
-      },
-      "altTitles": [
-        {
-          "es": "Veritatis Et Quasi (es)"
-        }
-      ],
-      "description": {
-        "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
-      },
-      "isLocked": false,
-      "links": {},
-      "originalLanguage": "en",
-      "lastVolume": "",
-      "lastChapter": "",
-      "publicationDemographic": null,
-      "status": "ongoing",
-      "year": 2023,
-      "contentRating": "erotica",
-      "tags": [
-        {
-          "id": "77777777-7777-4777-8777-777777777777",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Slice of Life"
+    "result": "ok",
+    "response": "entity",
+    "data": {
+        "id": "demo-29",
+        "type": "manga",
+        "attributes": {
+            "title": {
+                "en": "Veritatis Et Quasi"
             },
-            "description": {},
-            "group": "theme",
-            "version": 1
-          },
-          "relationships": []
+            "altTitles": [
+                {
+                    "es": "Veritatis Et Quasi (es)"
+                }
+            ],
+            "description": {
+                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            },
+            "isLocked": false,
+            "links": {},
+            "originalLanguage": "en",
+            "lastVolume": "",
+            "lastChapter": "",
+            "publicationDemographic": null,
+            "status": "ongoing",
+            "year": 2023,
+            "contentRating": "erotica",
+            "tags": [
+                {
+                    "id": "77777777-7777-4777-8777-777777777777",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Slice of Life"
+                        },
+                        "description": {},
+                        "group": "theme",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Drama"
+                        },
+                        "description": {},
+                        "group": "genre",
+                        "version": 1
+                    },
+                    "relationships": []
+                },
+                {
+                    "id": "99999999-9999-4999-8999-999999999999",
+                    "type": "tag",
+                    "attributes": {
+                        "name": {
+                            "en": "Mature"
+                        },
+                        "description": {},
+                        "group": "content",
+                        "version": 1
+                    },
+                    "relationships": []
+                }
+            ],
+            "state": "published",
+            "chapterNumbersResetOnNewVolume": false,
+            "createdAt": "2026-10-26T00:00:00+00:00",
+            "updatedAt": "2026-10-26T00:00:00+00:00",
+            "version": 1,
+            "availableTranslatedLanguages": [
+                "en",
+                "es"
+            ],
+            "latestUploadedChapter": "ch-29-a"
         },
-        {
-          "id": "22222222-2222-4222-8222-222222222222",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Drama"
+        "relationships": [
+            {
+                "id": "cover-demo-29",
+                "type": "cover_art",
+                "attributes": {
+                    "fileName": "cover"
+                }
             },
-            "description": {},
-            "group": "genre",
-            "version": 1
-          },
-          "relationships": []
-        },
-        {
-          "id": "99999999-9999-4999-8999-999999999999",
-          "type": "tag",
-          "attributes": {
-            "name": {
-              "en": "Mature"
+            {
+                "id": "author-demo-29",
+                "type": "author",
+                "attributes": {
+                    "name": "Iota Composer"
+                }
             },
-            "description": {},
-            "group": "content",
-            "version": 1
-          },
-          "relationships": []
-        }
-      ],
-      "state": "published",
-      "chapterNumbersResetOnNewVolume": false,
-      "createdAt": "2026-10-26T00:00:00+00:00",
-      "updatedAt": "2026-10-26T00:00:00+00:00",
-      "version": 1,
-      "availableTranslatedLanguages": [
-        "en",
-        "es"
-      ],
-      "latestUploadedChapter": "ch-29-a"
-    },
-    "relationships": [
-      {
-        "id": "cover-demo-29",
-        "type": "cover_art",
-        "attributes": {
-          "fileName": "https://lajennylove.github.io/readex/covers/demo-29/cover.1024.jpg"
-        }
-      },
-      {
-        "id": "author-demo-29",
-        "type": "author",
-        "attributes": {
-          "name": "Iota Composer"
-        }
-      },
-      {
-        "id": "artist-demo-29",
-        "type": "artist",
-        "attributes": {
-          "name": "Beta Inker"
-        }
-      }
-    ]
-  }
+            {
+                "id": "artist-demo-29",
+                "type": "artist",
+                "attributes": {
+                    "name": "Beta Inker"
+                }
+            }
+        ]
+    }
 }

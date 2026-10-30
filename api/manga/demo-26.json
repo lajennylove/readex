@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Laudantium Totam Rem"
+                "en": "Stray Lantern"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "A retired explorer agrees to lead one more expedition, provided the destination is a place she has already been."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-26",
                 "type": "author",
                 "attributes": {
-                    "name": "Zeta Script"
+                    "name": "Kit Moss"
                 }
             },
             {
                 "id": "artist-demo-26",
                 "type": "artist",
                 "attributes": {
-                    "name": "Iota Canvas"
+                    "name": "Luc Pen"
                 }
             }
         ]

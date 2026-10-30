@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Consequat Duis Aute"
+                "en": "Marble Garden"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "A cartographer draws a city that doesn't exist yet, and the city starts correcting her mistakes."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-12",
                 "type": "author",
                 "attributes": {
-                    "name": "Beta Scribe"
+                    "name": "Caspar Easton"
                 }
             },
             {
                 "id": "artist-demo-12",
                 "type": "artist",
                 "attributes": {
-                    "name": "Epsilon Palette"
+                    "name": "Hugo Spool"
                 }
             }
         ]

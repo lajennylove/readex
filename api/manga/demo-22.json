@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Laborum Sed Perspiciatis"
+                "en": "Quiet Bell"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "The village's youngest blacksmith is apprenticed to a stranger whose hammer makes no sound."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-22",
                 "type": "author",
                 "attributes": {
-                    "name": "Beta Scribe"
+                    "name": "Nico Orr"
                 }
             },
             {
                 "id": "artist-demo-22",
                 "type": "artist",
                 "attributes": {
-                    "name": "Epsilon Palette"
+                    "name": "Yuto Ink"
                 }
             }
         ]

@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Ut Enim Ad Minim"
+                "en": "Echo Vigil"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "An orphan inherits a greenhouse whose plants only bloom when someone tells them the truth."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-07",
                 "type": "author",
                 "attributes": {
-                    "name": "Eta Chronicler"
+                    "name": "Theo Yates"
                 }
             },
             {
                 "id": "artist-demo-07",
                 "type": "artist",
                 "attributes": {
-                    "name": "Kappa Frame"
+                    "name": "Beren Studio"
                 }
             }
         ]

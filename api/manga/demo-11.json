@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Ex Ea Commodo"
+                "en": "Ember Lighthouse"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "On the morning of her coronation, a princess is handed a letter written in her own future handwriting."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-11",
                 "type": "author",
                 "attributes": {
-                    "name": "Alpha Writer"
+                    "name": "Linnet Delaney"
                 }
             },
             {
                 "id": "artist-demo-11",
                 "type": "artist",
                 "attributes": {
-                    "name": "Delta Brush"
+                    "name": "Lin Mark"
                 }
             }
         ]

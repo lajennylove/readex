@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Unde Omnis Iste"
+                "en": "Moth Horizon"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "A shut-in novelist starts receiving corrected drafts of her next book, in her own handwriting, by courier."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-23",
                 "type": "author",
                 "attributes": {
-                    "name": "Gamma Author"
+                    "name": "Freya Paige"
                 }
             },
             {
                 "id": "artist-demo-23",
                 "type": "artist",
                 "attributes": {
-                    "name": "Zeta Studio"
+                    "name": "Reza Kite"
                 }
             }
         ]

@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Architecto Beatae Vitae"
+                "en": "Still Current"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "A reluctant diplomat is sent to a kingdom whose language she doesn't share with anyone else who speaks it."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-30",
                 "type": "author",
                 "attributes": {
-                    "name": "Kappa Narrator"
+                    "name": "Zara Marsh"
                 }
             },
             {
                 "id": "artist-demo-30",
                 "type": "artist",
                 "attributes": {
-                    "name": "Gamma Line"
+                    "name": "Soren Grid"
                 }
             }
         ]

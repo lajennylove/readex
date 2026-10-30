@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Quae Ab Illo Inventore"
+                "en": "Hidden Compass"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "A quiet neighbourhood bookshop keeps selling the same single-print volume to the same regular, who never reads it."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-28",
                 "type": "author",
                 "attributes": {
-                    "name": "Theta Draft"
+                    "name": "Pax Frost"
                 }
             },
             {
                 "id": "artist-demo-28",
                 "type": "artist",
                 "attributes": {
-                    "name": "Alpha Illustrator"
+                    "name": "Edan Panel"
                 }
             }
         ]

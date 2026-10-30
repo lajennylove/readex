@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Reprehenderit Voluptate"
+                "en": "Winter Hour"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "A clockmaker is paid in minutes borrowed from a stranger's life, and keeps very careful ledgers."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-14",
                 "type": "author",
                 "attributes": {
-                    "name": "Delta Pen"
+                    "name": "Rhea Gale"
                 }
             },
             {
                 "id": "artist-demo-14",
                 "type": "artist",
                 "attributes": {
-                    "name": "Eta Panel"
+                    "name": "Yara Brand"
                 }
             }
         ]

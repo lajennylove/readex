@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Cupidatat Non Proident"
+                "en": "Thunder Ensemble"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "A gardener who speaks only to bees is nominated to settle a border dispute between two kingdoms."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-18",
                 "type": "author",
                 "attributes": {
-                    "name": "Theta Draft"
+                    "name": "Esme Kade"
                 }
             },
             {
                 "id": "artist-demo-18",
                 "type": "artist",
                 "attributes": {
-                    "name": "Alpha Illustrator"
+                    "name": "Shane Trace"
                 }
             }
         ]

@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Lorem Ipsum Dolor"
+                "en": "Crimson Ledger"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "A travelling archivist discovers the city's maps rearrange themselves overnight, and only the oldest residents remember why."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-01",
                 "type": "author",
                 "attributes": {
-                    "name": "Alpha Writer"
+                    "name": "Petra Noor"
                 }
             },
             {
                 "id": "artist-demo-01",
                 "type": "artist",
                 "attributes": {
-                    "name": "Delta Brush"
+                    "name": "Suki Border"
                 }
             }
         ]

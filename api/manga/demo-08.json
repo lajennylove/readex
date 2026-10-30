@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Veniam Quis Nostrud"
+                "en": "Northern Harbor"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "A detective investigates a series of thefts in which only the frames of paintings are stolen."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-08",
                 "type": "author",
                 "attributes": {
-                    "name": "Theta Draft"
+                    "name": "Anya Ash"
                 }
             },
             {
                 "id": "artist-demo-08",
                 "type": "artist",
                 "attributes": {
-                    "name": "Alpha Illustrator"
+                    "name": "Aria Cel"
                 }
             }
         ]

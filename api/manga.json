@@ -7,7 +7,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Lorem Ipsum Dolor"
+                    "en": "Crimson Ledger"
                 },
                 "altTitles": [
                     {
@@ -15,7 +15,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "A travelling archivist discovers the city's maps rearrange themselves overnight, and only the oldest residents remember why."
                 },
                 "isLocked": false,
                 "links": {},
@@ -93,7 +93,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Consectetur Adipiscing"
+                    "en": "Silver Threshold"
                 },
                 "altTitles": [
                     {
@@ -101,7 +101,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "After the lantern festival ends, two rival apprentices realise the river has stopped reflecting their faces."
                 },
                 "isLocked": false,
                 "links": {},
@@ -179,7 +179,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Elit Sed Do Eiusmod"
+                    "en": "Hollow Letter"
                 },
                 "altTitles": [
                     {
@@ -187,7 +187,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A disgraced courier takes one last job across a country where the roads vanish behind her."
                 },
                 "isLocked": false,
                 "links": {},
@@ -252,7 +252,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Tempor Incididunt"
+                    "en": "Verdant Tide"
                 },
                 "altTitles": [
                     {
@@ -260,7 +260,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "In a port where the tides keep letters from reaching their senders, a boy builds a boat out of unanswered mail."
                 },
                 "isLocked": false,
                 "links": {},
@@ -325,7 +325,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Labore Et Dolore"
+                    "en": "Obsidian Signal"
                 },
                 "altTitles": [
                     {
@@ -333,7 +333,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "The last repairer of a dying craft gets a visitor who claims to be the first."
                 },
                 "isLocked": false,
                 "links": {},
@@ -411,7 +411,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Magna Aliqua"
+                    "en": "Lantern Archive"
                 },
                 "altTitles": [
                     {
@@ -419,7 +419,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A quiet winter town starts receiving packages addressed to people who were never born."
                 },
                 "isLocked": false,
                 "links": {},
@@ -497,7 +497,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Ut Enim Ad Minim"
+                    "en": "Echo Vigil"
                 },
                 "altTitles": [
                     {
@@ -505,7 +505,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "An orphan inherits a greenhouse whose plants only bloom when someone tells them the truth."
                 },
                 "isLocked": false,
                 "links": {},
@@ -570,7 +570,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Veniam Quis Nostrud"
+                    "en": "Northern Harbor"
                 },
                 "altTitles": [
                     {
@@ -578,7 +578,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A detective investigates a series of thefts in which only the frames of paintings are stolen."
                 },
                 "isLocked": false,
                 "links": {},
@@ -643,7 +643,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Exercitation Ullamco"
+                    "en": "Twilight Petal"
                 },
                 "altTitles": [
                     {
@@ -651,7 +651,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "The two moons disagree on when night should end, and a shepherd is caught between their arguments."
                 },
                 "isLocked": false,
                 "links": {},
@@ -729,7 +729,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Laboris Nisi Aliquip"
+                    "en": "Scarlet Gallery"
                 },
                 "altTitles": [
                     {
@@ -737,7 +737,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "A sailor returns home to find her village has moved three valleys to the west."
                 },
                 "isLocked": false,
                 "links": {},
@@ -802,7 +802,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Ex Ea Commodo"
+                    "en": "Ember Lighthouse"
                 },
                 "altTitles": [
                     {
@@ -810,7 +810,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "On the morning of her coronation, a princess is handed a letter written in her own future handwriting."
                 },
                 "isLocked": false,
                 "links": {},
@@ -888,7 +888,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Consequat Duis Aute"
+                    "en": "Marble Garden"
                 },
                 "altTitles": [
                     {
@@ -896,7 +896,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A cartographer draws a city that doesn't exist yet, and the city starts correcting her mistakes."
                 },
                 "isLocked": false,
                 "links": {},
@@ -961,7 +961,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Irure Dolor"
+                    "en": "Driftwood Furnace"
                 },
                 "altTitles": [
                     {
@@ -969,7 +969,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "The library of a mountain monastery files new books every full moon; nobody writes them."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1034,7 +1034,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Reprehenderit Voluptate"
+                    "en": "Winter Hour"
                 },
                 "altTitles": [
                     {
@@ -1042,7 +1042,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A clockmaker is paid in minutes borrowed from a stranger's life, and keeps very careful ledgers."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1107,7 +1107,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Velit Esse Cillum"
+                    "en": "Copper Rebellion"
                 },
                 "altTitles": [
                     {
@@ -1115,7 +1115,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "An apprentice baker learns that the oldest recipes in the house were written by her, in a hand she doesn't remember."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1193,7 +1193,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Fugiat Nulla Pariatur"
+                    "en": "Glass Orchid"
                 },
                 "altTitles": [
                     {
@@ -1201,7 +1201,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "Two musicians who have never met start composing opposite halves of the same unfinished song."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1266,7 +1266,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Excepteur Sint Occaecat"
+                    "en": "Harbor Verse"
                 },
                 "altTitles": [
                     {
@@ -1274,7 +1274,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A lamplighter in a town without night is told the sun has been reading her mind."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1352,7 +1352,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Cupidatat Non Proident"
+                    "en": "Thunder Ensemble"
                 },
                 "altTitles": [
                     {
@@ -1360,7 +1360,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A gardener who speaks only to bees is nominated to settle a border dispute between two kingdoms."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1425,7 +1425,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Sunt In Culpa"
+                    "en": "Pale Riddle"
                 },
                 "altTitles": [
                     {
@@ -1433,7 +1433,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "An elderly dancer agrees to teach a reluctant student one last routine; neither of them knows the music yet."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1511,7 +1511,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Qui Officia Deserunt"
+                    "en": "Golden Cipher"
                 },
                 "altTitles": [
                     {
@@ -1519,7 +1519,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A rural post office handles mail from a country that no longer appears on any map, and the postmistress refuses to retire."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1597,7 +1597,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Mollit Anim Id Est"
+                    "en": "Vagrant Beacon"
                 },
                 "altTitles": [
                     {
@@ -1605,7 +1605,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A traveller carries a mirror that remembers everyone it has ever reflected, and loses it at a crowded festival."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1670,7 +1670,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Laborum Sed Perspiciatis"
+                    "en": "Quiet Bell"
                 },
                 "altTitles": [
                     {
@@ -1678,7 +1678,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "The village's youngest blacksmith is apprenticed to a stranger whose hammer makes no sound."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1743,7 +1743,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Unde Omnis Iste"
+                    "en": "Moth Horizon"
                 },
                 "altTitles": [
                     {
@@ -1751,7 +1751,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A shut-in novelist starts receiving corrected drafts of her next book, in her own handwriting, by courier."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1816,7 +1816,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Natus Error Voluptatem"
+                    "en": "Frost Meridian"
                 },
                 "altTitles": [
                     {
@@ -1824,7 +1824,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A pair of twins born on either side of a border grow up as rivals and inherit the same inconvenient gift."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1902,7 +1902,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Accusantium Doloremque"
+                    "en": "Wandering Prism"
                 },
                 "altTitles": [
                     {
@@ -1910,7 +1910,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "A town built on an old lighthouse learns that the beam has been pointing at the wrong things on purpose."
                 },
                 "isLocked": false,
                 "links": {},
@@ -1975,7 +1975,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Laudantium Totam Rem"
+                    "en": "Stray Lantern"
                 },
                 "altTitles": [
                     {
@@ -1983,7 +1983,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A retired explorer agrees to lead one more expedition, provided the destination is a place she has already been."
                 },
                 "isLocked": false,
                 "links": {},
@@ -2048,7 +2048,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Aperiam Eaque Ipsa"
+                    "en": "Last Season"
                 },
                 "altTitles": [
                     {
@@ -2056,7 +2056,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A woman wakes up with other people's memories of her, and sets out to find out who she was in them."
                 },
                 "isLocked": false,
                 "links": {},
@@ -2121,7 +2121,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Quae Ab Illo Inventore"
+                    "en": "Hidden Compass"
                 },
                 "altTitles": [
                     {
@@ -2129,7 +2129,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    "en": "A quiet neighbourhood bookshop keeps selling the same single-print volume to the same regular, who never reads it."
                 },
                 "isLocked": false,
                 "links": {},
@@ -2194,7 +2194,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Veritatis Et Quasi"
+                    "en": "Iron Choir"
                 },
                 "altTitles": [
                     {
@@ -2202,7 +2202,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                    "en": "A journeyman carpenter is hired to rebuild a theatre that was never built in the first place."
                 },
                 "isLocked": false,
                 "links": {},
@@ -2280,7 +2280,7 @@
             "type": "manga",
             "attributes": {
                 "title": {
-                    "en": "Architecto Beatae Vitae"
+                    "en": "Still Current"
                 },
                 "altTitles": [
                     {
@@ -2288,7 +2288,7 @@
                     }
                 ],
                 "description": {
-                    "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                    "en": "A reluctant diplomat is sent to a kingdom whose language she doesn't share with anyone else who speaks it."
                 },
                 "isLocked": false,
                 "links": {},

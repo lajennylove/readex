@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Fugiat Nulla Pariatur"
+                "en": "Glass Orchid"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "Two musicians who have never met start composing opposite halves of the same unfinished song."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-16",
                 "type": "author",
                 "attributes": {
-                    "name": "Zeta Script"
+                    "name": "Hazel Ivers"
                 }
             },
             {
                 "id": "artist-demo-16",
                 "type": "artist",
                 "attributes": {
-                    "name": "Iota Canvas"
+                    "name": "Ivo Flux"
                 }
             }
         ]

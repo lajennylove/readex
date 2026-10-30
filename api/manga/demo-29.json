@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Veritatis Et Quasi"
+                "en": "Iron Choir"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "A journeyman carpenter is hired to rebuild a theatre that was never built in the first place."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-29",
                 "type": "author",
                 "attributes": {
-                    "name": "Iota Composer"
+                    "name": "Noor Hollis"
                 }
             },
             {
                 "id": "artist-demo-29",
                 "type": "artist",
                 "attributes": {
-                    "name": "Beta Inker"
+                    "name": "Mei Frame"
                 }
             }
         ]

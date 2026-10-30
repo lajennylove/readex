@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Consectetur Adipiscing"
+                "en": "Silver Threshold"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "After the lantern festival ends, two rival apprentices realise the river has stopped reflecting their faces."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-02",
                 "type": "author",
                 "attributes": {
-                    "name": "Beta Scribe"
+                    "name": "Juno Quinn"
                 }
             },
             {
                 "id": "artist-demo-02",
                 "type": "artist",
                 "attributes": {
-                    "name": "Epsilon Palette"
+                    "name": "Kaede Shade"
                 }
             }
         ]

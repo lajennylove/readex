@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Labore Et Dolore"
+                "en": "Obsidian Signal"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "The last repairer of a dying craft gets a visitor who claims to be the first."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-05",
                 "type": "author",
                 "attributes": {
-                    "name": "Epsilon Quill"
+                    "name": "Idris Vance"
                 }
             },
             {
                 "id": "artist-demo-05",
                 "type": "artist",
                 "attributes": {
-                    "name": "Theta Ink"
+                    "name": "Eiji Hatch"
                 }
             }
         ]

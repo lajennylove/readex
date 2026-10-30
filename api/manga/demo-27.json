@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Aperiam Eaque Ipsa"
+                "en": "Last Season"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "A woman wakes up with other people's memories of her, and sets out to find out who she was in them."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-27",
                 "type": "author",
                 "attributes": {
-                    "name": "Eta Chronicler"
+                    "name": "Edda Vale"
                 }
             },
             {
                 "id": "artist-demo-27",
                 "type": "artist",
                 "attributes": {
-                    "name": "Kappa Frame"
+                    "name": "Hana Linework"
                 }
             }
         ]

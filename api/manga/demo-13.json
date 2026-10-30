@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Irure Dolor"
+                "en": "Driftwood Furnace"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "The library of a mountain monastery files new books every full moon; nobody writes them."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-13",
                 "type": "author",
                 "attributes": {
-                    "name": "Gamma Author"
+                    "name": "Opal Finch"
                 }
             },
             {
                 "id": "artist-demo-13",
                 "type": "artist",
                 "attributes": {
-                    "name": "Zeta Studio"
+                    "name": "Nura Cross"
                 }
             }
         ]

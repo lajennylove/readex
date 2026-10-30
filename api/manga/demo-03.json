@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Elit Sed Do Eiusmod"
+                "en": "Hollow Letter"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "A disgraced courier takes one last job across a country where the roads vanish behind her."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-03",
                 "type": "author",
                 "attributes": {
-                    "name": "Gamma Author"
+                    "name": "Alder Rowe"
                 }
             },
             {
                 "id": "artist-demo-03",
                 "type": "artist",
                 "attributes": {
-                    "name": "Zeta Studio"
+                    "name": "Oren Wash"
                 }
             }
         ]

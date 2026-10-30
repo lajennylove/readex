@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Exercitation Ullamco"
+                "en": "Twilight Petal"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "The two moons disagree on when night should end, and a shepherd is caught between their arguments."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-09",
                 "type": "author",
                 "attributes": {
-                    "name": "Iota Composer"
+                    "name": "Sora Birch"
                 }
             },
             {
                 "id": "artist-demo-09",
                 "type": "artist",
                 "attributes": {
-                    "name": "Beta Inker"
+                    "name": "Dax Tint"
                 }
             }
         ]

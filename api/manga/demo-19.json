@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Sunt In Culpa"
+                "en": "Pale Riddle"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "An elderly dancer agrees to teach a reluctant student one last routine; neither of them knows the music yet."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-19",
                 "type": "author",
                 "attributes": {
-                    "name": "Iota Composer"
+                    "name": "Odin Larkin"
                 }
             },
             {
                 "id": "artist-demo-19",
                 "type": "artist",
                 "attributes": {
-                    "name": "Beta Inker"
+                    "name": "Rina Seam"
                 }
             }
         ]

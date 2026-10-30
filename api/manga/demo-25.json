@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Accusantium Doloremque"
+                "en": "Wandering Prism"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "A town built on an old lighthouse learns that the beam has been pointing at the wrong things on purpose."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-25",
                 "type": "author",
                 "attributes": {
-                    "name": "Epsilon Quill"
+                    "name": "Luna Reed"
                 }
             },
             {
                 "id": "artist-demo-25",
                 "type": "artist",
                 "attributes": {
-                    "name": "Theta Ink"
+                    "name": "Omi Quill"
                 }
             }
         ]

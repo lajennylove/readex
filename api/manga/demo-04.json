@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Tempor Incididunt"
+                "en": "Verdant Tide"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                "en": "In a port where the tides keep letters from reaching their senders, a boy builds a boat out of unanswered mail."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-04",
                 "type": "author",
                 "attributes": {
-                    "name": "Delta Pen"
+                    "name": "Rosa Starling"
                 }
             },
             {
                 "id": "artist-demo-04",
                 "type": "artist",
                 "attributes": {
-                    "name": "Eta Panel"
+                    "name": "Mika Stroke"
                 }
             }
         ]

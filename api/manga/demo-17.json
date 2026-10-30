@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Excepteur Sint Occaecat"
+                "en": "Harbor Verse"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                "en": "A lamplighter in a town without night is told the sun has been reading her mind."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-17",
                 "type": "author",
                 "attributes": {
-                    "name": "Eta Chronicler"
+                    "name": "Ren Jun"
                 }
             },
             {
                 "id": "artist-demo-17",
                 "type": "artist",
                 "attributes": {
-                    "name": "Kappa Frame"
+                    "name": "Bea Verge"
                 }
             }
         ]

@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Mollit Anim Id Est"
+                "en": "Vagrant Beacon"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "A traveller carries a mirror that remembers everyone it has ever reflected, and loses it at a crowded festival."
             },
             "isLocked": false,
             "links": {},
@@ -76,14 +76,14 @@
                 "id": "author-demo-21",
                 "type": "author",
                 "attributes": {
-                    "name": "Alpha Writer"
+                    "name": "Vera Nye"
                 }
             },
             {
                 "id": "artist-demo-21",
                 "type": "artist",
                 "attributes": {
-                    "name": "Delta Brush"
+                    "name": "Ami Palette"
                 }
             }
         ]

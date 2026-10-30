@@ -6,7 +6,7 @@
         "type": "manga",
         "attributes": {
             "title": {
-                "en": "Velit Esse Cillum"
+                "en": "Copper Rebellion"
             },
             "altTitles": [
                 {
@@ -14,7 +14,7 @@
                 }
             ],
             "description": {
-                "en": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                "en": "An apprentice baker learns that the oldest recipes in the house were written by her, in a hand she doesn't remember."
             },
             "isLocked": false,
             "links": {},
@@ -89,14 +89,14 @@
                 "id": "author-demo-15",
                 "type": "author",
                 "attributes": {
-                    "name": "Epsilon Quill"
+                    "name": "Milo Haines"
                 }
             },
             {
                 "id": "artist-demo-15",
                 "type": "artist",
                 "attributes": {
-                    "name": "Theta Ink"
+                    "name": "Taro Dye"
                 }
             }
         ]

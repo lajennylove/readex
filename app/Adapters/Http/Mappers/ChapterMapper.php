@@ -10,7 +10,8 @@ final class ChapterMapper
     public static function row(array $chapter): array
     {
         $a = $chapter['attributes'];
-        $group = self::related($chapter, 'scanlation_group');
+        // Neutral token first; falls back to the upstream protocol token when the source speaks that dialect.
+        $group = self::related($chapter, 'contributor') ?? self::related($chapter, 'scanlation_group');
 
         return [
             'id' => $chapter['id'],
@@ -20,7 +21,7 @@ final class ChapterMapper
             'title' => self::blankToNull($a['title'] ?? null),
             'language' => $a['translatedLanguage'],
             'group_id' => $group['id'] ?? null,
-            // Only present when the call sent `includes[]=scanlation_group`.
+            // Resolved via includes[]=contributor or includes[]=scanlation_group depending on source dialect.
             'group_name' => $group['attributes']['name'] ?? null,
             'pages' => (int) ($a['pages'] ?? 0),
             'external_url' => self::blankToNull($a['externalUrl'] ?? null),

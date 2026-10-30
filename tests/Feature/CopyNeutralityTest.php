@@ -24,6 +24,7 @@ function copyNeutralityBannedList(): array
         'asurascans', 'asura scans', 'webtoons.com', 'tapas.io', 'mangaplus', 'mangadex.cc',
         'mangapark', 'mangago', 'mangaowl', 'mangahere', 'mangahub', 'mangasee',
         'toonily', 'reaperscans', 'flamecomics', 'comick.io', 'comick.app',
+        'scanlation',
     ];
 }
 
@@ -98,6 +99,13 @@ it('never names a specific non-MangaDex content site anywhere in app/ (code iden
         'app/Language/IosLanguageMap.php' => ['toMangaDex'],
         'app/Language/LanguageChain.php' => ['toMangaDex'],
         'app/NativeComponents/Setup.php' => ['toMangaDex'],
+        // Upstream wire-protocol tokens — see docs/COPY-NEUTRALITY.md "Exemption policy".
+        // The reference API returns relationship type "scanlation_group" and requires
+        // `includes[]=scanlation_group` to populate it. Our neutral token is "contributor";
+        // the mapper tries contributor first and only falls back to the upstream token.
+        'app/Adapters/Http/Mappers/ChapterMapper.php' => ['scanlation_group'],
+        'app/Repositories/ChapterRepository.php' => ['scanlation_group'],
+        'app/Repositories/HomeRepository.php' => ['scanlation_group'],
     ];
 
     $files = File::allFiles(app_path());

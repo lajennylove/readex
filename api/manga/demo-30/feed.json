@@ -22,9 +22,9 @@
       "relationships": [
         {
           "id": "demo-group-1",
-          "type": "scanlation_group",
+          "type": "contributor",
           "attributes": {
-            "name": "Demo Translators",
+            "name": "Demo Credits",
             "altNames": [],
             "locked": false,
             "website": null,

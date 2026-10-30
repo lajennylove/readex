@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-46",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Verdant Blade"
+      },
+      "altTitles": [
+        {
+          "es": "Verdant Blade (es)"
+        }
+      ],
+      "description": {
+        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2026,
+      "contentRating": "suggestive",
+      "tags": [
+        {
+          "id": "66666666-6666-4666-8666-666666666666",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Horror"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "88888888-8888-4888-8888-888888888888",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Suspense"
+            },
+            "description": {},
+            "group": "theme",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-30T00:00:00+00:00",
+      "updatedAt": "2026-10-30T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-46-a"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-46",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "https://lajennylove.github.io/readex/covers/demo-46/cover.1024.jpg"
+        }
+      },
+      {
+        "id": "author-demo-46",
+        "type": "author",
+        "attributes": {
+          "name": "Soren Lee"
+        }
+      },
+      {
+        "id": "artist-demo-46",
+        "type": "artist",
+        "attributes": {
+          "name": "Old Signal Co."
+        }
+      }
+    ]
+  }
+}

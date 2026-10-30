@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "response": "entity",
+  "data": {
+    "id": "demo-44",
+    "type": "manga",
+    "attributes": {
+      "title": {
+        "en": "Quiet Covenant"
+      },
+      "altTitles": [
+        {
+          "es": "Quiet Covenant (es)"
+        }
+      ],
+      "description": {
+        "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor."
+      },
+      "isLocked": false,
+      "links": {},
+      "originalLanguage": "en",
+      "lastVolume": "",
+      "lastChapter": "",
+      "publicationDemographic": null,
+      "status": "ongoing",
+      "year": 2026,
+      "contentRating": "suggestive",
+      "tags": [
+        {
+          "id": "55555555-5555-4555-8555-555555555555",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Action"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        },
+        {
+          "id": "77777777-7777-4777-8777-777777777777",
+          "type": "tag",
+          "attributes": {
+            "name": {
+              "en": "Mystery"
+            },
+            "description": {},
+            "group": "genre",
+            "version": 1
+          },
+          "relationships": []
+        }
+      ],
+      "state": "published",
+      "chapterNumbersResetOnNewVolume": false,
+      "createdAt": "2026-10-30T00:00:00+00:00",
+      "updatedAt": "2026-10-30T00:00:00+00:00",
+      "version": 1,
+      "availableTranslatedLanguages": [
+        "en",
+        "es"
+      ],
+      "latestUploadedChapter": "ch-44-a"
+    },
+    "relationships": [
+      {
+        "id": "cover-demo-44",
+        "type": "cover_art",
+        "attributes": {
+          "fileName": "https://lajennylove.github.io/readex/covers/demo-44/cover.1024.jpg"
+        }
+      },
+      {
+        "id": "author-demo-44",
+        "type": "author",
+        "attributes": {
+          "name": "Quin Haller"
+        }
+      },
+      {
+        "id": "artist-demo-44",
+        "type": "artist",
+        "attributes": {
+          "name": "Falling Pine"
+        }
+      }
+    ]
+  }
+}

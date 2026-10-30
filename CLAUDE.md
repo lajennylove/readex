@@ -132,6 +132,7 @@ public function chaptersFor(Title $title): Collection
 - `<ticket-id>` is the issue/task identifier. If there is no ticket, open one first.
 - `<kebab-slug>` is 2–6 lowercase words joined by hyphens; no punctuation.
 - One branch = one logical change. Rebase instead of merging `main` back in; keep history linear.
+- **Housekeeping is part of the task.** Any branch whose work has landed on `main` (squash-merged PR) or on `gh-pages` (demo-source payload pushed) is dead and should be deleted — local and remote — at the end of the session that landed it. Do not leave stale `feature/*`, `bugfix/*`, `chore/*`, or data-sync branches hanging around because "they might be useful later". If they are, the commit they landed is still in `main`/`gh-pages` and that is the authoritative copy. Clean sweep at the end of each landing session.
 
 ### 4.2 Commit messages
 
@@ -179,6 +180,14 @@ CI runs on every push to a non-`main` branch and on every PR targeting `main`:
 Merging to `main` is blocked unless every step is green.
 
 ### 4.5 Release flow
+
+Full credential + command reference lives in Obsidian [[Credentials]]. The two things that keep biting us and MUST be checked before every deploy:
+
+- **Credentials on disk** (do not re-ask for these every session):
+  - Android keystore: `~/.keystores/readex-upload.jks` + `~/.keystores/readex-upload.pw` + alias `readex-upload`.
+  - Play Developer API JSON: `~/.google-play/readex-play-upload.json` — pass via `GOOGLE_SERVICE_ACCOUNT_KEY=~/.google-play/readex-play-upload.json`.
+  - App Store Connect API key: `~/.appstoreconnect/private_keys/AuthKey_NBQ8QRH9A6.p8`, Key ID `NBQ8QRH9A6`, Issuer ID in `~/.appstoreconnect/private_keys/issuer_id.txt` — pass as `--api-issuer-id "$(cat ~/.appstoreconnect/private_keys/issuer_id.txt)"`.
+- **Build number is driven by `NATIVEPHP_APP_VERSION_CODE` in `.env`** — `--jump-by` on `native:package` does not reliably advance it. Before every release build, bump that env value past the current App Store / Play Store live value (iOS and Android share the same counter in this repo). If a `409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE` comes back from ASC with `previousBundleVersion: N`, bump `.env` to at least `N+1` and rebuild — do not spam `--jump-by`.
 
 - Version tags follow **SemVer**: `vMAJOR.MINOR.PATCH`.
 - Tags are cut from `main` only.

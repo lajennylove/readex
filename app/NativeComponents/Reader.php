@@ -345,9 +345,9 @@ class Reader extends NativeComponent
         $state = $fetcher->isRunning($this->chapterId) ? null : $fetcher->state($this->chapterId);
         $count = $this->pageCount();
         $label = MangaDetail::chapterLabel($chapter);
-        // Credit the group when the source names one, otherwise show nothing — "By {group}"
-        // is deliberately source-agnostic (the previous "Scanlation: {group}" tied the app to
-        // one specific scene). The name itself comes straight from the configured source.
+        // Credit the group when the source names one, otherwise show nothing.
+        // "By {group}" is deliberately source-agnostic. The name itself comes straight from the
+        // configured source.
         $credit = $chapter->group_name !== null ? 'By '.$chapter->group_name : '';
         $rows = [];
 

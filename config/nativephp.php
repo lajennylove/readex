@@ -393,8 +393,8 @@ return [
         */
         'build' => [
             // R8/ProGuard Configuration - currently disabled
-            'minify_enabled' => env('NATIVEPHP_ANDROID_MINIFY_ENABLED', false),
-            'shrink_resources' => env('NATIVEPHP_ANDROID_SHRINK_RESOURCES', false),
+            'minify_enabled' => env('NATIVEPHP_ANDROID_MINIFY_ENABLED', true),
+            'shrink_resources' => env('NATIVEPHP_ANDROID_SHRINK_RESOURCES', true),
             'obfuscate' => env('NATIVEPHP_ANDROID_OBFUSCATE', false),
 
             // Debug Symbol Configuration - currently enabled

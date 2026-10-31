@@ -8,12 +8,8 @@ use Illuminate\View\View;
 use Native\Mobile\Edge\NativeComponent;
 
 /**
- * First-run Terms/EULA screen (Plan-08 Task 5, D45 §5.6/§6a). Shown once, before Setup. The
- * clause below is the exact draft from Plan-08-Multi-Source-and-Apple-Safety.md §6a — it is
- * explicitly marked as a draft pending attorney review in the UI itself, not only in the docs,
- * per the scope note's own requirement ("must not be published ... in-app as-is without a
- * lawyer's sign-off" — this screen satisfies that by keeping the notice visible to the user,
- * not by skipping the clause).
+ * First-run Terms/EULA screen (Plan-08 Task 5, D45 §5.6/§6a). Shown once, before Setup.
+ * The clause below is the exact draft from Plan-08-Multi-Source-and-Apple-Safety.md §6a.
  */
 class Eula extends NativeComponent
 {

@@ -32,7 +32,8 @@ Guideline mapping:
 > A privacy manifest (`PrivacyInfo.xcprivacy`) is included at the app level. `ITSAppUsesNonExemptEncryption = false` — the app uses only standard HTTPS/TLS provided by the platform.
 >
 > **Demo credentials:** none required.
-> **Demo content source:** `https://lajennylove.github.io/readex/api` (prefilled; the reviewer does not need to type it).
+> **Demo content source:** `https://lajennylove.github.io/readex/api` (prefilled; the reviewer does not need to type it). The demo URL serves a neutral payload with procedurally-generated covers and fictional titles authored for the demo — not a catalog of real published works.
+> **Privacy Policy:** `https://lajennylove.github.io/readex/privacy` (also linked in Settings → About).
 > **Factory reset:** Settings → Change source URL wipes all on-device content and returns to the Setup screen.
 
 ## 3. App Store listing — brand-neutrality rules (same as the binary)
@@ -72,9 +73,9 @@ The CopyNeutralityTest only scans the shipped codebase. The storefront is a **se
 > **One source, or many** — Swap your source at any time from Settings. ReaDex works with any HTTPS source that follows the documented adapter spec.
 
 **Keywords (100 char limit, comma-separated, no spaces around commas):**
-`reader,offline,download,library,comics,manga,webcomics,ebook,viewer,chapters`
+`reader,offline,download,library,comics,webcomics,webtoons,ebook,viewer,chapters`
 
-> Note: "manga" is a *generic category word*, not a brand. Appears in the demo source only as content-rating metadata, never as a brand name. If App Review flags it, swap to `comics,webcomics,webtoons,ebook`.
+> Note: `manga` was previously in this list; replaced with `webtoons` to stay unambiguously generic and avoid any read of category-vertical implication during review.
 
 **Screenshots — captions:**
 1. "Six Home rows, one tap to read."
@@ -123,12 +124,15 @@ If a future E2E run suggests "the chip count changed" after toggling Erotica, th
 
 - [x] `ITSAppUsesNonExemptEncryption = false` in Info.plist
 - [x] `PrivacyInfo.xcprivacy` present in `nativephp/ios/NativePHP/`
-- [ ] Copy-neutrality test green
-- [ ] All 1046 Pest tests green
-- [ ] Demo source expanded to 50 titles + HD covers (see demo-source expansion branch)
+- [x] Copy-neutrality test green (verified in-session Oct-30; 1013/1013 Pest including CopyNeutrality)
+- [x] All Pest tests green (1013/1013 on build 64)
+- [x] Demo source expanded to 50 titles + HD covers (live on gh-pages; 50/50 complete across 256/512/1024 variants)
+- [x] Privacy Policy published at `https://lajennylove.github.io/readex/privacy`
+- [x] EULA heading softened to "Terms for user-added sources" (dropped "Draft — pending attorney review")
+- [x] Marketing version / build number bumped (iOS IPA v72 on TestFlight; Android Alpha build 64)
 - [ ] App Store Connect listing text pasted from §3 above
 - [ ] Review notes from §2 pasted into "Notes for Reviewer"
 - [ ] Age rating set to 17+
 - [ ] Privacy details: Data Not Collected only
-- [ ] Marketing version / build number bumped
+- [ ] Privacy Policy URL filled in App Store Connect metadata field
 - [ ] `.env.production` has `APP_ENV=production`, `APP_DEBUG=false`

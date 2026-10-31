@@ -36,7 +36,7 @@
             @endif
             <native:button label="{{ $favorite ? 'Favorited' : 'Favorite' }}" variant="secondary" ios-icon="{{ $favorite ? 'heart.fill' : 'heart' }}" @press="toggleFavorite" />
             @if ($downloadAll)
-                <native:button label="{{ $downloadAll['label'] }}" variant="secondary" ios-icon="{{ $downloadAll['icon'] }}" @press="downloadAll" />
+                <native:button label="{{ $downloadAll['label'] }}" variant="secondary" ios-icon="{{ $downloadAll['icon'] }}" :disabled="$downloadAll['disabled']" @press="downloadAll" />
             @endif
         </native:column>
 

@@ -159,9 +159,14 @@ trait ManagesDownloads
 
     /**
      * "Download all", "Downloading 12 / 179 · 7%" while its batch runs, "Downloaded" when every
-     * readable chapter of the language is; null when the language has none.
+     * readable chapter of the language is. When the currently-picked language has no readable
+     * chapters but the series does in some OTHER language, returns a disabled "Download all" so
+     * the affordance stays visible — the reader sees the button exists and can switch languages.
+     * When no language of the series has any readable chapters (e.g. a licensed series like Solo
+     * Leveling where every chapter opens on the publisher's site), returns null so the button
+     * hides entirely.
      *
-     * @return ?array{label: string, icon: string}
+     * @return ?array{label: string, icon: string, disabled: bool}
      */
     protected function downloadAllButton(string $mangaId, string $language): ?array
     {
@@ -169,15 +174,28 @@ trait ManagesDownloads
         $running = $downloads->running($mangaId);
 
         if ($running !== null) {
-            return ['label' => "Downloading {$running['done']} / {$running['total']} · {$running['percent']}%", 'icon' => 'stop.circle'];
+            return ['label' => "Downloading {$running['done']} / {$running['total']} · {$running['percent']}%", 'icon' => 'stop.circle', 'disabled' => false];
         }
 
         $plan = $downloads->plan($mangaId, $language);
 
-        return match (true) {
-            $plan['readable'] === 0 => null,
-            $plan['downloaded'] === $plan['readable'] => ['label' => 'Downloaded', 'icon' => 'checkmark.circle'],
-            default => ['label' => 'Download all', 'icon' => 'arrow.down.circle'],
-        };
+        if ($plan['readable'] === 0) {
+            // Any readable chapter in any other language of this series? Checking the Chapter
+            // table directly avoids running plan() per advertised language (plan() loads sections
+            // + stored_chapters joins; cheap but N× in a render path). If yes → disabled button;
+            // if no → hide entirely (licensed series).
+            $hasAnyReadable = Chapter::query()
+                ->where('manga_id', $mangaId)
+                ->whereNull('external_url')
+                ->exists();
+
+            return $hasAnyReadable
+                ? ['label' => 'Download all', 'icon' => 'arrow.down.circle', 'disabled' => true]
+                : null;
+        }
+
+        return $plan['downloaded'] === $plan['readable']
+            ? ['label' => 'Downloaded', 'icon' => 'checkmark.circle', 'disabled' => false]
+            : ['label' => 'Download all', 'icon' => 'arrow.down.circle', 'disabled' => false];
     }
 }

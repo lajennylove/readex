@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReaDex — Privacy Policy</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { margin: 0; padding: 0; background: #fbfaf7; color: #1f2430; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #1e2235; color: #e7e9ef; }
+    a { color: #8fb4ff; }
+    h1, h2 { color: #ffffff; }
+    code { background: #2a2f45; }
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .meta { color: #6c7384; font-size: 14px; margin-bottom: 36px; }
+  h2 { font-size: 18px; margin: 40px 0 10px; letter-spacing: -0.005em; }
+  p, li { margin: 10px 0; }
+  code { background: #efece6; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
+  a { color: #2d4ba0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ReaDex — Privacy Policy</h1>
+  <p class="meta">Effective 2026-10-30 · Last updated 2026-10-30</p>
+
+  <h2>Summary</h2>
+  <p>ReaDex collects no personal data. It has no account, no analytics, no telemetry, and no crash-reporting SDK. Everything the app knows about your use of it lives on your device, inside the app's own sandbox, and can be deleted from Settings at any time.</p>
+
+  <h2>What ReaDex is</h2>
+  <p>ReaDex is a personal reader client. It is conceptually equivalent to a web browser or an RSS reader: the user supplies the URL of a content source, and the app renders what that source returns. ReaDex ships with no built-in catalog, no bundled content, and no curated list of third-party sites. The author does not host, scrape, or redistribute content on behalf of any user.</p>
+
+  <h2>What stays on your device</h2>
+  <p>The following items are stored locally in the app's own sandbox and never leave the device:</p>
+  <ul>
+    <li>Your library and reading progress</li>
+    <li>Downloaded chapters and cached cover thumbnails</li>
+    <li>Your configured content source URL and the optional secondary URLs (covers CDN, curated list)</li>
+    <li>App preferences (language, content-rating filters, image quality)</li>
+    <li>Local tag-affinity signals used to build the on-device "Recommended for you" row</li>
+  </ul>
+  <p>All of this can be erased at any time via <strong>Settings → Delete everything</strong>, which empties every SQLite table and every file in the app's storage directories.</p>
+
+  <h2>What ReaDex does not collect</h2>
+  <p><strong>Nothing.</strong> There is no account to create. There are no analytics or telemetry SDKs. There is no crash-reporting SDK. The author receives no information about who you are, which device you use, which source you configured, what you read, or when you used the app.</p>
+
+  <h2>Content sources are your choice</h2>
+  <p>When you add a content source URL in Setup, ReaDex makes HTTPS requests to that URL on your behalf, the same way a web browser would. The operator of whichever source you configured can see those requests (IP address, HTTP headers, which items you asked for) under their own privacy policy, which is not controlled by ReaDex or its author. The app rejects non-HTTPS URLs at setup. You are solely responsible for ensuring that you have the legal right to access, read, and store any content made available through a source you add.</p>
+
+  <h2>Required-reason APIs (iOS)</h2>
+  <p>Apple requires apps to declare their reasons for using certain system APIs. ReaDex uses the following, each for a narrow operational purpose and never for tracking:</p>
+  <ul>
+    <li><strong>UserDefaults (CA92.1)</strong> — reading and writing the app's own preferences such as language, content-rating filters, and image quality.</li>
+    <li><strong>File timestamp (C617.1)</strong> — managing the cache: deciding which downloaded chapters and cover thumbnails are stale and can be evicted when storage pressure rises.</li>
+    <li><strong>Disk space (E174.1)</strong> — the download queue's disk-space guard, which checks free space before saving a new chapter so the app does not fill the device.</li>
+    <li><strong>System boot time (35F9.1)</strong> — operational timing of internal retries and timeouts; never associated with any user identifier.</li>
+  </ul>
+
+  <h2>Permissions ReaDex uses</h2>
+  <ul>
+    <li><strong>Internet access</strong> — to reach the content source you configured.</li>
+    <li><strong>File storage</strong> inside the app's own sandbox — to cache downloads and database state.</li>
+  </ul>
+  <p>ReaDex does not request access to your camera, microphone, contacts, location, photos, calendar, call log, SMS, or any system-wide storage area.</p>
+
+  <h2>Children</h2>
+  <p>ReaDex is not directed at children under 13. Because the content shown is determined by whichever source the user configures, parents and guardians are responsible for deciding whether the configured source is age-appropriate for their household.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes materially, the "Last updated" date above will change. The current version is always available at this URL.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy can be sent to <a href="mailto:jenny@socialmedialabs.net">jenny@socialmedialabs.net</a>.</p>
+</main>
+</body>
+</html>

@@ -113,6 +113,23 @@ function t7dLabels(array $node): array
     return array_column(t7dButtons($node), 'label');
 }
 
+/** True if the button with this label is rendered as disabled; false if enabled; null if absent. */
+function t7dDisabled(array $node, string $label): ?bool
+{
+    if (($node['type'] ?? null) === 'button' && ($node['props']['label'] ?? null) === $label) {
+        return (bool) ($node['props']['disabled'] ?? false);
+    }
+
+    foreach ($node['children'] ?? [] as $child) {
+        $found = t7dDisabled($child, $label);
+        if ($found !== null) {
+            return $found;
+        }
+    }
+
+    return null;
+}
+
 /** Matches a Dialog.Alert with this title, message and buttons (Cancel first). */
 function t7dAlert(string $title, string $message, array $buttons): Closure
 {
@@ -409,14 +426,33 @@ describe('Download all', function () {
             ->toContain('Download all')->not->toContain('Downloaded');
     });
 
-    it('is not there when the language has no readable chapter', function () {
+    it('is disabled when the picked language has no readable chapter but another language does', function () {
+        // Spanish-default + external, English readable: the button has to stay visible on the
+        // Spanish view so the reader notices the download affordance exists at all — switching to
+        // English then flips the same button to enabled.
         t7dChapter('t7-d1', '1', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/71']);
         t7dChapter('t7-den', '1', ['language' => 'en']);
+
+        $screen = Native::visit('/home/manga/'.T7_DETAIL);
+        expect(t7dLabels($screen->tree()))->toBe(['Favorite', 'Download all']);
+        expect(t7dDisabled($screen->tree(), 'Download all'))->toBeTrue();
+
+        $screen->toggle("pickLanguage('en')", true);
+        expect(t7dLabels($screen->tree()))->toBe(['Favorite', 'Download all']);
+        expect(t7dDisabled($screen->tree(), 'Download all'))->toBeFalse();
+    });
+
+    it('is hidden when every language of the series is external', function () {
+        // A licensed series — every chapter in every language opens on the publisher's site.
+        // There is no language the reader can switch to that would make the button useful, so
+        // hiding it entirely is less noisy than a dead disabled affordance.
+        t7dChapter('t7-d1', '1', ['external_url' => 'https://mangaplus.shueisha.co.jp/viewer/71']);
+        t7dChapter('t7-den', '1', ['language' => 'en', 'external_url' => 'https://mangaplus.shueisha.co.jp/viewer/72']);
 
         $screen = Native::visit('/home/manga/'.T7_DETAIL);
         expect(t7dLabels($screen->tree()))->toBe(['Favorite']);
 
         $screen->toggle("pickLanguage('en')", true);
-        expect(t7dLabels($screen->tree()))->toBe(['Favorite', 'Download all']);
+        expect(t7dLabels($screen->tree()))->toBe(['Favorite']);
     });
 });

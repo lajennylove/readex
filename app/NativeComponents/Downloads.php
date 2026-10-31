@@ -34,9 +34,34 @@ class Downloads extends NativeComponent implements HasResumeBar
     use ShowsResumeBar;
     use ShowsTiles;
 
+    /**
+     * First-row index for the currently-shown window of pending chapters. Zero means
+     * "rows 1..cap". Bumped by `pageDownloads()` in `+cap` steps so a very long queue walks
+     * through cap-sized windows instead of trying to ship every row in one native-Element tree —
+     * same mechanism the MangaDetail chapter list uses. On a Pixel 9 with ~200 queued chapters
+     * the un-paginated tree overflows the Android flat buffer (observed as a `nodes=968 flat=155848`
+     * PostTreeUpdate that the WebView accepts but never body-swaps on).
+     */
+    public int $downloadsOffset = 0;
+
     public function navTitle(): string
     {
         return 'Downloads';
+    }
+
+    /**
+     * Walk one `downloads.row_cap`-sized window up or down the pending-chapters list.
+     * `$direction` is `+1` for "View next N →" and `-1` for "← View previous N".
+     */
+    public function pageDownloads(int $direction): void
+    {
+        if ($direction !== 1 && $direction !== -1) {
+            return;
+        }
+
+        $cap = (int) config('readex.downloads.row_cap', 400);
+        $next = $this->downloadsOffset + ($direction * $cap);
+        $this->downloadsOffset = max(0, $next);
     }
 
     public function pause(string $chapterId): void
@@ -81,11 +106,26 @@ class Downloads extends NativeComponent implements HasResumeBar
         // One joined query covers every row the view needs: queue state + the stored_chapters
         // page progress so a Downloading chip can show "Downloading · X%" without an N+1.
         // Mirrors DownloadQueue::pending()'s ordering (position asc) and comodin exclusion.
-        $pending = DB::table('downloads')
-            ->leftJoin('stored_chapters', 'stored_chapters.chapter_id', '=', 'downloads.chapter_id')
+        //
+        // The query reads total count first so the pager rows can label the next/previous window
+        // ("View next 400 →"), then slices the current window with limit+offset so the native tree
+        // never ships more than $cap rows at once (Android flat-buffer ceiling, same bite point
+        // the MangaDetail chapter list works around).
+        $cap = (int) config('readex.downloads.row_cap', 400);
+
+        $base = DB::table('downloads')
             ->where('downloads.state', '!=', QueueState::Done->value)
-            ->when($comodin !== null, fn ($q) => $q->where('downloads.chapter_id', '!=', $comodin))
+            ->when($comodin !== null, fn ($q) => $q->where('downloads.chapter_id', '!=', $comodin));
+
+        $total = (clone $base)->count();
+        $maxOffset = max(0, (int) (floor(max(0, $total - 1) / $cap) * $cap));
+        $offset = min(max(0, $this->downloadsOffset), $maxOffset);
+
+        $pending = $base
+            ->leftJoin('stored_chapters', 'stored_chapters.chapter_id', '=', 'downloads.chapter_id')
             ->orderBy('downloads.position')
+            ->offset($offset)
+            ->limit($cap)
             ->get([
                 'downloads.chapter_id',
                 'downloads.manga_id',
@@ -147,8 +187,18 @@ class Downloads extends NativeComponent implements HasResumeBar
         }
         unset($group);
 
+        $windowEnd = min($offset + $cap, $total);
+        $pagerUp = $offset > 0
+            ? ['label' => '← View previous '.min($cap, $offset).' downloads', 'direction' => -1]
+            : null;
+        $pagerDown = $windowEnd < $total
+            ? ['label' => 'View next '.min($cap, $total - $windowEnd).' downloads →', 'direction' => 1]
+            : null;
+
         return view('native.downloads', [
             'groups' => array_values($groups),
+            'pagerUp' => $pagerUp,
+            'pagerDown' => $pagerDown,
         ]);
     }
 

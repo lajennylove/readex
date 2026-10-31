@@ -257,6 +257,40 @@ class Settings extends NativeComponent implements HasResumeBar
         $this->navigate('/settings/sources');
     }
 
+    /**
+     * Opens the Privacy Policy in an in-app browser (SFSafariViewController on iOS,
+     * Custom Tabs on Android). Hosted on the project's gh-pages so it stays reachable
+     * even if the configured content source is down.
+     */
+    public function openPrivacyPolicy(): void
+    {
+        Browser::inApp('https://lajennylove.github.io/readex/privacy');
+    }
+
+    /**
+     * Opens the system mail composer with a prefilled report about the currently
+     * configured content source. Required reporting mechanism for apps where the
+     * user brings in their own content (Apple App Review Guideline 1.1.6).
+     * The configured source URL and app version are inlined so the maintainer can
+     * triage without a back-and-forth; the user still owns the "what's wrong" line.
+     */
+    public function reportSourceProblem(): void
+    {
+        $sourceUrl = $this->providerUrl() ?: '(none configured)';
+        $version = (string) config('source.app_version');
+
+        $subject = 'ReaDex: problem with the configured source';
+        $body = "What's wrong?\n[describe the issue]\n\n"
+            ."Your source URL: {$sourceUrl}\n\n"
+            ."App version: {$version}";
+
+        $mailto = 'mailto:jenny@socialmedialabs.net'
+            .'?subject='.rawurlencode($subject)
+            .'&body='.rawurlencode($body);
+
+        Browser::open($mailto);
+    }
+
     /** Generic label — the real provider name/host shows on the sources screen. */
     private function providerLabel(): string
     {

@@ -64,6 +64,12 @@
         </native:column>
 
         <native:column class="w-full gap-2">
+            <native:text class="text-lg font-bold text-theme-on-background">Manage your source</native:text>
+            <native:button label="Report a problem with this source" variant="secondary" @press="reportSourceProblem" />
+            <native:text class="text-xs text-theme-on-surface-variant">Opens your mail app with a prefilled message to the ReaDex maintainer. Use this if a configured source serves something that shouldn't be there, or if the source is broken.</native:text>
+        </native:column>
+
+        <native:column class="w-full gap-2">
             <native:text class="text-lg font-bold text-theme-destructive">Reset ReaDex</native:text>
             <native:button label="Change source URL" variant="destructive" @press="askChangeSource" />
             <native:text class="text-xs text-theme-on-surface-variant">Removes your Library, reading progress, downloads and cached chapters, then takes you back to Setup to enter a new source URL. Content from a different source wouldn't match what's saved here.</native:text>
@@ -80,6 +86,12 @@
                 </native:row>
             </native:pressable>
             <native:text class="text-xs text-theme-on-surface-variant">{{ $providerCredit }}</native:text>
+            <native:pressable class="w-full" @press="openPrivacyPolicy" a11y-label="Privacy Policy">
+                <native:row class="w-full items-center justify-between">
+                    <native:text class="text-base text-theme-on-background">Privacy Policy</native:text>
+                    <native:text class="text-sm text-theme-on-surface-variant">›</native:text>
+                </native:row>
+            </native:pressable>
             <native:text class="text-xs text-theme-on-surface-variant">ReaDex {{ $version }}</native:text>
         </native:column>
     </native:column>

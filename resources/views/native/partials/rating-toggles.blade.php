@@ -11,5 +11,5 @@
                 @change="setRating('{{ $rating }}')" />
         </native:row>
     @endforeach
-    <native:text class="text-xs text-theme-on-surface-variant">Erotica and pornographic need you to be 18 or older.</native:text>
+    <native:text class="text-xs text-theme-on-surface-variant">Erotica and pornographic need you to be 18 or older. Turning them on unlocks adult-rated content from your source. Content is served by the provider you configure; ReaDex does not host or curate it.</native:text>
 </native:column>

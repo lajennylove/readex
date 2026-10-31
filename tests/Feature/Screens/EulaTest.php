@@ -4,10 +4,10 @@ use App\NativeComponents\Eula;
 use App\Repositories\SettingsRepository;
 use Native\Mobile\Testing\Native;
 
-it('shows the draft clause and the pending-review notice', function () {
+it('shows the Terms heading and the responsibility-transfer clause', function () {
     Native::visit('/eula')
         ->assertScreen(Eula::class)
-        ->assertSee('Draft — pending attorney review')
+        ->assertSee('Terms for user-added sources')
         ->assertSee('User-Added Content Sources')
         ->assertSee('You are solely responsible for ensuring that you have the legal right')
         ->assertSee('I understand, continue');

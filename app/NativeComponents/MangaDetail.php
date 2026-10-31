@@ -58,6 +58,13 @@ class MangaDetail extends NativeComponent implements HasResumeBar
     /** Chapter-list language; '' until the series' languages are known. */
     public string $language = '';
 
+    /**
+     * First-chapter index for the currently-shown window of the chapter list. Zero means
+     * "chapters 1..cap". Bumped by `pageChapters()` in `+cap` steps to walk through series with
+     * more rows than the native-Element flat buffer can publish in one tree (see §chapterSections).
+     */
+    public int $chapterOffset = 0;
+
     public function mount(string $id): void
     {
         $this->mangaId = $id;
@@ -158,7 +165,24 @@ class MangaDetail extends NativeComponent implements HasResumeBar
         }
 
         $this->language = $language;
+        $this->chapterOffset = 0;
         $this->load();
+    }
+
+    /**
+     * Walk one `chapter_cap`-sized window up or down the chapter list. `$direction` is `+1` for
+     * "View chapters N+1..M →" and `-1` for "← View chapters K..N". The clamp keeps the offset at
+     * valid boundaries even if a rapid tap would step past the last window.
+     */
+    public function pageChapters(int $direction): void
+    {
+        if ($direction !== 1 && $direction !== -1) {
+            return;
+        }
+
+        $cap = (int) config('readex.manga_detail.chapter_cap', 400);
+        $next = $this->chapterOffset + ($direction * $cap);
+        $this->chapterOffset = max(0, $next);
     }
 
     public function render(): View
@@ -194,8 +218,12 @@ class MangaDetail extends NativeComponent implements HasResumeBar
             'switch' => count($advertised) > 1
                 ? array_map(fn (string $code) => ['code' => $code, 'name' => Languages::name($code)], $advertised)
                 : [],
-            'sections' => $this->language === '' ? [] : $this->chapterSections($current),
-            'downloadAll' => $this->language === '' ? null : $this->downloadAllButton($this->mangaId, $this->language),
+            ...($this->language === ''
+                ? ['sections' => [], 'pagerUp' => null, 'pagerDown' => null, 'downloadAll' => null]
+                : [
+                    ...$this->chapterSections($current),
+                    'downloadAll' => $this->downloadAllButton($this->mangaId, $this->language),
+                ]),
             'loadingChapters' => $this->language !== '' && $this->inFlight(Refresh::of([ChapterRepository::class, 'refresh'], $this->mangaId, $this->language)),
             'languageName' => $this->language === '' ? null : Languages::name($this->language),
         ]);
@@ -230,10 +258,11 @@ class MangaDetail extends NativeComponent implements HasResumeBar
         $downloads = app(Downloads::class)->statuses(collect($sections)->flatMap(fn (array $s) => $s['chapters']->map(fn (array $pair) => $pair[0]->id))->all());
 
         // Android's Element flat buffer overflows at ~500 chapter rows (seen on
-        // 748-chapter Release That Witch). Cap the rendered list so the tree
-        // still publishes; a trailing "+N more" row flags the truncation.
-        // Proper fix is virtual-list, tracked separately.
-        $cap = config('readex.manga_detail.chapter_cap', 400);
+        // 748-chapter Release That Witch). Window the rendered list so the tree
+        // still publishes; pager rows at either end walk `$chapterOffset` through
+        // the full list in cap-sized steps. Proper fix is virtual-list, tracked
+        // separately.
+        $cap = (int) config('readex.manga_detail.chapter_cap', 400);
         $built = array_map(fn (array $s) => [
             'volume' => $s['volume'] === null ? 'No volume yet' : "Volume {$s['volume']}",
             'chapters' => $s['chapters']->map(fn (array $pair) => self::chapterRow($pair[0], $pair[1], $current?->chapter->id === $pair[0]->id, $downloads[$pair[0]->id]))->values()->all(),
@@ -241,23 +270,44 @@ class MangaDetail extends NativeComponent implements HasResumeBar
 
         $total = array_sum(array_map(fn (array $s) => count($s['chapters']), $built));
         if ($total <= $cap) {
-            return $built;
+            return ['sections' => $built, 'pagerUp' => null, 'pagerDown' => null];
         }
 
-        $kept = 0;
-        $capped = [];
+        // Clamp a stale offset (e.g. a language with fewer chapters was picked after $chapterOffset
+        // had already been advanced) back to a valid window. The clamp also catches a cap bump via
+        // config change between a Blade render and the next controller round-trip.
+        $maxOffset = max(0, (int) (floor(($total - 1) / $cap) * $cap));
+        $offset = min(max(0, $this->chapterOffset), $maxOffset);
+        $windowEnd = min($offset + $cap, $total);
+
+        $windowed = [];
+        $cursor = 0;
         foreach ($built as $section) {
-            $room = $cap - $kept;
-            if ($room <= 0) {
-                break;
-            }
-            $slice = array_slice($section['chapters'], 0, $room);
-            $kept += count($slice);
-            $capped[] = ['volume' => $section['volume'], 'chapters' => $slice];
-        }
-        $capped[] = ['volume' => '+'.($total - $kept).' more (open the next language or paginate to see them)', 'chapters' => []];
+            $sectionCount = count($section['chapters']);
+            $sectionStart = $cursor;
+            $sectionEnd = $cursor + $sectionCount;
+            $cursor = $sectionEnd;
 
-        return $capped;
+            if ($sectionEnd <= $offset || $sectionStart >= $windowEnd) {
+                continue;
+            }
+
+            $sliceStart = max(0, $offset - $sectionStart);
+            $sliceLen = min($sectionEnd, $windowEnd) - max($sectionStart, $offset);
+            $windowed[] = [
+                'volume' => $section['volume'],
+                'chapters' => array_slice($section['chapters'], $sliceStart, $sliceLen),
+            ];
+        }
+
+        $pagerUp = $offset > 0
+            ? ['label' => '← View chapters '.max(1, $offset - $cap + 1).'–'.$offset, 'direction' => -1]
+            : null;
+        $pagerDown = $windowEnd < $total
+            ? ['label' => 'View chapters '.($windowEnd + 1).'–'.min($windowEnd + $cap, $total).' →', 'direction' => 1]
+            : null;
+
+        return ['sections' => $windowed, 'pagerUp' => $pagerUp, 'pagerDown' => $pagerDown];
     }
 
     /**

@@ -77,6 +77,14 @@
             </native:scroll-view>
         @endif
 
+        @if ($pagerUp)
+            <native:pressable
+                native:key="chapter-pager-up"
+                @press="pageChapters(-1)"
+                a11y-label="{{ $pagerUp['label'] }}">
+                <native:text class="px-4 pt-4 pb-2 text-sm text-theme-primary">{{ $pagerUp['label'] }}</native:text>
+            </native:pressable>
+        @endif
         @forelse ($sections as $section)
             <native:text class="px-4 pt-4 pb-1 text-base font-bold text-theme-on-surface-variant">{{ $section['volume'] }}</native:text>
             @foreach ($section['chapters'] as $row)
@@ -94,6 +102,14 @@
                 <native:text class="px-4 py-2 text-sm text-theme-on-surface-variant">{{ $languageName === null ? 'No chapters yet' : "No chapters in {$languageName} yet" }}</native:text>
             @endif
         @endforelse
+        @if ($pagerDown)
+            <native:pressable
+                native:key="chapter-pager-down"
+                @press="pageChapters(1)"
+                a11y-label="{{ $pagerDown['label'] }}">
+                <native:text class="px-4 pt-2 pb-4 text-sm text-theme-primary">{{ $pagerDown['label'] }}</native:text>
+            </native:pressable>
+        @endif
 
         {{-- 2× the resume bar's height (bar: cover h-12 + outer py-2 ≈ 64 px). The floating bar
              sits above the tab bar on every HasResumeBar screen, including this one; without

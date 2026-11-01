@@ -1,12 +1,24 @@
 <native:scroll-view class="w-full h-full bg-theme-background">
     <native:column class="w-full gap-6 p-4 pb-24">
-        @if ($pagerUp)
-            <native:pressable
-                native:key="dl-pager-up"
-                @press="pageDownloads(-1)"
-                a11y-label="{{ $pagerUp['label'] }}">
-                <native:text class="text-sm text-theme-primary">{{ $pagerUp['label'] }}</native:text>
-            </native:pressable>
+        @if ($pagerUp || $pagerDown)
+            <native:column class="w-full gap-1">
+                @if ($pagerUp)
+                    <native:pressable
+                        native:key="dl-pager-up-top"
+                        @press="pageDownloads(-1)"
+                        a11y-label="{{ $pagerUp['label'] }}">
+                        <native:text class="text-sm text-theme-primary">{{ $pagerUp['label'] }}</native:text>
+                    </native:pressable>
+                @endif
+                @if ($pagerDown)
+                    <native:pressable
+                        native:key="dl-pager-down-top"
+                        @press="pageDownloads(1)"
+                        a11y-label="{{ $pagerDown['label'] }}">
+                        <native:text class="text-sm text-theme-primary">{{ $pagerDown['label'] }}</native:text>
+                    </native:pressable>
+                @endif
+            </native:column>
         @endif
         @forelse ($groups as $group)
             <native:column class="w-full gap-2" native:key="dl-group-{{ $group['mangaId'] }}">
@@ -63,13 +75,25 @@
                 <native:text class="text-sm text-center text-theme-on-surface-variant">Chapters you queue from a series' Detail will show here with per-chapter controls.</native:text>
             </native:column>
         @endforelse
-        @if ($pagerDown)
-            <native:pressable
-                native:key="dl-pager-down"
-                @press="pageDownloads(1)"
-                a11y-label="{{ $pagerDown['label'] }}">
-                <native:text class="text-sm text-theme-primary">{{ $pagerDown['label'] }}</native:text>
-            </native:pressable>
+        @if ($pagerUp || $pagerDown)
+            <native:column class="w-full gap-1">
+                @if ($pagerUp)
+                    <native:pressable
+                        native:key="dl-pager-up-bottom"
+                        @press="pageDownloads(-1)"
+                        a11y-label="{{ $pagerUp['label'] }}">
+                        <native:text class="text-sm text-theme-primary">{{ $pagerUp['label'] }}</native:text>
+                    </native:pressable>
+                @endif
+                @if ($pagerDown)
+                    <native:pressable
+                        native:key="dl-pager-down-bottom"
+                        @press="pageDownloads(1)"
+                        a11y-label="{{ $pagerDown['label'] }}">
+                        <native:text class="text-sm text-theme-primary">{{ $pagerDown['label'] }}</native:text>
+                    </native:pressable>
+                @endif
+            </native:column>
         @endif
     </native:column>
 </native:scroll-view>
